@@ -36,7 +36,7 @@
   camera.add(eyeLight);
 
   // ---------- PROFESSOR ----------
-  const profTex = SPRITES.professorTextures();
+  const profTex = SPRITES.textures('prof1');
   const profMat = new THREE.MeshPhongMaterial({ map: profTex[0], transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, emissive: 0x1a1812 });
   const prof = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.8), profMat);
   prof.position.set(W.profStart.x, 0.9, W.profStart.z);
@@ -293,15 +293,15 @@
 
   DIALOGUE.init();
 
-  // modo de desenvolvimento: index.html#dev=x,z,yaw[,talk] pula as telas (sem áudio)
-  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(,talk|,met)?/);
+  // modo de desenvolvimento: index.html#dev=x,z,yaw[,pPITCH][,talk|,met] pula as telas (sem áudio)
+  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met)?/);
   if (dev) {
     ['boot', 'title'].forEach(id => show(id, false));
     show('hud'); G.state = 'play';
-    P.pos.set(+dev[1], 0, +dev[2]); P.yaw = +dev[3];
+    P.pos.set(+dev[1], 0, +dev[2]); P.yaw = +dev[3]; P.pitch = +(dev[4] || 0);
     setObjective('[DEV]');
-    if (dev[4] === ",talk") startTalk();
-    if (dev[4] === ",met") { G.met = G.objective = true; G.profTarget = W.fountain.clone().add(new THREE.Vector3(1, 0, 0)); }
+    if (dev[5] === ",talk") startTalk();
+    if (dev[5] === ",met") { G.met = G.objective = true; G.profTarget = W.fountain.clone().add(new THREE.Vector3(1, 0, 0)); }
   }
   requestAnimationFrame(frame);
 })();

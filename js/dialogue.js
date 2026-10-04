@@ -265,7 +265,7 @@ const DIALOGUE = (() => {
       }
       // retrato animado
       const frame = talkAnim ? (Math.floor(time * 9) % 2 ? 1 : (Math.floor(time * 2) % 3 === 0 ? 2 : 0)) : 0;
-      if (frame !== this._lastFrame) { SPRITES.drawPortrait(el.portrait, frame); this._lastFrame = frame; }
+      if (frame !== this._lastFrame) { SPRITES.drawPortrait(el.portrait, 'prof1', frame); this._lastFrame = frame; }
     },
     // falas soltas para depois da conversa (ele continua falando... com o bebedouro)
     MUTTER: [

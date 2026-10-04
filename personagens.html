@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Galeria de Personagens</title>
+<style>
+  body { background: #111; color: #ddd; font-family: monospace; margin: 20px; }
+  .row { display: flex; gap: 28px; flex-wrap: wrap; }
+  .card { background: #1c1c1c; padding: 12px; border: 2px solid #333; text-align: center; }
+  canvas { image-rendering: pixelated; display: block; margin: 6px auto; background: #2a2a2a; }
+  .pair { display: flex; gap: 8px; align-items: flex-end; justify-content: center; }
+  h3 { margin: 0 0 6px; color: #ffcf8a; font-size: 13px; }
+</style>
+</head>
+<body>
+<h2>Personagens — referência visual (dev)</h2>
+<div class="row" id="row"></div>
+<script src="lib/three.min.js"></script>
+<script src="js/util.js"></script>
+<script src="js/sprites.js"></script>
+<script>
+  for (const id in SPRITES.CHARS) {
+    const d = document.createElement('div'); d.className = 'card';
+    d.innerHTML = `<h3>${SPRITES.CHARS[id].nome} (${id})</h3>`;
+    const pair = document.createElement('div'); pair.className = 'pair';
+    for (const f of [0, 1]) {
+      const pc = document.createElement('canvas'); pc.width = 48; pc.height = 48; pc.style.width = '144px';
+      SPRITES.drawPortrait(pc, id, f); pair.appendChild(pc);
+    }
+    const bc = document.createElement('canvas'); bc.width = 32; bc.height = 64; bc.style.width = '72px';
+    bc.getContext('2d').drawImage(SPRITES.get(id).body[0], 0, 0); pair.appendChild(bc);
+    d.appendChild(pair); document.getElementById('row').appendChild(d);
+  }
+</script>
+</body>
+</html>

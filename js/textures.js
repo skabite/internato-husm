@@ -31,20 +31,41 @@ const TEX = (() => {
     g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(0, 31, w, 1); // junta de forma
   });
 
-  // fachada: uma "baia" = 4 m de largura x 1 pavimento
-  T.facade = make(64, 72, (g, w, h) => {
-    speckle(g, w, h, [150, 146, 136], 14, 3);
+  // fachada (ref.: foto da fachada): concreto claro, faixa contínua de janelas recuadas, laje-brise e toldos
+  // uma "baia" = 4 m de largura x 1 pavimento
+  T.facade = make(64, 58, (g, w, h) => {
+    speckle(g, w, h, [196, 194, 186], 10, 3);
     const r = U.rng(4);
-    g.fillStyle = '#0d1219'; g.fillRect(0, 20, w, 36);          // faixa de janelas
-    for (let i = 0; i < 26; i++) {                                 // reflexos no vidro
-      g.fillStyle = `rgba(80,100,130,${0.1 + r() * 0.2})`;
-      g.fillRect(Math.floor(r() * w), 20 + Math.floor(r() * 36), 1 + Math.floor(r() * 3), 1);
+    g.fillStyle = "#a9a69c"; g.fillRect(0, 0, w, 4);              // laje / brise (topo)
+    g.fillStyle = "#6c6a64"; g.fillRect(0, 4, w, 2);              // sombra sob a laje
+    g.fillStyle = "#151a20"; g.fillRect(0, 6, w, 30);             // janelas (recuadas)
+    for (let i = 0; i < 24; i++) { g.fillStyle = "rgba(90,110,140," + (0.12 + r() * 0.2) + ")"; g.fillRect(Math.floor(r() * w), 8 + Math.floor(r() * 26), 1 + Math.floor(r() * 3), 1); }
+    for (let x = 0; x < w; x += 16) {
+      g.fillStyle = "#8a8880"; g.fillRect(x, 6, 2, 30);           // montantes
+      if (r() < 0.55) {                                            // toldo inclinado
+        g.fillStyle = "#cfccc2"; g.fillRect(x + 3, 7, 11, 3);
+        g.fillStyle = "#7d7a72"; g.fillRect(x + 3, 10, 11, 1);
+        g.fillStyle = "rgba(0,0,0,0.35)"; g.fillRect(x + 3, 11, 11, 3);
+      }
+      if (r() < 0.35) { g.fillStyle = "#8b8e90"; g.fillRect(x + 9, 26, 5, 4); g.fillStyle = "#5c5f62"; g.fillRect(x + 9, 30, 5, 1); } // ar-condicionado
     }
-    if (r() < 0.6) { g.fillStyle = 'rgba(160,160,150,0.18)'; for (let y = 22; y < 40; y += 2) g.fillRect(17, y, 30, 1); } // persiana
-    g.fillStyle = '#4a4c4c'; for (let x = 0; x < w; x += 16) g.fillRect(x, 20, 2, 36); // montantes
-    g.fillStyle = '#3a3a36'; g.fillRect(0, 56, w, 2);              // peitoril
-    g.fillStyle = 'rgba(40,38,30,0.35)';
-    for (let i = 0; i < 6; i++) { const x = Math.floor(r() * w); g.fillRect(x, 58, 1, 6 + r() * 12); }
+    g.fillStyle = "#b9b6ac"; g.fillRect(0, 36, w, 3);              // peitoril
+    g.fillStyle = "rgba(60,58,50,0.25)";
+    for (let i = 0; i < 6; i++) { const x = Math.floor(r() * w); g.fillRect(x, 39, 1, 6 + r() * 12); }
+  });
+  T.blank = make(64, 64, (g, w, h) => {
+    speckle(g, w, h, [202, 200, 192], 8, 40);
+    g.fillStyle = "rgba(0,0,0,0.08)"; g.fillRect(0, 0, w, 1); g.fillRect(0, 0, 1, h);
+    const r = U.rng(41); g.fillStyle = "rgba(70,68,60,0.12)";
+    for (let i = 0; i < 5; i++) g.fillRect(Math.floor(r() * w), 0, 1, 10 + r() * 30);
+  });
+  // logo: círculo azul cortado por uma cruz branca, com anel branco
+  T.logo = make(64, 64, (g) => {
+    g.clearRect(0, 0, 64, 64);
+    g.fillStyle = "#e8e8e8"; g.beginPath(); g.arc(32, 32, 30, 0, 7); g.fill();
+    g.fillStyle = "#2a5aa8"; g.beginPath(); g.arc(32, 32, 27, 0, 7); g.fill();
+    g.fillStyle = "#4a7ac4"; g.beginPath(); g.arc(28, 28, 18, 0, 7); g.fill();
+    g.fillStyle = "#e8e8e8"; g.fillRect(29, 2, 6, 60); g.fillRect(2, 29, 60, 6);
   });
 
   T.granilite = make(64, 64, (g, w, h) => {

@@ -2,9 +2,10 @@
 // ATENÇÃO: layout PROVISÓRIO — será substituído pelas plantas/fotos reais do HUSM.
 // Eixos: x = ao longo da fachada, z = profundidade (fachada principal em z = 0, rua em +z), y = altura.
 const WORLD = (() => {
-  const FLOOR_H = 4.5;   // altura de pavimento (provisória)
-  const FLOORS = 6;      // nº de pavimentos (provisório)
-  const TOP = FLOOR_H * FLOORS;
+  const FLOOR_H = 4.5;   // pé-direito do térreo (provisório)
+  const UP_H = 3.6;      // altura dos pavimentos superiores (provisória)
+  const FLOORS = 8;      // térreo + 7 (estimado pela foto da fachada — confirmar)
+  const TOP = FLOOR_H + UP_H * (FLOORS - 1);
 
   let scene, colliders, interactables;
 
@@ -59,7 +60,9 @@ const WORLD = (() => {
     scene = sc; colliders = []; interactables = [];
     const M = {
       concrete: mat(TEX.concrete, 4, 4),
-      facade: mat(TEX.facade, 4, FLOOR_H),
+      facade: mat(TEX.facade, 4, UP_H),
+      facadeGround: mat(TEX.facade, 4, FLOOR_H),
+      blank: mat(TEX.blank, 6, 6),
       granilite: mat(TEX.granilite, 2, 2),
       vinyl: mat(TEX.vinyl, 2, 2),
       ceiling: mat(TEX.ceiling, 2.5, 2.5),
@@ -100,9 +103,20 @@ const WORLD = (() => {
     }
 
     // ---------- PRÉDIO (casca externa) ----------
-    box(-70, 0, -46, -14.2, TOP, 0, M.facade, { collide: true });        // ala esquerda
-    box(14.2, 0, -46, 70, TOP, 0, M.facade, { collide: true });          // ala direita
-    box(-14.2, FLOOR_H, -22.2, 14.2, TOP, 0, M.facade);                  // pavimentos sobre o saguão
+    for (const [a, b] of [[-70, -14.2], [14.2, 70]]) {                  // alas esquerda e direita
+      box(a, 0, -46, b, FLOOR_H, 0, M.facadeGround, { collide: true });
+      box(a, FLOOR_H, -46, b, TOP, 0, M.facade);
+    }
+    // empenas cegas nas pontas (como na foto: concreto liso, logo e letreiro no alto)
+    box(-70.3, 0, -46, -70, TOP + 0.6, 0.1, M.blank, { collide: true });
+    box(70, 0, -46, 70.3, TOP + 0.6, 0.1, M.blank, { collide: true });
+    box(-70.3, TOP, -46, 70.3, TOP + 0.6, 0.1, M.blank);                // platibanda
+    for (const [x, f] of [[-70.31, "x-"], [70.31, "x+"]]) {
+      panel(x, TOP - 3.2, -9, 5, 5, f, new THREE.MeshPhongMaterial({ map: TEX.logo, transparent: true, alphaTest: 0.4, emissive: 0x202020, emissiveMap: TEX.logo }));
+      sign("HUSM", x, TOP - 7.6, -10, 13, 3.6, f, { w: 80, h: 22, size: 22, fg: "#3e3c38", shadow: "#8a877e", emissive: 0x111111 });
+    }
+    box(30, TOP + 0.6, -20, 30.3, TOP + 9, -19.7, M.metal);               // antena
+    box(-14.2, FLOOR_H, -22.2, 14.2, TOP, 0, M.facade);                     // pavimentos sobre o saguão
     box(-14.2, 0, -46, -1.8, TOP, -22.2, M.concrete, { collide: true }); // bloco de trás (esq.)
     box(1.8, 0, -46, 14.2, TOP, -22.2, M.concrete, { collide: true });   // bloco de trás (dir.)
     box(-1.8, 3, -46, 1.8, TOP, -22.2, M.concrete);                      // sobre o corredor
@@ -294,5 +308,5 @@ const WORLD = (() => {
     box(x - 0.25, 6.8, z - 1.1, x + 0.25, 6.95, z - 0.6, M.dark);
   }
 
-  return { build, FLOOR_H, FLOORS };
+  return { build, FLOOR_H, UP_H, FLOORS };
 })();
