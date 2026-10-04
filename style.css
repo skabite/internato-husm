@@ -1,0 +1,59 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: #ddd;
+  font-family: 'VT323', monospace; user-select: none; }
+#game { position: fixed; inset: 0; width: 100vw; height: 100vh; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+.hidden { display: none !important; }
+
+/* ---------- HUD ---------- */
+#hud { position: fixed; inset: 0; pointer-events: none; }
+#crosshair { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font-size: 28px; color: #fff8; }
+#objective { position: absolute; left: 20px; top: 16px; font-size: 24px; color: #e8d27a; text-shadow: 2px 2px #000; max-width: 50vw; }
+#hint { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); font-size: 24px; color: #fff; text-shadow: 2px 2px #000; }
+#toast { position: absolute; left: 50%; bottom: 18%; transform: translateX(-50%); font-size: 26px; color: #fff;
+  text-shadow: 2px 2px #000; text-align: center; max-width: 70vw; transition: opacity .4s; opacity: 0; }
+#toast.show { opacity: 1; }
+#subtitle { position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%); font-size: 22px; color: #ffcf8a;
+  text-shadow: 2px 2px #000; text-align: center; max-width: 70vw; transition: opacity .4s; opacity: 0; font-style: italic; }
+#subtitle.show { opacity: 1; }
+#keys { position: absolute; right: 16px; bottom: 10px; font-size: 18px; color: #fff5; }
+
+/* ---------- DIÁLOGO ---------- */
+#dialogue { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 3vw 2vh; pointer-events: auto; }
+#dlg-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px; }
+#foco-wrap { font-size: 20px; color: #9fd; text-shadow: 2px 2px #000; }
+#foco { width: 300px; height: 14px; border: 2px solid #9fd; background: #000a; margin-top: 2px; }
+#foco-fill { height: 100%; width: 15%; background: #9fd; transition: width .3s; }
+#breath { font-size: 26px; color: #ffd84a; text-shadow: 2px 2px #000; visibility: hidden; animation: blink .18s steps(2) infinite; }
+#breath.on { visibility: visible; }
+#dlg-box { display: flex; gap: 16px; background: #0b0d12ee; border: 4px double #c9c2a8; padding: 14px; min-height: 190px; }
+#portrait { width: 132px; height: 132px; image-rendering: pixelated; border: 2px solid #c9c2a8; background: #1a1206; flex: none; }
+#dlg-main { flex: 1; display: flex; flex-direction: column; }
+#dlg-name { font-family: 'Press Start 2P', monospace; font-size: 13px; color: #ffcf8a; margin-bottom: 8px; }
+#dlg-text { font-size: 27px; line-height: 1.12; color: #f2efe6; min-height: 92px; }
+#dlg-options { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
+.opt { font-size: 24px; color: #bfe3ff; cursor: pointer; }
+.opt:hover { color: #fff; }
+.opt b { color: #ffd84a; font-weight: normal; }
+#silence { height: 4px; margin-top: 8px; background: #222; }
+#silence-fill { height: 100%; width: 0; background: #c55; }
+#dlg-help { font-size: 18px; color: #fff6; margin-top: 4px; text-align: right; }
+#dlg-flash { position: absolute; left: 50%; top: -60px; transform: translateX(-50%); font-size: 26px; color: #ff8a8a;
+  text-shadow: 2px 2px #000; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+#dlg-flash.show { opacity: 1; }
+
+/* ---------- OVERLAYS ---------- */
+#overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+#overlay > div { pointer-events: auto; text-align: center; cursor: pointer; }
+#boot, #title, #pause, #end { background: #000d; padding: 40px 60px; }
+#boot { background: #000; position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#title { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(#1a0505cc, #000 75%); }
+.title-main { font-family: 'Press Start 2P', monospace; font-size: clamp(32px, 7vw, 84px); color: #d8d2bc; text-shadow: 6px 6px #5a0b0b; letter-spacing: 4px; }
+.title-sub { font-size: 30px; color: #9a9480; margin-top: 18px; letter-spacing: 3px; }
+.title-sub2 { font-family: 'Press Start 2P', monospace; font-size: 20px; color: #c83a3a; margin: 18px 0 36px; }
+.blink { font-size: 30px; color: #fff; animation: blink 1s steps(2) infinite; }
+.small { font-size: 18px; color: #fff6; margin-top: 30px; }
+#intro { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center;
+  font-size: 34px; line-height: 1.5; color: #ddd; white-space: pre-line; transition: opacity 1.2s; }
+#end { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000e; font-size: 30px; white-space: pre-line; }
+@keyframes blink { 50% { opacity: 0; } }
+body.talking #keys, body.talking #crosshair, body.talking #hint { display: none; }
