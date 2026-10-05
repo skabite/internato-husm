@@ -5,7 +5,7 @@ const COMBAT = (() => {
   let tex = null;
   const boars = [];
   const P = { hp: 100, maxHp: 100, weapon: null, has: { scalpel: false, revolver: false }, ammo: 6,
-    reload: 0, cd: 0, anim: 0, hurtT: 0, dead: false };
+    reload: 0, cd: 0, anim: 0, hurtT: 0, dead: false, infectT: 0 };
   let muzzle, wcan, wctx, hudEl, hpEl, ammoEl, dmgEl, lastAlert = -99, time = 0;
 
   // ---------- RAIO 2D contra as caixas de colisão ----------
@@ -155,7 +155,13 @@ const COMBAT = (() => {
         const dx = b.x - pp.x, dz = b.z - pp.z, d = Math.hypot(dx, dz);
         if (d < best && (dx * fx + dz * fz) / d > 0.75) { best = d; hit = b; }
       }
-      if (hit) { AUDIO.sfx('stab'); hurtBoar(hit, 1); } else AUDIO.sfx('swish');
+      let extra = null;
+      for (const t of (hooks.targets ? hooks.targets() : [])) {
+        const dx = t.x - pp.x, dz = t.z - pp.z, d = Math.hypot(dx, dz);
+        if (d < best && d > 0.01 && (dx * fx + dz * fz) / d > 0.7) { best = d; extra = t; hit = null; }
+      }
+      if (extra) { AUDIO.sfx('stab'); extra.hit(); }
+      else if (hit) { AUDIO.sfx('stab'); hurtBoar(hit, 1); } else AUDIO.sfx('swish');
       return;
     }
     // revólver
@@ -173,7 +179,14 @@ const COMBAT = (() => {
       const perp = Math.abs(dx * fz - dz * fx);
       if (perp < 0.55 + along * 0.015) { best = along; hit = b; }
     }
-    if (hit) hurtBoar(hit, 2);
+    let extra = null;
+    for (const t of (hooks.targets ? hooks.targets() : [])) {
+      const dx = t.x - pp.x, dz = t.z - pp.z, along = dx * fx + dz * fz;
+      if (along <= 0 || along >= best) continue;
+      if (Math.abs(dx * fz - dz * fx) < t.r + along * 0.012) { best = along; extra = t; hit = null; }
+    }
+    if (extra) extra.hit();
+    else if (hit) hurtBoar(hit, 2);
     // o barulho acorda os javalis por perto
     for (const b of boars) if (b.state === 'idle' && Math.hypot(b.x - pp.x, b.z - pp.z) < 22) b.state = 'chase';
     if (P.ammo === 0) setTimeout(startReload, 350);
@@ -203,13 +216,14 @@ const COMBAT = (() => {
     hpEl.parentElement.style.display = P.has.scalpel ? 'block' : 'none';
     hpEl.textContent = `SAÚDE ${Math.ceil(P.hp)}`;
     hpEl.style.color = P.hp > 60 ? '#e8e2cc' : P.hp > 30 ? '#ffcf5a' : '#ff6a5a';
-    ammoEl.textContent = P.weapon === 'revolver' ? `BALAS ${P.ammo}/6${P.reload > 0 ? ' · recarregando' : ''}`
-      : P.weapon === 'scalpel' ? 'BISTURI Nº 22' : '';
+    ammoEl.textContent = (P.infectT > 0 ? 'INFECTADO! · ' : '') + (P.weapon === 'revolver' ? `BALAS ${P.ammo}/6${P.reload > 0 ? ' · recarregando' : ''}`
+      : P.weapon === 'scalpel' ? 'BISTURI Nº 22' : '');
+    ammoEl.style.color = P.infectT > 0 ? '#8f6' : '';
     dmgEl.style.opacity = P.hurtT > 0 ? P.hurtT * 1.6 : (P.hp < 25 ? 0.15 + Math.sin(time * 4) * 0.08 : 0);
   }
 
   return {
-    P, boars,
+    P, boars, damage: damagePlayer,
     init(sc, cam, h) {
       scene = sc; camera = cam; hooks = h; colliders = h.colliders;
       makeTextures();
@@ -226,7 +240,7 @@ const COMBAT = (() => {
     blocks(x, z, r) { return boars.some(b => b.state !== 'dead' && Math.hypot(b.x - x, b.z - z) < r + 0.45); },
     killSilently(i) { const b = boars[i]; if (b) { b.state = 'dead'; b.hp = 0; b.vx = b.vz = 0; place(b); } },
     resetAfterDeath() {
-      P.hp = P.maxHp; P.dead = false; P.hurtT = 0; P.reload = 0; P.ammo = 6;
+      P.hp = P.maxHp; P.dead = false; P.hurtT = 0; P.infectT = 0; P.reload = 0; P.ammo = 6;
       for (const b of boars) if (b.state !== 'dead') { b.x = b.sx; b.z = b.sz; b.state = 'idle'; b.vx = b.vz = 0; b.chargeT = 0; b.hp = 3; place(b); }
     },
     update(dt, active, bob, moving) {
@@ -234,6 +248,7 @@ const COMBAT = (() => {
       if (P.cd > 0) P.cd -= dt;
       if (P.anim > 0) P.anim -= dt;
       if (P.hurtT > 0) P.hurtT -= dt;
+      if (P.infectT > 0 && active && !P.dead) { P.infectT -= dt; P.hp -= dt * 2.5; if (P.hp <= 0) { P.hp = 0; P.dead = true; hooks.onDeath(); } }
       if (P.reload > 0) { P.reload -= dt; if (P.reload <= 0) { P.reload = 0; P.ammo = 6; } }
       muzzle.intensity = Math.max(0, muzzle.intensity - dt * 40);
       for (const b of boars) active ? updateBoar(b, dt) : place(b);

@@ -81,3 +81,18 @@ body.talking #weapon { display: none !important; }
 .menu { font-size: 30px; color: #fff; cursor: pointer; }
 #title-save .menu:hover { color: #ffcf5a; }
 #btn-new { font-size: 24px; color: #fff9; }
+.knot { grid-column: 1 / -1; font-family: 'Press Start 2P', monospace; font-size: 26px; letter-spacing: 14px; color: #666; }
+.knot .ok { color: #8f8; } .knot .cur { color: #ffd84a; text-decoration: underline; }
+.knot-help { grid-column: 1 / -1; font-size: 20px; color: #bfe3ff; margin-top: 6px; }
+
+/* ---------- CAPÍTULO 2: chefe ---------- */
+#infect { position: fixed; inset: 0; background: radial-gradient(transparent 35%, #2a8a10 130%); opacity: 0; pointer-events: none; }
+#psy { position: fixed; inset: 0; background: radial-gradient(#a040ff22 20%, #6a10c0cc 110%); opacity: 0; pointer-events: none; mix-blend-mode: screen; }
+#flash { position: fixed; inset: 0; background: #a040ff; opacity: 0; pointer-events: none; }
+#bossbar { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); text-align: center; text-shadow: 2px 2px #000; }
+#bossbar .bname { font-family: 'Press Start 2P', monospace; font-size: 12px; color: #d8a0ff; margin-bottom: 6px; }
+#bossbar .docs span { font-size: 22px; color: #aaa; margin: 0 10px; }
+#bossbar .docs span.ok { color: #8f8; }
+#prompt { position: absolute; left: 50%; top: 64%; transform: translateX(-50%); font-family: 'Press Start 2P', monospace; font-size: 15px;
+  color: #ffd84a; text-shadow: 3px 3px #000; animation: blink .5s steps(2) infinite; white-space: nowrap; }
+body.talking #stats, body.talking #prompt, body.talking #bossbar { display: none; }

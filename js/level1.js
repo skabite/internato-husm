@@ -63,7 +63,7 @@ const LEVEL1 = (() => {
     '######################................######################',
     '######################................######################',
     '######################................######################',
-    '############################################################',
+    '#############################..#############################',
   ];
   const X0 = -30, Z0 = -46, WALL_H = 3;
   const cx = c => X0 + c + 0.5, cz = r => Z0 - r - 0.5;
@@ -93,7 +93,7 @@ const LEVEL1 = (() => {
     box(X0, WALL_H - 0.05, Z0 - zh, X0 + xw, WALL_H, Z0, M.ceiling);
     box(X0, WALL_H, Z0 - zh, X0 + xw, hooks.TOP, Z0, M.concrete);
     // ninguém sai do prédio pelos fundos
-    colliders.push({ x1: -200, x2: X0, z1: -300, z2: Z0 }, { x1: X0 + xw, x2: 200, z1: -300, z2: Z0 }, { x1: -200, x2: 200, z1: -300, z2: Z0 - zh });
+    colliders.push({ x1: -200, x2: X0, z1: -300, z2: Z0 }, { x1: X0 + xw, x2: 200, z1: -300, z2: Z0 });
 
     // ---------- ENTIDADES DO MAPA ----------
     MAP.forEach((row, r) => [...row].forEach((ch, c) => {
@@ -109,6 +109,8 @@ const LEVEL1 = (() => {
       const stool = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.72, 0.35), M.metal); stool.position.y = 0.36; g.add(stool);
       return { x, z, group: g, cup, taken: false };
     }
+
+    out.makeCafe = cafe;
 
     // ---------- PORTAS ----------
     function door(name, x1, z1, x2, z2, slide, o = {}) {
@@ -143,7 +145,11 @@ const LEVEL1 = (() => {
     const alaR = door('alaC2', 0, -65.15, 2, -65.05, [2, 0, 0], { su: 2, locked: true });
     alaL.partner = alaR; alaR.partner = alaL;
     alaR.mesh.userData.onUse = () => alaL.tryOpen();
-    door('prof3', -1, -97.15, 1, -97.05, [-2, 0, 0], { su: 2 });
+    door('prof3', -1, -97.15, 1, -97.05, [-2, 0, 0], { su: 2, locked: true,
+      lockedMsg: 'Uma voz lá de dentro: "SÓ ABRO QUANDO ESSES BICHOS PARAREM DE GRUNHIR!"' });
+    box(-1, 2.4, -105.55, 1, WALL_H, -105.45, M.wallLow);
+    door('prof3back', -1, -105.55, 1, -105.45, [-2, 0, 0], { su: 2, locked: true, lockedMsg: 'Porta dos fundos. Trancada. O Professor3 está com a chave... e te observando.' });
+    sign('VASCULAR · CCIH ↓', 0, 2.62, -105.44, 1.8, 0.3, 'z+', { w: 128, h: 20, size: 12, fg: '#fff', bg: '#2a5a3a' });
 
     // ---------- PLACAS ----------
     sign('ENDOSCOPIA DIGESTIVA', -1.99, 2.62, -53.5, 2.4, 0.3, 'x+', { w: 256, h: 24, size: 15, fg: '#fff', bg: '#7a3a5a', border: true });

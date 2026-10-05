@@ -11,3 +11,6 @@ imagens husm/
 
 # cópias de conflito do sincronizador de nuvem
 *Name clash*
+
+# páginas de teste automático (temporárias)
+_*.html

@@ -4,10 +4,13 @@ const CONVO = (() => {
   const SPEAKERS = {
     dudu: { char: 'prof2', name: 'DUDU DA GASTRO', cps: 36, blip: [125, 25] },
     prof3: { char: 'prof3', name: 'PROFESSOR3', cps: 30, blip: [100, 40] },
+    clovis: { char: 'prof4', name: 'CLÓVIS DA VASCULAR', cps: 33, blip: [150, 30] },
+    belgica: { char: 'chefao', name: 'ALEXANDRE "BÉLGICA" SCHWARTZBOLDT', cps: 52, blip: [140, 80] },
     eu: { char: null, name: 'VOCÊ (pensando)', cps: 48, blip: null, italic: true },
     narr: { char: null, name: '', cps: 60, blip: null, italic: true },
   };
   let el = {}, active = false, mode = 'idle', q = null, resolver = null, options = [], speaker = null;
+  let knot = null;
   let talk = false, igScore = 1, onNotify = null, laudos = null, lastFrame = -1;
 
   const $ = id => document.getElementById(id);
@@ -100,14 +103,48 @@ const CONVO = (() => {
     laudoRender();
   }
 
+  // ---------- Minijogo: nó cirúrgico (uma mão de cada vez) ----------
+  const KEYSETS = {
+    esquerda: { codes: ['KeyW', 'KeyA', 'KeyS', 'KeyD'], label: { KeyW: 'W', KeyA: 'A', KeyS: 'S', KeyD: 'D' } },
+    direita: { codes: ['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'], label: { ArrowUp: '↑', ArrowLeft: '←', ArrowDown: '↓', ArrowRight: '→' } },
+  };
+  function knotStart(hand, len = 7, limit = 6) {
+    const ks = KEYSETS[hand];
+    knot = { hand, ks, seq: Array.from({ length: len }, () => U.pick(ks.codes)), i: 0, errors: 0, t: 0, limit };
+    mode = 'knot'; knotRender();
+    el.silence.style.display = '';
+    return new Promise(res => { resolver = res; });
+  }
+  function knotRender() {
+    const k = knot;
+    el.options.innerHTML = '<div class="knot">' + k.seq.map((c, i) =>
+      '<span class="' + (i < k.i ? 'ok' : i === k.i ? 'cur' : '') + '">' + k.ks.label[c] + '</span>').join('') +
+      '</div><div class="knot-help">MÃO ' + k.hand.toUpperCase() + ' · ' + (k.hand === 'esquerda' ? 'W A S D' : 'setas') + ' · erros: ' + k.errors + '</div>';
+  }
+  function knotKey(code) {
+    const k = knot;
+    if (!k.ks.codes.includes(code)) return;
+    if (code === k.seq[k.i]) { k.i++; AUDIO.sfx('click'); }
+    else { k.errors++; AUDIO.sfx('bad'); }
+    knotRender();
+    if (k.i >= k.seq.length) knotEnd(false);
+  }
+  function knotEnd(timeout) {
+    const k = knot; mode = 'idle'; knot = null;
+    el.silence.style.display = 'none'; el.silenceFill.style.width = '0';
+    const r = resolver; resolver = null;
+    setTimeout(() => r({ errors: k.errors, time: k.t, timeout }), 300);
+  }
+
   return {
     SPEAKERS,
     init(notify) {
       onNotify = notify;
       el = { root: $('dialogue'), text: $('dlg-text'), options: $('dlg-options'), name: $('dlg-name'), portrait: $('portrait'),
-        ig: $('ig'), help: $('dlg-help'), focoWrap: $('foco-wrap'), breath: $('breath'), silence: $('silence') };
+        ig: $('ig'), help: $('dlg-help'), focoWrap: $('foco-wrap'), breath: $('breath'), silence: $('silence'), silenceFill: $('silence-fill') };
       window.addEventListener('keydown', e => {
         if (!active) return;
+        if (mode === 'knot') { e.preventDefault(); knotKey(e.code); return; }
         if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE') { e.preventDefault(); advance(); }
         const n = parseInt(e.key, 10);
         if (n >= 1 && n <= 9) pick(n - 1);
@@ -123,10 +160,10 @@ const CONVO = (() => {
       active = true;
       el.root.classList.remove('hidden');
       el.focoWrap.style.visibility = 'hidden'; el.breath.style.display = 'none'; el.silence.style.display = 'none';
-      el.ig.style.display = opts.instagram ? 'block' : 'none';
+      el.ig.style.display = opts.instagram || opts.meter ? 'block' : 'none';
       el.help.textContent = '[ESPAÇO] continuar · [1-5] escolher';
       if (opts.instagram) { igScore = 1; igRender(); }
-      const api = { say, choose, ig, laudos: laudoStart, wait: s => new Promise(r => setTimeout(r, s * 1000)),
+      const api = { say, choose, ig, laudos: laudoStart, knot: knotStart, meter: html => { el.ig.innerHTML = html; }, wait: s => new Promise(r => setTimeout(r, s * 1000)),
         clear: () => { el.text.textContent = ''; el.options.innerHTML = ''; } };
       try { await script(api); }
       finally {
@@ -141,6 +178,11 @@ const CONVO = (() => {
     update(dt, time) {
       if (!active) return;
       talk = false;
+      if (mode === 'knot') {
+        knot.t += dt;
+        el.silenceFill.style.width = Math.min(100, 100 * knot.t / knot.limit) + '%';
+        if (knot.t >= knot.limit) knotEnd(true);
+      }
       if (mode === 'typing') {
         talk = true;
         q.acc += dt * speaker.cps;

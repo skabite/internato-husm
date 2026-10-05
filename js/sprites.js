@@ -26,14 +26,14 @@ const SPRITES = (() => {
       faceRx: 10.5, faceRy: 13.5, brows: '#2a2826', mouth: 'smile',
     },
     prof4: {
-      nome: 'PROFESSOR4', skin: '#ecc3a6', skinD: '#c49a7e',
+      nome: 'CLÓVIS DA VASCULAR', skin: '#ecc3a6', skinD: '#c49a7e',
       hair: 'slicked', hairC: '#c9c2ae', hairD: '#9a927e',
       glasses: 'rimless', glassC: '#c8ccd0', beard: null,
       coat: '#f4f4f0', coatD: '#c4c4bc', shirt: '#d9cfee', shirtD: '#b3a6d6', tie: null,
       faceRx: 10.5, faceRy: 14, brows: '#a89a80', mouth: 'neutral', tall: true,
     },
     chefao: {
-      nome: 'CHEFÃO', skin: '#dcaa86', skinD: '#b07e5e',
+      nome: 'ALEXANDRE "BÉLGICA" SCHWARTZBOLDT', skin: '#dcaa86', skinD: '#b07e5e',
       hair: 'messy', hairC: '#4a3426', hairD: '#8a8078',
       glasses: 'thick', glassC: '#141414', beard: null,
       coat: '#b88a3e', coatD: '#8a6428', shirt: '#aac6e6', shirtD: '#7f9fc4', tie: null, lanyard: '#c0202a',
@@ -331,11 +331,26 @@ const SPRITES = (() => {
     });
   }
 
+  // seringa contaminada (24x8)
+  function syringe() {
+    const c = document.createElement('canvas'); c.width = 24; c.height = 8;
+    const g = c.getContext('2d');
+    const p = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    p('#8a8e94', 0, 1, 2, 6); p('#b8bcc2', 2, 3, 3, 2);                 // êmbolo
+    p('#e8eef2', 5, 1, 12, 6); p('#ffffff', 5, 1, 12, 1);               // corpo
+    p('#6ad040', 9, 2, 8, 4); p('#a8ff70', 10, 2, 3, 1);              // líquido verde
+    p('#3a3a3a', 8, 1, 1, 6); p('#c8ccd0', 17, 3, 2, 2);
+    p('#d8dce0', 19, 3, 5, 1); p('#9aa0a6', 19, 4, 5, 1);              // agulha
+    return c;
+  }
+
   const BOAR = { front: [0, 1, 2].map(boarFront), side: [0, 1, 2].map(boarSide), dead: boarDead() };
   const WEAPONS = { revolver: [revolver(false), revolver(true)], scalpel: [scalpel(false), scalpel(true)] };
 
+  const SYRINGE = syringe();
+
   return {
-    CHARS, BOAR, WEAPONS, texFrom,
+    CHARS, BOAR, WEAPONS, SYRINGE, texFrom,
     get,
     textures(id) { return get(id).body.map(texFrom); },
     drawPortrait(canvas, id, frame) {

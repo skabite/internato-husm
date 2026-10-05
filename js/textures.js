@@ -156,6 +156,16 @@ const TEX = (() => {
     }
   });
 
+  // quadro a óleo do cavalo do Clóvis
+  T.horse = make(48, 32, (g, w, h) => {
+    speckle(g, w, h, [34, 52, 38], 14, 50);
+    g.fillStyle = "#6a4a2a"; g.fillRect(14, 12, 18, 8); g.fillRect(30, 7, 4, 8); g.fillRect(32, 6, 7, 4);  // corpo, pescoço, cabeça
+    g.fillStyle = "#3a2410"; g.fillRect(29, 6, 3, 6); g.fillRect(12, 13, 3, 5);                            // crina, rabo
+    g.fillStyle = "#5a3a1e"; [15, 18, 27, 30].forEach(x => g.fillRect(x, 20, 2, 7));                        // patas
+    g.fillStyle = "#c8a060"; g.fillRect(0, 0, w, 2); g.fillRect(0, h - 2, w, 2); g.fillRect(0, 0, 2, h); g.fillRect(w - 2, 0, 2, h);
+    g.fillStyle = "#8a6a30"; g.fillRect(2, 2, w - 4, 1);
+  });
+
   // placas com texto
   T.text = function (text, opt = {}) {
     const w = opt.w || 256, h = opt.h || 32;

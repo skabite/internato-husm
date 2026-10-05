@@ -133,6 +133,54 @@ const AUDIO = (() => {
     };
   })();
 
+  // W. A. Mozart — Eine kleine Nachtmusik (o Clóvis: elegante, rico, levemente superior)
+  (() => {
+    const lead = [
+      'G5:1 R:0.5 D5:0.5 G5:1 R:0.5 D5:0.5', 'G5:0.5 D5:0.5 G5:0.5 B5:0.5 D6:2',
+      'C6:1 R:0.5 A5:0.5 C6:1 R:0.5 A5:0.5', 'C6:0.5 A5:0.5 F#5:0.5 A5:0.5 D5:2',
+      'G5:1 G5:0.5 B5:0.5 A5:0.5 G5:0.5 G5:0.5 F#5:0.5', 'F#5:1 A5:0.5 C6:0.5 F#5:0.5 A5:0.5 G5:1',
+      'G5:1 G5:0.5 B5:0.5 A5:0.5 G5:0.5 G5:0.5 F#5:0.5', 'F#5:0.5 A5:0.5 C6:0.5 F#5:0.5 G5:2',
+    ].join(' ');
+    const bass = ['G2:0.5 G3:0.5 G2:0.5 G3:0.5 G2:0.5 G3:0.5 G2:0.5 G3:0.5', 'G2:0.5 G3:0.5 G2:0.5 G3:0.5 G2:0.5 G3:0.5 G2:0.5 G3:0.5',
+      'D2:0.5 D3:0.5 D2:0.5 D3:0.5 D2:0.5 D3:0.5 D2:0.5 D3:0.5', 'D2:0.5 D3:0.5 D2:0.5 D3:0.5 D2:0.5 D3:0.5 D2:0.5 D3:0.5',
+      'G2:0.5 B2:0.5 D3:0.5 B2:0.5 G2:0.5 B2:0.5 D3:0.5 B2:0.5', 'D2:0.5 F#2:0.5 A2:0.5 F#2:0.5 D2:0.5 F#2:0.5 G2:1',
+      'G2:0.5 B2:0.5 D3:0.5 B2:0.5 G2:0.5 B2:0.5 D3:0.5 B2:0.5', 'D2:0.5 F#2:0.5 A2:0.5 D2:0.5 G2:2'].join(' ');
+    SONGS.nacht = {
+      bpm: 112,
+      tracks: [
+        { wave: 'square', vol: 0.08, ev: parse(lead), stacc: 0.7 },
+        { wave: 'triangle', vol: 0.10, ev: parse(lead, 0.5, -1), stacc: 0.7 },
+        { wave: 'triangle', vol: 0.26, ev: parse(bass), stacc: 0.5 },
+      ],
+    };
+  })();
+
+  // L. v. Beethoven — 5ª Sinfonia, 1º mov. (chefe: o Bélgica)
+  (() => {
+    const e = s => s.split(' ').map(n => n.includes(':') ? n : n + ':0.5').join(' ');
+    const lead = [
+      e('R G4 G4 G4'), 'Eb4:2', e('R F4 F4 F4'), 'D4:2',
+      e('R G4 G4 G4'), e('Eb4 Ab4 Ab4 Ab4'), e('G4 Eb5 Eb5 Eb5'), 'C5:2',
+      e('R G4 G4 G4'), e('D4 Ab4 Ab4 Ab4'), e('G4 F5 F5 F5'), 'D5:2',
+      e('G5 G5 F5 Eb5'), e('D5 Eb5 F5 Ab5'), e('G5 F5 Eb5 D5'), 'C5:1 G4:1',
+    ].join(' ');
+    const bass = [
+      e('R G2 G2 G2'), 'C2:2', e('R F2 F2 F2'), 'B1:2',
+      e('C2 C3 C2 C3'), e('C2 C3 F2 F3'), e('C2 C3 C2 C3'), e('C2 C3 C2 C3'),
+      e('B1 B2 B1 B2'), e('B1 B2 F2 F3'), e('G1 G2 G1 G2'), e('G1 G2 G1 G2'),
+      e('C2 C3 C2 C3'), e('F2 F3 F2 F3'), e('G2 G3 G2 G3'), e('C2 C3 G1 G2'),
+    ].join(' ');
+    SONGS.fifth = {
+      bpm: 132,
+      tracks: [
+        { wave: 'square', vol: 0.10, ev: parse(lead), stacc: 0.75 },
+        { wave: 'sawtooth', vol: 0.05, ev: parse(lead, 0.5, -1), stacc: 0.6 },
+        { wave: 'triangle', vol: 0.32, ev: parse(bass), stacc: 0.6 },
+        { wave: 'noise', vol: 0.05, ev: parse(rep('x:0.5 R:0.5', 32)) },
+      ],
+    };
+  })();
+
   for (const k in SONGS) {
     const s = SONGS[k];
     s.len = Math.max(...s.tracks.map(t => t.ev.reduce((a, e) => a + e.beats, 0)));
@@ -260,6 +308,32 @@ const AUDIO = (() => {
       const t = ctx.currentTime; const n = noise(t, 0.9, 0.12, sfxGain, 'bandpass', 300, 2);
       n.f.frequency.setValueAtTime(250, t); n.f.frequency.linearRampToValueAtTime(600, t + 0.8);
     },
+    phone() { // telefone tocando (trim-trim)
+      const t = ctx.currentTime;
+      for (let k = 0; k < 2; k++) for (let i = 0; i < 10; i++) {
+        const s = t + k * 0.55 + i * 0.04;
+        tone(i % 2 ? 1320 : 1760, s, 0.035, 'square', 0.05, sfxGain, 1);
+      }
+    },
+    scribble() { const t = ctx.currentTime; for (let i = 0; i < 6; i++) noise(t + i * 0.07, 0.06, 0.12, sfxGain, 'bandpass', 3000 + Math.random() * 2000, 3); },
+    throw() { const t = ctx.currentTime; const n = noise(t, 0.25, 0.14, sfxGain, 'bandpass', 900, 2); n.f.frequency.setValueAtTime(600, t); n.f.frequency.exponentialRampToValueAtTime(3000, t + 0.2); },
+    shatter() { const t = ctx.currentTime; noise(t, 0.25, 0.2, sfxGain, 'highpass', 5000, 1); tone(2400, t, 0.05, 'triangle', 0.05, sfxGain, 1); tone(3100, t + 0.03, 0.05, 'triangle', 0.04, sfxGain, 1); },
+    stare() { // zumbido psíquico subindo
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(80, t); o.frequency.exponentialRampToValueAtTime(320, t + 0.9);
+      const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.setValueAtTime(83, t); o2.frequency.exponentialRampToValueAtTime(330, t + 0.9);
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1200;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t + 0.8); g.gain.linearRampToValueAtTime(0.08, t + 3.2); g.gain.linearRampToValueAtTime(0, t + 3.5);
+      o.connect(f); o2.connect(f); f.connect(g); g.connect(sfxGain);
+      o.start(t); o2.start(t); o.stop(t + 3.6); o2.stop(t + 3.6);
+    },
+    teleport() {
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(); o.type = 'square'; o.frequency.setValueAtTime(1600, t); o.frequency.exponentialRampToValueAtTime(120, t + 0.35);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.07, t); g.gain.linearRampToValueAtTime(0, t + 0.38);
+      o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t + 0.4);
+    },
+    achievement() { const t = ctx.currentTime; [523, 659, 784, 1046, 1318, 1568].forEach((f, i) => tone(f, t + i * 0.08, 0.12, 'square', 0.07, sfxGain, 1)); },
     notify() { const t = ctx.currentTime; tone(1318, t, 0.06, 'sine', 0.08, sfxGain, 1); tone(1760, t + 0.08, 0.1, 'sine', 0.08, sfxGain, 1); },
     step(run) {
       const t = ctx.currentTime;
