@@ -257,6 +257,7 @@
     G.profTarget = W.fountain.clone().add(new THREE.Vector3(1.0, 0, 0));
     setTimeout(() => { if (!G.ended) AUDIO.play('moonlight', { fade: 4 }); }, 2500);
     relockOrPause();
+    save();
   }
 
   // ---------- CONVERSAS ROTEIRIZADAS ----------
@@ -294,12 +295,14 @@
     L.doors.torax.lockedMsg = '';
     setObjective('OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Entregar os laudos ao PROFESSOR3 (fim da Ala C)');
     AUDIO.play('moonlight', { fade: 3 });
+    save();
   }
 
   async function onGun(where) {
     AUDIO.sfx('pickup');
     await runConvo(c => STORY1.gunFound(c, where));
     COMBAT.give('revolver'); G.hasGun = true;
+    save();
     setObjective('OBJETIVO: Atravessar a ALA C e entregar os laudos ao PROFESSOR3\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver');
     // emboscada: um javali invade o corredor transversal
     setTimeout(() => {
@@ -341,6 +344,7 @@
   // ---------- FIM DO CAPÍTULO ----------
   function chapterEnd() {
     G.ended = true; G.state = 'end';
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* sem storage */ }
     AUDIO.play('toccata', { fade: 0.2, loop: false });
     document.exitPointerLock && document.exitPointerLock();
     show('hud', false); show('pause', false);
@@ -378,7 +382,7 @@
       c.cup.rotation.y += dt;
       if (Math.hypot(c.x - P.pos.x, c.z - P.pos.z) < 0.9) {
         if (COMBAT.P.hp >= COMBAT.P.maxHp) { if (!c.warned) { toast('Café da copa. Você está bem por enquanto. Guarda pra depois.', 2.5); c.warned = true; } continue; }
-        c.taken = true; c.cup.visible = false; COMBAT.heal(30); AUDIO.sfx('pickup');
+        c.taken = true; c.cup.visible = false; COMBAT.heal(30); AUDIO.sfx('pickup'); save(true);
         toast(U.pick(['Café da copa. Frio. Amargo. Perfeito. (+30)', 'Café passado às 6h da manhã. Ainda funciona. (+30)', 'Café com um gosto leve de micro-ondas de peixe. (+30)']), 3);
       }
     }
@@ -493,6 +497,7 @@
       updateChapter(dt);
       updateMusic();
       updateLook();
+      if ((G.saveT = (G.saveT || 20) - dt) <= 0) { G.saveT = 20; if (!COMBAT.alerted) save(true); }
     }
 
     // câmera puxada para quem está falando
