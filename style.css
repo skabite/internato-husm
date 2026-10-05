@@ -96,3 +96,5 @@ body.talking #weapon { display: none !important; }
 #prompt { position: absolute; left: 50%; top: 64%; transform: translateX(-50%); font-family: 'Press Start 2P', monospace; font-size: 15px;
   color: #ffd84a; text-shadow: 3px 3px #000; animation: blink .5s steps(2) infinite; white-space: nowrap; }
 body.talking #stats, body.talking #prompt, body.talking #bossbar { display: none; }
+#bossbar .bhp { width: 420px; height: 10px; margin: 8px auto 0; border: 2px solid #d8a0ff; background: #000a; }
+#bossbar .bhp div { height: 100%; background: #b040ff; transition: width .15s; }

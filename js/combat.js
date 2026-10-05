@@ -160,7 +160,7 @@ const COMBAT = (() => {
         const dx = t.x - pp.x, dz = t.z - pp.z, d = Math.hypot(dx, dz);
         if (d < best && d > 0.01 && (dx * fx + dz * fz) / d > 0.7) { best = d; extra = t; hit = null; }
       }
-      if (extra) { AUDIO.sfx('stab'); extra.hit(); }
+      if (extra) { AUDIO.sfx('stab'); extra.hit(1); }
       else if (hit) { AUDIO.sfx('stab'); hurtBoar(hit, 1); } else AUDIO.sfx('swish');
       return;
     }
@@ -185,7 +185,7 @@ const COMBAT = (() => {
       if (along <= 0 || along >= best) continue;
       if (Math.abs(dx * fz - dz * fx) < t.r + along * 0.012) { best = along; extra = t; hit = null; }
     }
-    if (extra) extra.hit();
+    if (extra) extra.hit(2);
     else if (hit) hurtBoar(hit, 2);
     // o barulho acorda os javalis por perto
     for (const b of boars) if (b.state === 'idle' && Math.hypot(b.x - pp.x, b.z - pp.z) < 22) b.state = 'chase';

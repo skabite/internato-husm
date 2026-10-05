@@ -75,5 +75,5 @@ Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
   - OLHAR PENETRANTE: raio psíquico; tira saúde enquanto ele te enxerga → esconda-se atrás dos pilares.
   - SERINGAS CONTAMINADAS: dano + infecção (café ou álcool gel curam). Dá pra destruir no ar com tiro.
   - Ponto fraco: o telefone toca (entrevista!). Ele para; chegue perto e aperte E → assinatura. 3 assinaturas vencem.
-  - Balas não o afetam: é professor. Burocracia se vence com burocracia.
+  - Ou na força: 60 de vida (revólver 2, bisturi 1). Zerou, ele se rende e assina tudo.
 - Música: Eine kleine Nachtmusik (Mozart) no Clóvis, 5ª Sinfonia (Beethoven) no chefe.

@@ -118,7 +118,8 @@
     if (!S) { show('bossbar', false); return; }
     show('bossbar');
     $('bossbar').innerHTML = '<div class="bname">ALEXANDRE "BÉLGICA" SCHWARTZBOLDT — CCIH</div><div class="docs">' +
-      BOSS.DOCS.map((d, i) => '<span class="' + (i < S.sig ? 'ok' : '') + '">' + (i < S.sig ? '☑ ' : '☐ ') + d + '</span>').join('') + '</div>';
+      BOSS.DOCS.map((d, i) => '<span class="' + (i < S.sig ? 'ok' : '') + '">' + (i < S.sig ? '☑ ' : '☐ ') + d + '</span>').join('') + '</div>' +
+      '<div class="bhp"><div style="width:' + (100 * S.hp / S.maxHp) + '%"></div></div>';
   }
   for (const s of L.boars) COMBAT.spawn(s.x, s.z);
 
@@ -174,7 +175,7 @@
   }
   function wardLeft() { return COMBAT.boars.filter((b, i) => i < L.boars.length && b.state !== 'dead').length; }
   function objectiveText() {
-    if (G.clovisDone) return 'OBJETIVO: Resolver a CCIH — 3 assinaturas do "BÉLGICA"\n• Fuja do olhar (pilares) · atire nas seringas · telefone tocou: [E]';
+    if (G.clovisDone) return 'OBJETIVO: Resolver a CCIH com o "BÉLGICA" — 3 assinaturas ou na bala\n• Fuja do olhar (pilares) · atire nele e nas seringas · telefone tocou: [E]';
     if (G.prof3Done) return 'OBJETIVO: Falar com o CLÓVIS DA VASCULAR (porta dos fundos do Professor3)';
     if (G.hasGun) {
       const n = wardLeft();
@@ -398,7 +399,7 @@
     AUDIO.stop(0.5);
     await runConvo(c => STORY2.belgicaIntro(c), { target: belgica });
     AUDIO.play('fifth', { fade: 0.2 });
-    toast('Fuja do OLHAR atrás dos pilares · atire nas SERINGAS · quando o TELEFONE tocar, corra até ele e aperte [E]', 7);
+    toast('Fuja do OLHAR atrás dos pilares · atire nele e nas SERINGAS · ou, quando o TELEFONE tocar, corra até ele e aperte [E]', 7);
     BOSS.start();
   }
   async function onBossDefeat() {

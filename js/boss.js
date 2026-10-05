@@ -3,11 +3,11 @@
 //          e SERINGAS CONTAMINADAS (dá pra destruir no ar com tiro).
 // Ponto fraco: está sempre atrasado pra uma entrevista. Quando o telefone toca, ele para —
 // corra até ele e aperte [E] para ele assinar a liberação da cefalexina. 3 assinaturas = vitória.
-// Ele é professor: balas e bisturi não o afetam (só a burocracia).
+// Também dá pra vencer na força: 60 de vida (revólver tira 2, bisturi 1). Zerou, ele se rende e assina tudo.
 const BOSS = (() => {
   let scene, camera, hooks, npc, eyes, beam, syrTex;
   const S = {
-    state: 'off', sig: 0, t: 0, atkCd: 3, phoneT: 14, phoneLeft: 0, stareT: 0, stareMode: null,
+    state: 'off', sig: 0, hp: 60, maxHp: 60, flashT: 0, t: 0, atkCd: 3, phoneT: 14, phoneLeft: 0, stareT: 0, stareMode: null,
     target: null, tpT: 10, throwAnim: 0, hurtMsgT: 0,
   };
   const syringes = [];
@@ -44,12 +44,12 @@ const BOSS = (() => {
   }
 
   function start() {
-    Object.assign(S, { state: 'fight', sig: 0, t: 0, atkCd: 2.5, phoneT: 13, phoneLeft: 0, stareT: 0, stareMode: null, tpT: 9, throwAnim: 0 });
+    Object.assign(S, { state: 'fight', sig: 0, hp: S.maxHp, flashT: 0, t: 0, atkCd: 2.5, phoneT: 13, phoneLeft: 0, stareT: 0, stareMode: null, tpT: 9, throwAnim: 0 });
     pickTarget();
     hooks.bar(S);
   }
   function reset(pos) {
-    S.state = 'off'; S.sig = 0; S.stareMode = null;
+    S.state = 'off'; S.sig = 0; S.hp = S.maxHp; S.stareMode = null; npc.mat.color.setRGB(1, 1, 1);
     eyes.visible = beam.visible = false;
     npc.mesh.position.set(pos.x, npc.h / 2, pos.z);
     clearSyringes();
@@ -96,6 +96,7 @@ const BOSS = (() => {
     const m = npc.mesh, p = pp();
     const dx = p.x - m.position.x, dz = p.z - m.position.z, d = Math.hypot(dx, dz);
     if (S.hurtMsgT > 0) S.hurtMsgT -= dt;
+    if (S.flashT > 0) { S.flashT -= dt; const f = S.flashT > 0 ? 3 : 1; npc.mat.color.setRGB(f, f, f); }
 
     // seringas voam mesmo durante o telefone
     for (let i = syringes.length - 1; i >= 0; i--) {
@@ -207,13 +208,26 @@ const BOSS = (() => {
         const i = syringes.indexOf(s); if (i >= 0) { scene.remove(s.mesh); syringes.splice(i, 1); AUDIO.sfx('shatter'); }
       } }));
       const m = npc.mesh;
-      list.push({ x: m.position.x, z: m.position.z, r: 0.4, hit: () => {
-        if (S.hurtMsgT > 0) return; S.hurtMsgT = 4;
-        hooks.subtitle(U.pick([
-          '*A bala para no ar, a um palmo da testa dele, e cai no chão. Ele nem pisca.*',
-          '"Isso não vai funcionar, interno. Burocracia se vence com burocracia."',
-          '*O olhar dele desvia o golpe. Espere o telefone tocar.*',
-        ]), 3);
+      list.push({ x: m.position.x, z: m.position.z, r: 0.45, hit: (dmg = 1) => {
+        if (S.state !== 'fight' && S.state !== 'phone') return;
+        S.hp = Math.max(0, S.hp - dmg); S.flashT = 0.12;
+        AUDIO.sfx('bad');
+        hooks.bar(S);
+        if (S.hurtMsgT <= 0) {
+          S.hurtMsgT = 5;
+          hooks.subtitle(U.pick([
+            '"AI! Isso vai pra ata!"',
+            '"Você sabe com quem está falando? Eu tenho uma COLUNA!"',
+            '"Interno armado na CCIH! Isso é uma não-conformidade!"',
+            '"Eu vou mencionar isso na entrevista!"',
+          ]), 2.5);
+        }
+        if (S.hp <= 0) {
+          S.state = 'done'; clearSyringes(); eyes.visible = beam.visible = false; npc.mat.color.setRGB(1, 1, 1);
+          hooks.prompt('');
+          hooks.subtitle('"CHEGA! CHEGA! Eu assino! Eu assino TUDO!"', 3);
+          hooks.onDefeat();
+        }
       } });
       return list;
     },
