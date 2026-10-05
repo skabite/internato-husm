@@ -117,6 +117,7 @@ const CONVO = (() => {
     get talking() { return talk; },
     get speakerChar() { return speaker && speaker.char; },
     get following() { return igScore > 0; },
+    setFollowing(f) { igScore = f ? 1 : 0; },
     // roda um roteiro: script(api) é uma função async
     async run(script, opts = {}) {
       active = true;

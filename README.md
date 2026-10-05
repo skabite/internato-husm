@@ -22,6 +22,10 @@ A fonte pixelada vem do Google Fonts (sem internet, cai numa fonte monoespaçada
 | 1–5 | opções de diálogo |
 | Espaço | interromper o professor (só quando ele respira!) |
 
+## Save
+Salva sozinho (no navegador) depois do saguão, depois do Dudu, ao pegar o revólver, ao tomar café e a cada 20 s fora de combate.
+Na tela de título: CONTINUAR ou NOVO JOGO. O save fica no navegador usado (Chrome e Edge têm saves separados).
+
 ## Estrutura
 ```
 index.html, style.css

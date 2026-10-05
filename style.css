@@ -78,3 +78,6 @@ body.talking #weapon { display: none !important; }
 #dead { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: radial-gradient(#3a0000dd, #000 80%); font-size: 28px; white-space: pre-line; }
 #dead-msg { margin-bottom: 30px; color: #ddd; }
+.menu { font-size: 30px; color: #fff; cursor: pointer; }
+#title-save .menu:hover { color: #ffcf5a; }
+#btn-new { font-size: 24px; color: #fff9; }

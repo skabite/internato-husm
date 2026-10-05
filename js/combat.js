@@ -224,6 +224,7 @@ const COMBAT = (() => {
     get sinceAlert() { return time - lastAlert; },
     // colisão do jogador com javalis vivos
     blocks(x, z, r) { return boars.some(b => b.state !== 'dead' && Math.hypot(b.x - x, b.z - z) < r + 0.45); },
+    killSilently(i) { const b = boars[i]; if (b) { b.state = 'dead'; b.hp = 0; b.vx = b.vz = 0; place(b); } },
     resetAfterDeath() {
       P.hp = P.maxHp; P.dead = false; P.hurtT = 0; P.reload = 0; P.ammo = 6;
       for (const b of boars) if (b.state !== 'dead') { b.x = b.sx; b.z = b.sz; b.state = 'idle'; b.vx = b.vz = 0; b.chargeT = 0; b.hp = 3; place(b); }
