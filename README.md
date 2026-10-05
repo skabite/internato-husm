@@ -16,7 +16,10 @@ A fonte pixelada vem do Google Fonts (sem internet, cai numa fonte monoespaçada
 | F | lanterna |
 | P | alterna resolução interna (180 / 270 / 400 linhas) |
 | M | liga/desliga música |
-| 1–4 | opções de diálogo |
+| Clique | atacar (bisturi / revólver) |
+| 1 / 2 | bisturi / revólver (fora de diálogo) |
+| R | recarregar |
+| 1–5 | opções de diálogo |
 | Espaço | interromper o professor (só quando ele respira!) |
 
 ## Estrutura
@@ -27,14 +30,19 @@ js/util.js           utilidades
 js/audio.js          sequenciador chiptune + efeitos (Bach, Beethoven, Grieg)
 js/textures.js       texturas pixeladas geradas por código
 js/sprites.js        sprite do professor (pixel art em código)
-js/world.js          mapa — escala 1 unidade = 1 metro (LAYOUT PROVISÓRIO)
+js/world.js          fachada, saguão, corredor — escala 1 unidade = 1 metro
+js/level1.js         Capítulo 1: ala de trás em MAPA ASCII (1 caractere = 1 m)
+js/combat.js         armas, javalis, café, HUD de combate
+js/convo.js          motor de conversas roteirizadas (Dudu, Professor3, pensamentos)
+js/story1.js         roteiros do Capítulo 1
+personagens.html     galeria dos personagens (dev)
 js/dialogue.js       sistema e textos da conversa com o professor
 js/main.js           loop, controles, estados, gatilhos
 ```
 
 ## Modo dev
 `index.html#dev=x,z,yaw` pula as telas iniciais e posiciona o jogador.
-Acrescente `,talk` para abrir a conversa direto, ou `,met` para pular a conversa.
+Opcional `,pPITCH` (olhar pra cima/baixo). Estágios: `,talk` abre a conversa do saguão · `,met` depois do saguão · `,dudu` depois do Dudu (com bisturi) · `,gun` com revólver.
 Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
 
 ## Mecânica do diálogo
@@ -43,3 +51,10 @@ Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
 - **Interromper** com Espaço durante a respiração = +foco. Fora da respiração = ele acelera.
 - Silêncio demais (barra vermelha) = ele preenche com outra história.
 - A música (Na Gruta do Rei da Montanha) acelera junto com ele.
+
+## Capítulo 1 — Dudu da Gastro
+- Dudu: você chegou atrasado. Medidor do Instagram (ele te segue ou deixa de seguir). Se terminar seguido: +25 de saúde máxima.
+- Minijogo: ordenar os laudos de colonoscopia por prontuário crescente.
+- Revólver do cirurgião torácico: escondido num de 5 móveis da sala (sorteado a cada partida).
+- Ala C: javalis (olhos brilham no escuro, investem quando perto). Café da copa cura 30.
+- Música: Prelúdio em Dó (Bach) no Dudu, Verão/Presto (Vivaldi) no combate.

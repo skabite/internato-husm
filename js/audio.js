@@ -88,6 +88,51 @@ const AUDIO = (() => {
     };
   })();
 
+  // J. S. Bach — Prelúdio em Dó maior, BWV 846 (o Dudu: metódico, repetitivo, em ordem)
+  (() => {
+    const bars = [
+      'C4 E4 G4 C5 E5', 'C4 D4 A4 D5 F5', 'B3 D4 G4 D5 F5', 'C4 E4 G4 C5 E5',
+      'C4 E4 A4 E5 A5', 'C4 D4 F#4 A4 D5', 'B3 D4 G4 D5 G5', 'B3 C4 E4 G4 C5',
+      'A3 C4 E4 G4 C5', 'D3 A3 D4 F#4 C5', 'G3 B3 D4 G4 B4', 'G3 Bb3 E4 G4 C#5',
+    ];
+    const arp = bars.map(b => { const n = b.split(' '); const half = [n[0], n[1], n[2], n[3], n[4], n[2], n[3], n[4]].map(x => x + ':0.25').join(' '); return half + ' ' + half; }).join(' ');
+    const bass = bars.map(b => { const n = b.split(' ')[0]; return n.replace(/\d$/, d => d - 1) + ':4'; }).join(' ');
+    SONGS.prelude = {
+      bpm: 66,
+      tracks: [
+        { wave: 'triangle', vol: 0.20, ev: parse(arp) },
+        { wave: 'square', vol: 0.05, ev: parse(arp, 0.5, 1), stacc: 0.4 },
+        { wave: 'triangle', vol: 0.24, ev: parse(bass) },
+      ],
+    };
+  })();
+
+  // A. Vivaldi — Verão, 3º mov. (Presto) — combate
+  (() => {
+    const s16 = s => s.split(' ').map(n => n.includes(':') ? n : n + ':0.25').join(' ');
+    const A = s16(rep('G4', 8) + ' D5 C5 Bb4 A4 G4 F#4 G4 A4');
+    const B = s16(rep('Bb4', 8) + ' Eb5 D5 C5 Bb4 A4 G4 A4 Bb4');
+    const C = s16(rep('A4', 8) + ' D5 C5 Bb4 A4 G4 F#4 E4 F#4');
+    const D = 'G4:1 D4:1 G3:2';
+    const E = s16(rep('G4 Bb4 D5 G5', 2) + ' ' + rep('F#4 A4 D5 F#5', 2));
+    const F = s16(rep('Eb4 G4 C5 Eb5', 2) + ' ' + rep('D4 F#4 A4 D5', 2));
+    const lead = [A, B, C, D, E, F].join(' ');
+    const e8 = s => s.split(' ').map(n => n.includes(':') ? n : n + ':0.5').join(' ');
+    const bass = [
+      e8('G2 G2 G2 G2 D2 D2 G2 G2'), e8('Eb2 Eb2 Eb2 Eb2 C2 C2 G2 G2'), e8('D2 D2 D2 D2 D2 D2 D2 D2'),
+      'G2:1 D2:1 G1:2', e8('G2 G2 G2 G2 D2 D2 D2 D2'), e8('C2 C2 C2 C2 D2 D2 D2 D2'),
+    ].join(' ');
+    SONGS.summer = {
+      bpm: 138,
+      tracks: [
+        { wave: 'square', vol: 0.09, ev: parse(lead), stacc: 0.7 },
+        { wave: 'sawtooth', vol: 0.05, ev: parse(lead, 0.5, -1), stacc: 0.5 },
+        { wave: 'triangle', vol: 0.32, ev: parse(bass), stacc: 0.6 },
+        { wave: 'noise', vol: 0.05, ev: parse(rep('x:0.5', 48)) },
+      ],
+    };
+  })();
+
   for (const k in SONGS) {
     const s = SONGS[k];
     s.len = Math.max(...s.tracks.map(t => t.ev.reduce((a, e) => a + e.beats, 0)));
@@ -168,10 +213,54 @@ const AUDIO = (() => {
 
   // ---------------- EFEITOS ----------------
   const SFX = {
-    blip() { // a "voz" do professor
+    blip(base = 170, spread = 140) { // a "voz" de quem está falando
       const t = ctx.currentTime;
-      tone(170 + Math.random() * 140, t, 0.045, 'square', 0.05, sfxGain, 1);
+      tone(base + Math.random() * spread, t, 0.045, 'square', 0.05, sfxGain, 1);
     },
+    shot() {
+      const t = ctx.currentTime;
+      noise(t, 0.35, 0.5, sfxGain, 'lowpass', 2200, 0.8);
+      noise(t, 0.06, 0.4, sfxGain, 'highpass', 3000, 0.7);
+      const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.2);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t + 0.3);
+    },
+    swish() {
+      const t = ctx.currentTime; const n = noise(t, 0.18, 0.18, sfxGain, 'bandpass', 2000, 3);
+      n.f.frequency.setValueAtTime(1200, t); n.f.frequency.exponentialRampToValueAtTime(5000, t + 0.15);
+    },
+    stab() { const t = ctx.currentTime; noise(t, 0.12, 0.25, sfxGain, 'lowpass', 900, 2); },
+    dry() { const t = ctx.currentTime; noise(t, 0.03, 0.15, sfxGain, 'bandpass', 4000, 4); },
+    reload() {
+      const t = ctx.currentTime;
+      [0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5].forEach((d, i) => noise(t + d, 0.03, i === 6 ? 0.3 : 0.12, sfxGain, 'bandpass', i === 6 ? 1800 : 3500, 4));
+    },
+    grunt(vol = 1) { // grunhido de javali
+      const t = ctx.currentTime, dur = 0.25 + Math.random() * 0.25;
+      const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(95 + Math.random() * 40, t);
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 28 + Math.random() * 10;
+      const lg = ctx.createGain(); lg.gain.value = 30; lfo.connect(lg); lg.connect(o.frequency);
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.25 * vol, t + 0.04); g.gain.linearRampToValueAtTime(0, t + dur);
+      o.connect(f); f.connect(g); g.connect(sfxGain); o.start(t); lfo.start(t); o.stop(t + dur + 0.02); lfo.stop(t + dur + 0.02);
+    },
+    squeal(vol = 1) { // guincho
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(); o.type = 'square';
+      o.frequency.setValueAtTime(500, t); o.frequency.linearRampToValueAtTime(1300, t + 0.12); o.frequency.linearRampToValueAtTime(700, t + 0.5);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.09 * vol, t); g.gain.linearRampToValueAtTime(0, t + 0.55);
+      o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t + 0.6);
+    },
+    hurt() {
+      const t = ctx.currentTime;
+      tone(130, t, 0.12, 'square', 0.12, sfxGain, 1); tone(95, t + 0.1, 0.18, 'square', 0.1, sfxGain, 1);
+    },
+    pickup() { const t = ctx.currentTime; [784, 988, 1175, 1568].forEach((f, i) => tone(f, t + i * 0.06, 0.08, 'square', 0.07, sfxGain, 1)); },
+    door() {
+      const t = ctx.currentTime; const n = noise(t, 0.9, 0.12, sfxGain, 'bandpass', 300, 2);
+      n.f.frequency.setValueAtTime(250, t); n.f.frequency.linearRampToValueAtTime(600, t + 0.8);
+    },
+    notify() { const t = ctx.currentTime; tone(1318, t, 0.06, 'sine', 0.08, sfxGain, 1); tone(1760, t + 0.08, 0.1, 'sine', 0.08, sfxGain, 1); },
     step(run) {
       const t = ctx.currentTime;
       noise(t, run ? 0.07 : 0.09, 0.10, sfxGain, 'lowpass', 500 + Math.random() * 300, 1);

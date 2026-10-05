@@ -12,7 +12,7 @@ const SPRITES = (() => {
     },
     // gastroenterologia
     prof2: {
-      nome: 'PROFESSOR2', skin: '#dcaa84', skinD: '#b07e5a',
+      nome: 'DUDU DA GASTRO', skin: '#dcaa84', skinD: '#b07e5a', short: true,
       hair: 'short', hairC: '#2e2620', hairD: '#1a1512',
       glasses: null, beard: null,
       coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#cfc8e6', shirtD: '#a59dc4', tie: null,
@@ -237,8 +237,105 @@ const SPRITES = (() => {
     return cache[id];
   }
 
+  // ======================= JAVALI =======================
+  // cada quadro tem { map, emi } — emi só tem os olhos (brilham no escuro)
+  const BC = { body: '#3a2a1e', shade: '#251a12', light: '#5a4430', mane: '#16100b', snout: '#8a5a4a', nos: '#2a1410', tusk: '#efe8d8', eye: '#ff2a1a', mouth: '#5a1010' };
+  function boarCanvas(w, h, draw) {
+    const a = document.createElement('canvas'); a.width = w; a.height = h;
+    const e = document.createElement('canvas'); e.width = w; e.height = h;
+    const g = a.getContext('2d'), ge = e.getContext('2d');
+    ge.fillStyle = '#000'; ge.fillRect(0, 0, w, h);
+    const p = (col, x, y, ww = 1, hh = 1) => { g.fillStyle = col; g.fillRect(x, y, ww, hh); };
+    const eye = (x, y, ww = 2, hh = 1) => { p(BC.eye, x, y, ww, hh); ge.fillStyle = '#ff3020'; ge.fillRect(x, y, ww, hh); };
+    const ell = (cx, cy, rx, ry, col) => { for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1) p(col, x, y); };
+    draw(p, eye, ell);
+    return { map: a, emi: e };
+  }
+  function boarFront(frame) { // 0/1 andando, 2 atacando
+    return boarCanvas(32, 24, (p, eye, ell) => {
+      const dy = frame === 2 ? 1 : 0;
+      // pernas
+      const lo = frame === 1 ? 1 : 0;
+      [[8, lo], [12, 1 - lo], [18, lo], [22, 1 - lo]].forEach(([x, o]) => p(BC.shade, x, 19 + o, 2, 5 - o));
+      ell(16, 12, 14, 8, BC.body); ell(16, 14, 12, 6, BC.shade);
+      ell(16, 10 + dy, 9, 7, BC.body);                                   // cabeça
+      for (let x = 6; x < 26; x += 2) p(BC.mane, x, 3 + (x % 4 ? 0 : 1), 1, 3); // crina
+      p(BC.mane, 7, 3, 3, 4); p(BC.mane, 22, 3, 3, 4); p(BC.light, 8, 4, 1, 2); p(BC.light, 23, 4, 1, 2); // orelhas
+      p(BC.snout, 12, 12 + dy, 8, 6); p(BC.light, 12, 12 + dy, 8, 1);    // focinho
+      p(BC.nos, 14, 15 + dy, 1, 2); p(BC.nos, 17, 15 + dy, 1, 2);
+      if (frame === 2) { p(BC.mouth, 12, 18 + dy, 8, 2); p(BC.tusk, 10, 12, 2, 1); p(BC.tusk, 20, 12, 2, 1); }
+      p(BC.tusk, 11, 14 + dy, 1, 3); p(BC.tusk, 20, 14 + dy, 1, 3); p(BC.tusk, 10, 13 + dy, 1, 1); p(BC.tusk, 21, 13 + dy, 1, 1);
+      eye(11, 8 + dy); eye(19, 8 + dy);
+    });
+  }
+  function boarSide(frame) {
+    return boarCanvas(40, 24, (p, eye, ell) => {
+      const lo = frame === 1 ? 2 : 0;
+      [[9, lo], [13, 2 - lo], [27, 2 - lo], [31, lo]].forEach(([x, o]) => { p(BC.shade, x + (o ? 1 : 0), 18, 2, 6); });
+      ell(21, 12, 15, 8, BC.body); ell(22, 15, 13, 5, BC.shade);
+      for (let x = 8; x < 32; x += 2) p(BC.mane, x, 3 + (x % 4 ? 1 : 0), 1, 3);
+      // cabeça (esquerda)
+      ell(9, 12, 7, 6, BC.body);
+      p(BC.body, 3, 11, 6, 5); p(BC.snout, 1, 12, 3, 4); p(BC.nos, 1, 13, 1, 1);
+      p(BC.tusk, 5, 14, 1, 2); p(BC.tusk, 4, 13, 1, 1);
+      p(BC.mane, 10, 4, 3, 4); p(BC.light, 11, 5, 1, 2);
+      if (frame === 2) p(BC.mouth, 2, 16, 5, 2);
+      eye(7, 9, 2, 1);
+      p(BC.mane, 36, 9, 1, 3); p(BC.mane, 37, 11, 1, 1);                // rabo
+    });
+  }
+  function boarDead() {
+    return boarCanvas(40, 24, (p, eye, ell) => {
+      ell(20, 23, 16, 3, '#2a0808');                                     // poça
+      ell(21, 18, 15, 5, BC.body); ell(21, 20, 13, 3, BC.shade);
+      ell(8, 18, 6, 4, BC.body); p(BC.snout, 1, 17, 3, 3); p(BC.tusk, 4, 15, 1, 2);
+      [[11, 0], [15, 1], [26, 1], [30, 0]].forEach(([x, o]) => p(BC.shade, x, 7 + o, 2, 7 - o)); // patas pra cima
+      p('#111', 6, 16, 1, 1); p('#111', 8, 16, 1, 1); p('#111', 7, 17, 1, 1); p('#111', 6, 18, 1, 1); p('#111', 8, 18, 1, 1); // olho X
+    });
+  }
+
+  // ======================= ARMAS (vista em 1ª pessoa, 96x72) =======================
+  function weaponCanvas(draw) {
+    const c = document.createElement('canvas'); c.width = 96; c.height = 72;
+    const g = c.getContext('2d');
+    draw((col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), w, h); }, g);
+    return c;
+  }
+  function revolver(fire) {
+    return weaponCanvas((p, g) => {
+      const o = fire ? 4 : 0;
+      if (fire) {
+        g.fillStyle = '#fff6b0'; g.beginPath(); g.arc(48, 6, 9, 0, 7); g.fill();
+        g.fillStyle = '#ffd040'; [[36, 4], [60, 4], [48, -6], [42, 14], [54, 14]].forEach(([x, y]) => { g.fillRect(x - 2, y - 2, 5, 5); });
+        g.fillStyle = '#ffffff'; g.fillRect(45, 3, 7, 6);
+      }
+      p('#ecebe4', 30, 62 + o, 36, 10); p('#b9b8b0', 30, 62 + o, 36, 1);       // punho do jaleco
+      p('#d9a77c', 37, 48 + o, 22, 15); p('#b07e58', 37, 48 + o, 2, 15);      // mão
+      p('#5a3a22', 42, 40 + o, 12, 14); p('#3e2816', 42, 40 + o, 1, 14);      // cabo
+      p('#3a3c40', 40, 30 + o, 16, 12);                                        // armação
+      p('#5a5c62', 38, 24 + o, 20, 10); p('#2a2c30', 38, 27 + o, 20, 1); p('#2a2c30', 38, 30 + o, 20, 1); p('#7a7c82', 39, 25 + o, 18, 1); // tambor
+      p('#2a2c30', 45, 8 + o, 7, 18); p('#7a7c82', 47, 8 + o, 2, 17);          // cano
+      p('#1a1a1c', 47, 6 + o, 3, 3);                                           // massa de mira
+      p('#2a2c30', 46, 36 + o, 4, 5);                                          // cão
+      p('#d9a77c', 52, 38 + o, 6, 8);                                          // polegar
+    });
+  }
+  function scalpel(stab) {
+    return weaponCanvas((p) => {
+      const dx = stab ? -14 : 0, dy = stab ? -16 : 0;
+      p('#ecebe4', 62 + dx, 62 + dy, 34, 14); p('#b9b8b0', 62 + dx, 62 + dy, 34, 1);
+      p('#d9a77c', 62 + dx, 46 + dy, 20, 17); p('#b07e58', 62 + dx, 46 + dy, 2, 17);
+      for (let i = 0; i < 26; i++) { p('#c8ccd0', 66 + dx - i * 0.55, 48 + dy - i, 3, 1); p('#8a8e94', 68 + dx - i * 0.55, 48 + dy - i, 1, 1); } // cabo
+      for (let i = 0; i < 7; i++) p('#eef4fa', 51 + dx - i * 0.6, 22 + dy - i, 2 + (i < 4 ? 1 : 0), 1); // lâmina
+      p('#d9a77c', 60 + dx, 44 + dy, 6, 5);                                    // dedos
+    });
+  }
+
+  const BOAR = { front: [0, 1, 2].map(boarFront), side: [0, 1, 2].map(boarSide), dead: boarDead() };
+  const WEAPONS = { revolver: [revolver(false), revolver(true)], scalpel: [scalpel(false), scalpel(true)] };
+
   return {
-    CHARS,
+    CHARS, BOAR, WEAPONS, texFrom,
     get,
     textures(id) { return get(id).body.map(texFrom); },
     drawPortrait(canvas, id, frame) {

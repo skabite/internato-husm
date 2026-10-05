@@ -7,7 +7,7 @@ const WORLD = (() => {
   const FLOORS = 8;      // térreo + 7 (estimado pela foto da fachada — confirmar)
   const TOP = FLOOR_H + UP_H * (FLOORS - 1);
 
-  let scene, colliders, interactables;
+  let scene, colliders, interactables, MAT;
 
   function mat(tex, su = 2, sv = 2, extra = {}) {
     const m = new THREE.MeshPhongMaterial(Object.assign({ map: tex, shininess: 4, specular: 0x111111 }, extra));
@@ -85,6 +85,8 @@ const WORLD = (() => {
       carGlass: mat(TEX.carGlass, 1, 1),
     };
 
+    MAT = M;
+
     // ---------- LUZES GERAIS ----------
     scene.add(new THREE.AmbientLight(0x1a2030, 0.8));
     const moon = new THREE.DirectionalLight(0x8090c0, 0.6);
@@ -120,7 +122,6 @@ const WORLD = (() => {
     box(-14.2, 0, -46, -1.8, TOP, -22.2, M.concrete, { collide: true }); // bloco de trás (esq.)
     box(1.8, 0, -46, 14.2, TOP, -22.2, M.concrete, { collide: true });   // bloco de trás (dir.)
     box(-1.8, 3, -46, 1.8, TOP, -22.2, M.concrete);                      // sobre o corredor
-    box(-1.8, 0, -46, 1.8, 3, -44.2, M.concrete, { collide: true });     // fundo do corredor
 
     // marquise da entrada
     box(-9, 4.3, 0, 9, 4.7, 7, M.concrete);
@@ -204,10 +205,10 @@ const WORLD = (() => {
     sign('SAÍDA', 0, 2.7, -22.3, 1.2, 0.35, 'z+', { w: 64, h: 20, size: 14, fg: '#fff', bg: '#0a8a3a', glow: true });
 
     // ---------- CORREDOR DOS AMBULATÓRIOS ----------
-    box(-1.6, -0.02, -44.2, 1.6, 0.02, -22, M.vinyl);
-    box(-1.6, 2.95, -44.2, 1.6, 3, -22, M.ceiling);
-    box(-1.8, 0, -44.2, -1.6, 3, -22.2, M.wallLow, { collide: true });
-    box(1.6, 0, -44.2, 1.8, 3, -22.2, M.wallLow, { collide: true });
+    box(-1.6, -0.02, -46, 1.6, 0.02, -22, M.vinyl);
+    box(-1.6, 2.95, -46, 1.6, 3, -22, M.ceiling);
+    box(-1.8, 0, -46, -1.6, 3, -22.2, M.wallLow, { collide: true });
+    box(1.6, 0, -46, 1.8, 3, -22.2, M.wallLow, { collide: true });
     let n = 1;
     for (let z = -26; z > -42; z -= 4.5) {
       for (const s of [-1, 1]) {
@@ -217,8 +218,6 @@ const WORLD = (() => {
         n++;
       }
     }
-    panel(0, 1.05, -44.18, 1.4, 2.1, 'z+', M.door);
-    sign('MANUTENÇÃO — ACESSO RESTRITO', 0, 2.4, -44.17, 2.2, 0.28, 'z+', { w: 256, h: 24, size: 14, fg: '#fff', bg: '#8a1a1a' });
 
     // ---------- LUZES DE EMERGÊNCIA ----------
     const redA = new THREE.PointLight(0xff2a1a, 0.9, 10, 2); redA.position.set(-9.5, 3.8, -21); scene.add(redA);
@@ -244,7 +243,7 @@ const WORLD = (() => {
       spawn: new THREE.Vector3(0, 0, 40),
       profStart: new THREE.Vector3(0.5, 0, -10.5),
       fountain: new THREE.Vector3(-13.0, 0, -12),
-      endStretcher, red: [redA, redB],
+      endStretcher, red: [redA, redB], M, TOP,
     };
   }
 
@@ -308,5 +307,5 @@ const WORLD = (() => {
     box(x - 0.25, 6.8, z - 1.1, x + 0.25, 6.95, z - 0.6, M.dark);
   }
 
-  return { build, FLOOR_H, UP_H, FLOORS };
+  return { build, box, panel, sign, mat, stretcher: (x, z, rot) => stretcher(x, z, rot, MAT), FLOOR_H, UP_H, FLOORS, get colliders() { return colliders; }, get interactables() { return interactables; } };
 })();

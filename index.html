@@ -10,6 +10,8 @@
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="dmg"></div>
+<canvas id="weapon" width="96" height="72"></canvas>
 
 <div id="hud" class="hidden">
   <div id="crosshair">·</div>
@@ -17,12 +19,15 @@
   <div id="hint"></div>
   <div id="toast"></div>
   <div id="subtitle"></div>
-  <div id="keys">WASD andar · SHIFT correr · E examinar · F lanterna · P pixels · M música</div>
+  <div id="stats"><div id="hp"></div><div id="ammo"></div></div>
+  <div id="notify"></div>
+  <div id="keys">WASD andar · SHIFT correr · E examinar · F lanterna · CLIQUE atacar · 1/2 armas · R recarregar · P pixels · M música</div>
 </div>
 
 <div id="dialogue" class="hidden">
   <div id="dlg-top">
     <div id="foco-wrap"><span>FOCO DO PROFESSOR</span><div id="foco"><div id="foco-fill"></div></div></div>
+    <div id="ig"></div>
     <div id="breath">◆ ELE ESTÁ RESPIRANDO — [ESPAÇO]! ◆</div>
   </div>
   <div id="dlg-box">
@@ -48,7 +53,7 @@
     <div class="title-sub">HOSPITAL UNIVERSITÁRIO DE SANTA MARIA</div>
     <div class="title-sub2">— APAGÃO —</div>
     <div class="blink">[ CLIQUE PARA ENTRAR ]</div>
-    <div class="small">trilha: J. S. Bach · L. v. Beethoven · E. Grieg — em 8 bits</div>
+    <div class="small">trilha: J. S. Bach · L. v. Beethoven · E. Grieg · A. Vivaldi — em 8 bits</div>
   </div>
   <div id="intro" class="hidden"></div>
   <div id="pause" class="hidden">
@@ -56,6 +61,11 @@
     <div class="blink">[ CLIQUE PARA CONTINUAR ]</div>
   </div>
   <div id="end" class="hidden"></div>
+  <div id="dead" class="hidden">
+    <div class="title-sub2">VOCÊ DESMAIOU</div>
+    <div id="dead-msg"></div>
+    <div class="blink">[ CLIQUE PARA TENTAR DE NOVO ]</div>
+  </div>
 </div>
 
 <script src="lib/three.min.js"></script>
@@ -64,7 +74,11 @@
 <script src="js/textures.js"></script>
 <script src="js/sprites.js"></script>
 <script src="js/world.js"></script>
+<script src="js/level1.js"></script>
+<script src="js/combat.js"></script>
 <script src="js/dialogue.js"></script>
+<script src="js/convo.js"></script>
+<script src="js/story1.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
