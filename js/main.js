@@ -149,12 +149,13 @@
   document.addEventListener('mousedown', e => {
     if (e.button === 0 && document.pointerLockElement === canvas && G.state === 'play' && !G.paused) COMBAT.fire();
   });
-  const lock = () => { const p = canvas.requestPointerLock && canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); };
+  const lock = () => { if (TOUCH.on) return; const p = canvas.requestPointerLock && canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); };
   document.addEventListener('pointerlockchange', () => {
+    if (TOUCH.on) return;
     const locked = document.pointerLockElement === canvas;
     if (G.state === 'play') { G.paused = !locked; show('pause', !locked); }
   });
-  function relockOrPause() { if (G.dev) return; if (document.pointerLockElement !== canvas) { G.paused = true; show('pause'); } }
+  function relockOrPause() { if (G.dev || TOUCH.on) return; if (document.pointerLockElement !== canvas) { G.paused = true; show('pause'); } }
 
   // ---------- SAVE (localStorage do navegador) ----------
   const SAVE_KEY = 'internato-husm-save-v1';
@@ -263,7 +264,7 @@
       relockOrPause();
     }, 6000);
   };
-  $('pause').onclick = () => lock();
+  $('pause').onclick = () => { if (TOUCH.on) { G.paused = false; show('pause', false); } else lock(); };
   $('end').onclick = () => location.reload();
   $('dead').onclick = () => respawn();
 
@@ -281,7 +282,7 @@
       break;
     }
     const verb = lookTarget && lookTarget.userData.verb;
-    $('hint').textContent = lookTarget ? `[E] ${verb || 'examinar'}` : '';
+    $('hint').textContent = lookTarget ? `${TOUCH.on ? '' : '[E] '}${verb || 'examinar'}` : '';
   }
 
   // ---------- CONVERSA COM O PROFESSOR (saguão) ----------
@@ -648,6 +649,7 @@
     updateDoors(dt);
     W.update(dt, P.pos, G.state === 'play' && !G.paused);
     updateLights(dt);
+    TOUCH.update();
 
     camera.position.set(P.pos.x, 1.62 + Math.sin(P.bob) * 0.035, P.pos.z);
     camera.rotation.set(P.pitch, P.yaw, 0);
@@ -662,6 +664,12 @@
 
   DIALOGUE.init();
   CONVO.init(notify);
+  TOUCH.init({
+    state: () => G.state, paused: () => G.paused,
+    look: (dx, dy) => { if (G.state !== 'play' || G.paused) return; P.yaw -= dx * 0.0055; P.pitch = U.clamp(P.pitch - dy * 0.0055, -1.35, 1.35); },
+    fire: () => { if (G.state === 'play' && !G.paused) COMBAT.fire(); },
+    pause: () => { if (G.state === 'play') { G.paused = true; show('pause'); } },
+  });
 
   // modo de desenvolvimento: index.html#dev=x,z,yaw[,pPITCH][,estágio] pula as telas (sem áudio)
   //   talk = abre a conversa do saguão · met = depois do saguão · dudu = depois do Dudu (bisturi) · gun = com revólver

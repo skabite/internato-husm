@@ -22,6 +22,19 @@ A fonte pixelada vem do Google Fonts (sem internet, cai numa fonte monoespaçada
 | 1–5 | opções de diálogo |
 | Espaço | interromper o professor (só quando ele respira!) |
 
+## No celular (Android)
+Abra o link do jogo (GitHub Pages) no Chrome do celular e deite o aparelho. Os controles de toque aparecem sozinhos:
+- **Joystick**: encoste o dedo na metade esquerda e arraste (empurrar até a borda = correr).
+- **Olhar**: arraste o dedo na metade direita.
+- **ATACAR**, **USAR** (fica amarelo quando tem algo pra examinar), **ARMA**, **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
+- Nas conversas: toque nas opções; **INTERROMPER!** acende quando o professor respira; **CONTINUAR ▶** avança.
+- Nó cirúrgico do Clóvis: um direcional pra cada polegar.
+- No computador dá pra testar os controles de toque com `index.html#touch`.
+
+### Publicar no GitHub Pages
+Settings → Pages → *Deploy from a branch* → `main` / `(root)` → Save. Em ~1 min o jogo fica em `https://skabite.github.io/internato-husm/`.
+O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages exige repositório público.
+
 ## Save
 Salva sozinho (no navegador) depois do saguão, depois do Dudu, ao pegar o revólver, ao tomar café e a cada 20 s fora de combate.
 Na tela de título: CONTINUAR ou NOVO JOGO. O save fica no navegador usado (Chrome e Edge têm saves separados).
@@ -41,6 +54,7 @@ js/boss.js           o chefe: Alexandre "Bélgica" Schwartzboldt
 js/story2.js         roteiros do Capítulo 2
 js/combat.js         armas, javalis, café, HUD de combate
 js/convo.js          motor de conversas roteirizadas (Dudu, Professor3, pensamentos)
+js/touch.js          controles de toque (celular): joystick, arrastar pra olhar, botões
 js/story1.js         roteiros do Capítulo 1
 personagens.html     galeria dos personagens (dev)
 js/dialogue.js       sistema e textos da conversa com o professor
