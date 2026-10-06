@@ -98,3 +98,54 @@ body.talking #weapon { display: none !important; }
 body.talking #stats, body.talking #prompt, body.talking #bossbar { display: none; }
 #bossbar .bhp { width: 420px; height: 10px; margin: 8px auto 0; border: 2px solid #d8a0ff; background: #000a; }
 #bossbar .bhp div { height: 100%; background: #b040ff; transition: width .15s; }
+
+/* ---------- CELULAR (controles de toque) ---------- */
+body.touch { touch-action: none; -webkit-touch-callout: none; }
+body.touch #keys, body.touch #dlg-help { display: none; }
+#touch { position: fixed; inset: 0; pointer-events: none; z-index: 5; font-family: 'Press Start 2P', monospace; }
+#touch .tbtn { position: absolute; pointer-events: auto; display: flex; align-items: center; justify-content: center;
+  color: #fff; background: #0008; border: 2px solid #fff6; border-radius: 50%; font-size: 10px; text-shadow: 1px 1px #000; }
+#touch .tbtn.down { background: #fff4; }
+#touch .tbtn.hot { border-color: #ffd84a; color: #ffd84a; box-shadow: 0 0 12px #ffd84a88; }
+#touch .fire { right: calc(18px + env(safe-area-inset-right)); bottom: 22px; width: 84px; height: 84px; border-color: #e66a; }
+#touch .use { right: calc(112px + env(safe-area-inset-right)); bottom: 70px; width: 64px; height: 64px; }
+#touch .small { width: 44px; height: 44px; font-size: 9px; }
+#touch .weapon { right: calc(26px + env(safe-area-inset-right)); bottom: 118px; }
+#touch .reload { right: calc(80px + env(safe-area-inset-right)); bottom: 140px; }
+#touch .pause { right: calc(14px + env(safe-area-inset-right)); top: 12px; }
+#touch .light { right: calc(66px + env(safe-area-inset-right)); top: 12px; font-size: 18px; }
+#touch .px { right: calc(118px + env(safe-area-inset-right)); top: 12px; }
+#touch .talk { right: calc(18px + env(safe-area-inset-right)); top: 34%; width: auto; height: auto; padding: 14px 16px; border-radius: 8px; font-size: 11px; z-index: 6; }
+#touch .stick { position: absolute; width: 112px; height: 112px; border: 2px solid #fff4; border-radius: 50%; background: #0004; display: none; }
+#touch .knob { position: absolute; left: 32px; top: 32px; width: 44px; height: 44px; border-radius: 50%; background: #fff5; }
+#touch .pads { position: absolute; inset: 0; }
+#touch .pad { position: absolute; top: 6%; width: 150px; height: 150px; }
+#touch .pad.left { left: calc(14px + env(safe-area-inset-left)); }
+#touch .pad.right { right: calc(14px + env(safe-area-inset-right)); }
+#touch .dir { width: 50px; height: 50px; border-radius: 8px; font-size: 14px; }
+#touch .d0 { left: 50px; top: 0; } #touch .d1 { left: 0; top: 50px; } #touch .d2 { left: 50px; top: 100px; } #touch .d3 { left: 100px; top: 50px; }
+
+/* tela baixa (celular deitado): tudo menor */
+@media (max-height: 520px) {
+  #objective { font-size: 16px; left: 10px; top: 8px; max-width: 46vw; }
+  #hint { font-size: 18px; }
+  #toast { font-size: 18px; max-width: 64vw; bottom: 26%; }
+  #subtitle { font-size: 16px; max-width: 60vw; bottom: 14%; }
+  #dialogue { padding: 0 2vw 1vh; }
+  #dlg-box { min-height: 0; padding: 8px; gap: 10px; }
+  #portrait { width: 64px; height: 64px; }
+  #dlg-name { font-size: 9px; margin-bottom: 4px; }
+  #dlg-text { font-size: 18px; min-height: 44px; }
+  #dlg-options { margin-top: 4px; gap: 2px 14px; }
+  .opt { font-size: 17px; padding: 3px 0; }
+  #foco-wrap { font-size: 14px; } #foco { width: 160px; height: 10px; }
+  #breath { font-size: 16px; }
+  .title-sub { font-size: 18px; margin-top: 10px; } .title-sub2 { font-size: 13px; margin: 10px 0 18px; }
+  .blink { font-size: 22px; } .small { font-size: 14px; margin-top: 14px; }
+  #intro { font-size: 20px; } #end { font-size: 18px; }
+  #boot, #title, #pause { padding: 16px 24px; }
+  #hp { font-size: 13px; } #ammo { font-size: 9px; margin-top: 4px; } #stats { left: 12px; bottom: 8px; }
+  .knot { font-size: 16px; letter-spacing: 8px; } #ig { font-size: 15px; }
+  #notify { font-size: 14px; top: 64px; }
+}
+body.touch #dialogue { padding-right: 150px; }
