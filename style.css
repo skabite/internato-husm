@@ -81,7 +81,7 @@ body.talking #weapon { display: none !important; }
 .menu { font-size: 30px; color: #fff; cursor: pointer; }
 #title-save .menu:hover { color: #ffcf5a; }
 #btn-new { font-size: 24px; color: #fff9; }
-.knot { grid-column: 1 / -1; font-family: 'Press Start 2P', monospace; font-size: 26px; letter-spacing: 14px; color: #666; }
+.knot { grid-column: 1 / -1; font-family: 'Press Start 2P', monospace; font-size: 16px; letter-spacing: 2px; color: #ffd84a; }
 .knot .ok { color: #8f8; } .knot .cur { color: #ffd84a; text-decoration: underline; }
 .knot-help { grid-column: 1 / -1; font-size: 20px; color: #bfe3ff; margin-top: 6px; }
 
@@ -118,12 +118,9 @@ body.touch #keys, body.touch #dlg-help { display: none; }
 #touch .talk { right: calc(18px + env(safe-area-inset-right)); top: 34%; width: auto; height: auto; padding: 14px 16px; border-radius: 8px; font-size: 11px; z-index: 6; }
 #touch .stick { position: absolute; width: 112px; height: 112px; border: 2px solid #fff4; border-radius: 50%; background: #0004; display: none; }
 #touch .knob { position: absolute; left: 32px; top: 32px; width: 44px; height: 44px; border-radius: 50%; background: #fff5; }
-#touch .pads { position: absolute; inset: 0; }
-#touch .pad { position: absolute; top: 6%; width: 150px; height: 150px; }
-#touch .pad.left { left: calc(14px + env(safe-area-inset-left)); }
-#touch .pad.right { right: calc(14px + env(safe-area-inset-right)); }
-#touch .dir { width: 50px; height: 50px; border-radius: 8px; font-size: 14px; }
-#touch .d0 { left: 50px; top: 0; } #touch .d1 { left: 0; top: 50px; } #touch .d2 { left: 50px; top: 100px; } #touch .d3 { left: 100px; top: 50px; }
+#touch .aim { right: calc(170px + env(safe-area-inset-right)); top: 12px; font-size: 7px; }
+#rhythm { position: fixed; left: 50%; top: 4%; transform: translateX(-50%); width: 300px; height: 270px; display: none; z-index: 7;
+  image-rendering: pixelated; border: 3px double #c9c2a8; background: #0b0d12; pointer-events: none; }
 
 /* tela baixa (celular deitado): tudo menor */
 @media (max-height: 520px) {
@@ -145,7 +142,8 @@ body.touch #keys, body.touch #dlg-help { display: none; }
   #intro { font-size: 20px; } #end { font-size: 18px; }
   #boot, #title, #pause { padding: 16px 24px; }
   #hp { font-size: 13px; } #ammo { font-size: 9px; margin-top: 4px; } #stats { left: 12px; bottom: 8px; }
-  .knot { font-size: 16px; letter-spacing: 8px; } #ig { font-size: 15px; }
+  .knot { font-size: 12px; letter-spacing: 2px; } .knot-help { font-size: 14px; } #ig { font-size: 15px; }
+  #rhythm { width: 190px; height: 171px; top: 2%; }
   #notify { font-size: 14px; top: 64px; }
 }
 body.touch #dialogue { padding-right: 150px; }

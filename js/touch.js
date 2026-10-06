@@ -13,7 +13,9 @@ const TOUCH = (() => {
   };
   const tap = code => { key(code, true); setTimeout(() => key(code, false), 60); };
 
-  let root, stick, knob, pads, btn = {};
+  let root, stick, knob, btn = {}, fireHeld = false;
+  let assist = true;
+  try { assist = localStorage.getItem('internato-mira') !== 'off'; } catch (e) { /* sem storage */ }
   const joy = { id: null, x0: 0, y0: 0 }, look = { id: null, x: 0, y: 0 };
   const JOY_R = 56;
 
@@ -82,7 +84,15 @@ const TOUCH = (() => {
     root = el('div', '', document.body); root.id = 'touch';
     stick = el('div', 'stick', root); knob = el('div', 'knob', stick);
 
-    btn.fire = button('fire', 'ATACAR', () => H.fire());
+    let fireId = null;
+    btn.fire = button('fire', 'ATACAR', () => { fireHeld = true; H.fire(); }, () => { fireHeld = false; if (look.id === fireId) look.id = null; fireId = null; });
+    btn.fire.addEventListener('touchstart', e => {                // o mesmo dedo também mira
+      const t = e.changedTouches[0]; if (look.id === null) { look.id = fireId = t.identifier; look.x = t.clientX; look.y = t.clientY; }
+    });
+    btn.aim = button('small aim', 'MIRA', () => {
+      assist = !assist; try { localStorage.setItem('internato-mira', assist ? 'on' : 'off'); } catch (e) { /* sem storage */ }
+      H.toast(assist ? 'Mira assistida: LIGADA (gira sozinha pro alvo e atira quando estiver na mira)' : 'Mira assistida: DESLIGADA', 2.5);
+    });
     btn.use = button('use', 'USAR', () => tap('KeyE'));
     btn.weapon = button('small weapon', 'ARMA', () => tap(COMBAT.P.weapon === 'revolver' ? 'Digit1' : 'Digit2'));
     btn.reload = button('small reload', 'R', () => tap('KeyR'));
@@ -90,17 +100,6 @@ const TOUCH = (() => {
     btn.px = button('small px', 'PX', () => tap('KeyP'));
     btn.pause = button('small pause', 'II', () => H.pause());
     btn.talk = button('talk', 'CONTINUAR ▶', () => key('Space', true), () => key('Space', false));
-    // minijogo do nó: dois direcionais, um pra cada polegar
-    pads = el('div', 'pads', root);
-    for (const [side, codes, labels] of [['left', ['KeyW', 'KeyA', 'KeyS', 'KeyD'], ['W', 'A', 'S', 'D']], ['right', ['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'], ['↑', '←', '↓', '→']]]) {
-      const pad = el('div', 'pad ' + side, pads);
-      codes.forEach((c, i) => {
-        const b = el('div', 'tbtn dir d' + i, pad, labels[i]);
-        b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('down'); tap(c); }, { passive: false });
-        b.addEventListener('touchend', e => { e.preventDefault(); b.classList.remove('down'); }, { passive: false });
-      });
-    }
-
     document.addEventListener('touchstart', onStart, { passive: false });
     document.addEventListener('touchmove', onMove, { passive: false });
     document.addEventListener('touchend', onEnd); document.addEventListener('touchcancel', onEnd);
@@ -109,13 +108,15 @@ const TOUCH = (() => {
   }
 
   // mostra só o que faz sentido em cada momento
-  function update() {
+  function update(dt = 0.016) {
     if (!H) return;
     const talking = DIALOGUE.active || CONVO.active;
     const playing = H.state() === 'play' && !H.paused() && !talking;
     const knot = !!document.querySelector('#dlg-options .knot');
     const show = (b, v) => { b.style.display = v ? '' : 'none'; };
     for (const k of ['use', 'light', 'px', 'pause']) show(btn[k], playing);
+    show(btn.aim, playing && COMBAT.P.weapon);
+    btn.aim.classList.toggle('hot', assist);
     show(btn.fire, playing && COMBAT.P.weapon);
     show(btn.weapon, playing && COMBAT.P.has.revolver);
     show(btn.reload, playing && COMBAT.P.weapon === 'revolver');
@@ -123,9 +124,32 @@ const TOUCH = (() => {
     btn.talk.textContent = DIALOGUE.active ? 'INTERROMPER!' : 'CONTINUAR ▶';
     btn.talk.classList.toggle('hot', DIALOGUE.active && document.getElementById('breath').classList.contains('on'));
     btn.use.classList.toggle('hot', !!document.getElementById('hint').textContent || !!document.getElementById('prompt').textContent);
-    pads.style.display = knot ? '' : 'none';
     if (!playing && joy.id !== null) releaseStick();
-    if (!playing) look.id = null;
+    if (!playing) { look.id = null; fireHeld = false; return; }
+    if (fireHeld) H.fire();
+    if (assist && COMBAT.P.weapon) aimAssist(dt);
+  }
+
+  // mira assistida (só no celular): procura o alvo visível mais perto do centro da tela,
+  // gira a câmera até ele e atira sozinho quando ele entra na mira
+  function aimAssist(dt) {
+    const P = H.player(), w = COMBAT.P.weapon, range = w === 'revolver' ? 24 : 2.2;
+    const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
+    const cands = COMBAT.boars.filter(b => b.state !== 'dead').map(b => ({ x: b.x, z: b.z, r: 0.55 }))
+      .concat(BOSS.active ? BOSS.targets() : []);
+    let best = null, bestA = 0.62;                                 // ~35° pra cada lado
+    for (const t of cands) {
+      const dx = t.x - P.pos.x, dz = t.z - P.pos.z, d = Math.hypot(dx, dz);
+      if (d < 0.2 || d > range) continue;
+      const a = Math.acos(U.clamp((dx * fx + dz * fz) / d, -1, 1));
+      if (a < bestA && COMBAT.los(P.pos.x, P.pos.z, t.x, t.z)) { bestA = a; best = { t, d, dx, dz }; }
+    }
+    if (!best) return;
+    const want = Math.atan2(-best.dx, -best.dz);
+    let diff = ((want - P.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    P.yaw += diff * Math.min(1, dt * 7);                           // "ímã" na mira
+    const perp = Math.abs(Math.sin(diff)) * best.d;
+    if (perp < (best.t.r || 0.5) * 0.8 && COMBAT.P.reload <= 0 && COMBAT.P.cd <= 0) H.fire();
   }
 
   return { on, init, update };

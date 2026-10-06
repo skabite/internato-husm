@@ -47,8 +47,9 @@ const STORY2 = {
 
     await c.say('clovis', 'Antes de eu te mandar resolver isso, me mostra uma coisa. Dá um nó cirúrgico.');
     await c.say('clovis', 'Com a mão ESQUERDA primeiro. Eu sou ambidestro. Espero que você seja pelo menos destro.');
+    await c.say('narr', '*Laçada no tempo certo, mão esquerda ou direita. Quando vier ⇆, aperta o nó. No ritmo da música. O Clóvis cantarola junto, meio tom acima.*');
     const e = await c.knot('esquerda');
-    if (e.timeout) await c.say('clovis', 'O fio... soltou. Interessante. Os pacientes também soltam, sabia? Da gente. Pela confiança.');
+    if (e.timeout) await c.say('clovis', 'Perdeu o tempo. O fio... soltou. Interessante. Os pacientes também soltam, sabia? Da gente. Pela confiança.');
     else if (e.errors === 0) { up(0.4); await c.say('clovis', 'Hm.'); }
     else await c.say('clovis', `${e.errors} ${e.errors === 1 ? 'hesitação' : 'hesitações'}. Na minha época isso era reprovação. Mas a época é outra. Infelizmente.`);
 
@@ -58,7 +59,7 @@ const STORY2 = {
     else if (d.errors === 0) { up(0.4); await c.say('clovis', 'Hm. Hm.'); }
     else await c.say('clovis', 'Dá pra melhorar. Tudo dá pra melhorar. Até isso aqui. Principalmente isso aqui.');
 
-    const perfect = !e.timeout && !d.timeout && e.errors === 0 && d.errors === 0 && e.time + d.time < 7;
+    const perfect = !e.timeout && !d.timeout && e.perfect && d.perfect;
     if (perfect) {
       await c.say('narr', '*Ele olha pro nó. Olha pra você. Olha pro nó de novo. Ajusta os óculos sem aro.*');
       ap = 7.3; meter();

@@ -1,8 +1,9 @@
-// Diálogo com o Professor — pressão de fala, fio associativo frouxo e um jogador tentando escapar.
+// Diálogo com o Professor — divagações (saúde coletiva, TI em saúde, gestão), café, biscoito e um jogador tentando escapar.
 //
 // Mecânica:
-//  - Ele fala rápido (e cada vez mais rápido). O texto tem pausas de respiração, marcadas com "|".
-//  - Durante a respiração, [ESPAÇO] interrompe com sucesso (+foco). Fora dela, ele nem percebe (−foco, acelera).
+//  - Ele fala num ritmo normal, mas emenda um assunto no outro. O texto tem pausas de respiração, marcadas com "|".
+//  - Durante a respiração, [ESPAÇO] interrompe com sucesso (+foco). Fora dela, ele não lida bem:
+//    perde o fio e recomeça o raciocínio do começo (−foco).
 //  - As opções são, em sua maioria, inúteis. Algumas alimentam a tangente (−foco), algumas puxam pro assunto (+foco).
 //  - Silêncio demais também é ruim: ele preenche o vazio com outra história.
 //  - Com o FOCO em 100%, ele finalmente explica a missão.
@@ -10,6 +11,7 @@ const DIALOGUE = (() => {
   // ---------------- TEXTO ----------------
   const OPENING =
     'EI! VOCÊ! É o interno novo? Claro que é, tá com cara de interno, essa cara de quem dormiu três horas e acha que foi muito. | ' +
+    'Quer um café? Tem biscoito também, Maria, ou Maizena, eu nunca sei a diferença, | ' +
     'Que bom que você chegou, a gente tá com um problema, um problemão, na verdade é um problema elétrico mas também é administrativo, que é o pior tipo, | ' +
     'sabia que "problema" vem do grego? Pro-ballein, jogar pra frente. Que nem a gente faz com os problemas aqui.';
 
@@ -27,7 +29,15 @@ const DIALOGUE = (() => {
     'Aliás, você reparou como tá quieto? Hospital nunca é quieto. | Eu tava ouvindo umas rodinhas de maca rolando lá pro fundo agora há pouco, | deve ser o vento, maca com vento, acontece, física, pressão, sei lá, não sou engenheiro.',
     'Na minha época de interno a gente fazia plantão de trinta e seis horas e gostava, | não gostava, mas dizia que gostava, que é o que importa pra banca, | você vai fazer residência em quê? Não responde, eu vou adivinhar depois.',
     'Eu tenho um podcast. Três ouvintes. Um é minha mãe, o outro sou eu no celular da minha esposa, | o terceiro é um mistério, alguém da Finlândia, | ou um bot, mas um bot finlandês, que eu respeito.',
-    'Eu sei que eu falo muito, meu psiquiatra diz que é o TDAH, eu digo que é entusiasmo, | a gente concorda em discordar e ele me cobra por isso, | o metilfenidato eu tomei de manhã, ou foi ontem, os dias ficam iguais sem luz.',
+    'Isso aqui, o apagão, é determinação social do processo saúde-doença, sabia? | O gerador adoece porque a manutenção adoece, porque o orçamento adoece, | é o modelo de Dahlgren e Whitehead, só que com fio elétrico.',
+    'Sabe o que resolveria? Um prontuário eletrônico que funcionasse offline. | Eu mandei uma proposta em 2017: interoperabilidade, HL7, FHIR, | a resposta foi "professor, a gente ainda imprime a prescrição".',
+    'Gestão é isso, o ciclo PDCA: planejar, fazer, checar, agir. | Aqui a gente faz o PDCA ao contrário: age, depois descobre que não planejou, | e a checagem fica pra próxima reunião de colegiado.',
+    'Você conhece a Lei 8.080? Tem que conhecer. Universalidade, integralidade, equidade. | A luz caiu com equidade, pelo menos, caiu igual pra todo mundo, | é o princípio mais bem implementado do hospital hoje.',
+    'Indicador! A gente precisa de um indicador de apagão. Tempo médio até o gerador assumir. | Hoje tá em... infinito. Infinito não cabe no painel, | o Power BI trava, eu já testei, travou junto com o meu dia.',
+    'O HUSM é referência pra uns quarenta e poucos municípios, a regionalização, sabe, | quarenta e dois, ou quarenta e cinco, a Coordenadoria muda a planilha, | e cada município manda um papel de encaminhamento diferente, eu coleciono.',
+    'O futuro é a telessaúde. Se a gente tivesse teleconsultoria agora, | eu te explicava tudo por vídeo, | se tivesse luz, e internet, e o vídeo não travasse na minha cara, que sempre trava na minha cara.',
+    'Já mexeu no sistema de regulação? É uma experiência quase religiosa. | Você entra, reza, clica em salvar e espera um sinal, | às vezes vem um erro 500, que é um sinal, de certa forma.',
+    'Atenção primária resolve oitenta por cento dos problemas, oitenta! | Se tivesse uma unidade de saúde dentro do hospital, ela resolvia o apagão, | ou pelo menos encaminhava, com contrarreferência, coisa que ninguém faz.',
     'Sabe o que falta nesse hospital? Um aquário. Aquário acalma. | Eu vi um estudo, ou um vídeo, um vídeo sobre um estudo, | que peixe-palhaço reduz ansiedade, ou era peixe-betta, enfim, era laranja.',
   ];
 
@@ -39,6 +49,11 @@ const DIALOGUE = (() => {
     'A energia, sim! Caiu tudo, até o micro-ondas da copa, | que aliás tem um cheiro de peixe que ninguém assume, ',
     'Sim, sim, o apagão, foco, FOCO. O gerador não pegou, e quando gerador não pega | a gente fica tipo meu carro em julho, ',
     'Isso, o que você precisa fazer. Você precisa me escutar com atenção, | atenção é um recurso escasso, sabia? Igual tomate na minha sacada, ',
+  ];
+  const DERAIL = [
+    '...Hã? Desculpa, perdi o fio. Onde eu tava? Deixa eu começar de novo: | ',
+    '...Calma, calma, deixa eu terminar. Agora perdi. Vou voltar do início: | ',
+    '...Opa. Me desconcentrei. Você me desconcentrou. Do começo, então: | ',
   ];
   const HIJACK = [
     'O gerador! O gerador é tipo um coração, né, bombeia energia, e falando em coração, ',
@@ -55,8 +70,9 @@ const DIALOGUE = (() => {
       { t: '[Fingir que o celular tocou]', r: 'Pode atender! Pode atender, eu espero. ... ... Não tocou? Tocou sim, eu ouvi. Enfim, | ' },
       { t: '[Olhar o relógio de forma óbvia]', r: 'Também tô sem relógio, a bateria acabou quando acabou a luz, será que tá relacionado? | ' },
       { t: 'Preciso ir ao banheiro.', r: 'Banheiro sem luz? Coragem. O do segundo andar tem uma porta que abre sozinha, | ' },
-      { t: '[Bocejar ostensivamente]', r: 'Sono? Eu não durmo desde o Revalida de 2016. Brincadeira. Não é brincadeira. | ' },
+      { t: '[Bocejar ostensivamente]', r: 'Sono? Toma um café! Eu sempre tenho café. E biscoito. Pega mais um. | ' },
     ],
+    snack: { t: '[Aceitar o café e o biscoito]', r: 'Isso! Café da copa da clínica, o melhor do hospital, e o biscoito é Maria, | ou Maizena, tanto faz, os dois são bons pra quem não jantou, | e falando em jantar, ' },
   };
 
   const MISSION = [
@@ -74,16 +90,17 @@ const DIALOGUE = (() => {
   let foco = 15, tangents = 0, speedBoost = 0;
   let deck = [], options = [], silence = 0, silenceMax = 8;
   let waitT = 0, flashT = 0, phase = 'chat', missionIdx = 0;
-  let talkAnim = false;
+  let talkAnim = false, snack = false;
 
   function $(id) { return document.getElementById(id); }
 
-  function cps() { return Math.min(120, 34 * (1 + tangents * 0.07 + speedBoost)); }
-  function breathWindow() { return Math.max(0.42, 0.85 - tangents * 0.035); }
-  function tempo() { return Math.min(230, 96 + tangents * 9 + speedBoost * 40); }
+  // ritmo de fala normal (ele não acelera); a respiração vai ficando um pouco mais curta conforme ele se empolga
+  function cps() { return Math.min(38, 30 + tangents * 0.8); }
+  function breathWindow() { return Math.max(0.5, 0.9 - tangents * 0.03); }
+  function tempo() { return Math.min(132, 96 + tangents * 3); }
 
-  function say(text, onDone, interruptible = true) {
-    q = { text, shown: '', i: 0, acc: 0, breath: 0, onDone, interruptible };
+  function say(text, onDone, interruptible = true, orig = text) {
+    q = { text, orig, shown: '', i: 0, acc: 0, breath: 0, onDone, interruptible };
     mode = 'typing';
     el.options.innerHTML = '';
     el.silence.style.width = '0';
@@ -116,7 +133,8 @@ const DIALOGUE = (() => {
     const pool = [];
     const nRed = forceRedirect != null ? forceRedirect : (Math.random() < 0.6 ? 1 : 0);
     U.shuffle(OPTS.redirect.slice()).slice(0, nRed).forEach(t => pool.push({ kind: 'redirect', t }));
-    if (Math.random() < 0.75) { const e = U.pick(OPTS.escape); pool.push({ kind: 'escape', t: e.t, r: e.r }); }
+    if (!snack && tangents <= 4) pool.push({ kind: 'snack', t: OPTS.snack.t, r: OPTS.snack.r });
+    if (pool.length < 3 && Math.random() < 0.75) { const e = U.pick(OPTS.escape); pool.push({ kind: 'escape', t: e.t, r: e.r }); }
     const fillers = U.shuffle([
       ...OPTS.feed.map(t => ({ kind: 'feed', t })),
       ...OPTS.neutral.map(t => ({ kind: 'neutral', t })),
@@ -147,7 +165,7 @@ const DIALOGUE = (() => {
       missionIdx++;
       if (missionIdx < MISSION.length) return say(MISSION[missionIdx], () => { options = [{ t: missionIdx === MISSION.length - 1 ? '[Entendi. Professor2, gastro.]' : '[Continuar]' }]; showChoices(); }, false);
       phase = 'trap';
-      AUDIO.play('mountain', { bpm: 240, fade: 0.1 });
+      AUDIO.play('mountain', { bpm: 150, fade: 0.1 });
       return say(TRAP, () => { options = [{ t: '[SAIR ANDANDO RÁPIDO]' }, { t: '[Fingir um desmaio leve]' }]; showChoices(); }, false);
     }
     if (phase === 'trap') return finish(i);
@@ -161,6 +179,9 @@ const DIALOGUE = (() => {
         return nextTangent(U.pick(PREFIX_NEUTRAL));
       case 'escape':
         addFoco(5);
+        return nextTangent(o.r);
+      case 'snack':
+        snack = true; addFoco(-2); AUDIO.sfx('pickup'); flash('Café e biscoito garantidos.', true);
         return nextTangent(o.r);
       case 'redirect':
         if (Math.random() < 0.28) {
@@ -184,7 +205,7 @@ const DIALOGUE = (() => {
     active = false; mode = 'done';
     el.root.classList.add('hidden');
     AUDIO.stop(0.2);
-    if (onEnd) onEnd(i === 1 ? 'desmaio' : 'saiu');
+    if (onEnd) onEnd(i === 1 ? 'desmaio' : 'saiu', snack);
   }
 
   function interrupt() {
@@ -195,8 +216,11 @@ const DIALOGUE = (() => {
       if (foco >= 100) return startMission();
       say('Hm? Ah. Sim. Pode falar, pode falar.', () => showChoices(2), false);
     } else {
-      addFoco(-4); speedBoost += 0.12; AUDIO.setTempo(tempo()); AUDIO.sfx('bad');
-      flash('Ele nem percebeu. E acelerou.');
+      // fora da respiração ele não lida: perde o fio e recomeça o raciocínio do começo
+      addFoco(-6); AUDIO.sfx('bad'); el.breath.classList.remove('on');
+      flash('Ele perdeu o fio. Vai recomeçar do começo.');
+      const back = U.pick(DERAIL);
+      say(back + q.orig, q.onDone, true, q.orig);
     }
   }
 
@@ -215,7 +239,7 @@ const DIALOGUE = (() => {
     },
     start(cb) {
       onEnd = cb; active = true; phase = 'chat';
-      foco = 15; tangents = 0; speedBoost = 0; deck = [];
+      foco = 15; tangents = 0; speedBoost = 0; deck = []; snack = false;
       addFoco(0);
       el.root.classList.remove('hidden');
       AUDIO.play('mountain', { bpm: tempo(), fade: 0.2 });
@@ -241,7 +265,7 @@ const DIALOGUE = (() => {
             if (ch === '|') {
               if (q.interruptible) {
                 q.breath = breathWindow(); el.breath.classList.add('on'); AUDIO.sfx('breath');
-                if (!this._hinted) { this._hinted = true; q.breath += 0.6; flash('DICA: aperte [ESPAÇO] agora!', true); }
+                if (!this._hinted) { this._hinted = true; q.breath += 0.6; flash(TOUCH.on ? 'DICA: toque INTERROMPER agora!' : 'DICA: aperte [ESPAÇO] agora!', true); }
               }
               q.acc = 0;
               break;
@@ -274,6 +298,9 @@ const DIALOGUE = (() => {
       '...você é um ótimo ouvinte, sabia? Muito melhor que o interno anterior...',
       '...o anzol é o diagnóstico, você entende? Você entende. Você é um bebedouro, mas entende...',
       '...dezoito lances. Na volta, dezenove. Quem colocou um degrau a mais?...',
+      '...porque a integralidade, ela não é só um princípio, ela é um estilo de vida, entende?...',
+      '...e o indicador ficou vermelho, mas era o daltonismo do gestor, não o indicador...',
+      '...quer um biscoito? Não? Fica pra você então. Você é um bom bebedouro...',
     ],
   };
 })();
