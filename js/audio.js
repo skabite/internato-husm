@@ -366,6 +366,15 @@ const AUDIO = (() => {
       o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t + 0.8);
     },
     click() { const t = ctx.currentTime; noise(t, 0.03, 0.2, sfxGain, 'bandpass', 2500, 2); },
+    creak() { // dobradiça enferrujada (porta abrindo sozinha)
+      const t = ctx.currentTime;
+      const o = ctx.createOscillator(); o.type = 'sawtooth';
+      o.frequency.setValueAtTime(70, t); o.frequency.linearRampToValueAtTime(110, t + 1.2); o.frequency.linearRampToValueAtTime(55, t + 2.6);
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 17; const lg = ctx.createGain(); lg.gain.value = 25; lfo.connect(lg); lg.connect(o.frequency);
+      const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 6;
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.22, t + 0.3); g.gain.linearRampToValueAtTime(0.12, t + 2.2); g.gain.linearRampToValueAtTime(0, t + 2.8);
+      o.connect(f); f.connect(g); g.connect(sfxGain); o.start(t); lfo.start(t); o.stop(t + 2.9); lfo.stop(t + 2.9);
+    },
   };
 
   function startWind() {

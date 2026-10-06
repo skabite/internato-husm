@@ -190,7 +190,7 @@
   function applySave(s) {
     if (s.met) {
       G.met = G.objective = true;
-      G.profTarget = W.fountain.clone().add(new THREE.Vector3(1, 0, 0));
+      G.profTarget = W.profIdle.clone();
       prof.position.x = G.profTarget.x; prof.position.z = G.profTarget.z;
     }
     if (s.scare) {
@@ -298,7 +298,7 @@
     setObjective('OBJETIVO: Encontrar o DUDU DA GASTRO (Endoscopia)');
     if (kind === 'desmaio') toast('Você "desmaia". Quando abre os olhos, ele está explicando os tomates para o bebedouro.', 6);
     else toast('Você sai andando rápido. Ele não percebe. Continua falando... com o bebedouro.', 6);
-    G.profTarget = W.fountain.clone().add(new THREE.Vector3(1.0, 0, 0));
+    G.profTarget = W.profIdle.clone();
     setTimeout(() => { if (!G.ended) AUDIO.play('moonlight', { fade: 4 }); }, 2500);
     relockOrPause();
     save();
@@ -646,6 +646,7 @@
     $('infect').style.opacity = COMBAT.P.infectT > 0 ? 0.35 + Math.sin(G.time * 5) * 0.1 : 0;
     updateProf(dt);
     updateDoors(dt);
+    W.update(dt, P.pos, G.state === 'play' && !G.paused);
     updateLights(dt);
 
     camera.position.set(P.pos.x, 1.62 + Math.sin(P.bob) * 0.035, P.pos.z);
@@ -675,7 +676,7 @@
     setObjective('[DEV]');
     const stage = dev[5];
     if (stage === ',talk') startTalk();
-    if (stage && stage !== ',talk') { G.met = G.objective = true; G.profTarget = W.fountain.clone().add(new THREE.Vector3(1, 0, 0)); }
+    if (stage && stage !== ',talk') { G.met = G.objective = true; G.profTarget = W.profIdle.clone(); }
     const later = [',prof3', ',clovis'].includes(stage);
     if (stage === ',dudu' || stage === ',gun' || later) {
       G.duduStarted = G.duduDone = true; COMBAT.give('scalpel');
