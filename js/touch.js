@@ -43,7 +43,7 @@ const TOUCH = (() => {
 
   function onStart(e) {
     if (!H || H.state() !== 'play' || H.paused()) return;
-    for (const t of e.changedTouches) {
+    for (const t of Array.from(e.changedTouches)) {
       if (t.clientX < innerWidth * 0.42 && joy.id === null) {
         joy.id = t.identifier; joy.x0 = t.clientX; joy.y0 = t.clientY;
         stick.style.display = 'block'; stick.style.left = (t.clientX - JOY_R) + 'px'; stick.style.top = (t.clientY - JOY_R) + 'px';
@@ -53,14 +53,14 @@ const TOUCH = (() => {
     e.preventDefault();
   }
   function onMove(e) {
-    for (const t of e.changedTouches) {
+    for (const t of Array.from(e.changedTouches)) {
       if (t.identifier === joy.id) setStick(t.clientX - joy.x0, t.clientY - joy.y0);
       if (t.identifier === look.id) { H.look(t.clientX - look.x, t.clientY - look.y); look.x = t.clientX; look.y = t.clientY; }
     }
     if (joy.id !== null || look.id !== null) e.preventDefault();
   }
   function onEnd(e) {
-    for (const t of e.changedTouches) {
+    for (const t of Array.from(e.changedTouches)) {
       if (t.identifier === joy.id) releaseStick();
       if (t.identifier === look.id) look.id = null;
     }
