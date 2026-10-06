@@ -147,3 +147,4 @@ body.touch #keys, body.touch #dlg-help { display: none; }
   #notify { font-size: 14px; top: 64px; }
 }
 body.touch #dialogue { padding-right: 150px; }
+@media (max-height: 330px) { #rhythm { width: 140px; height: 126px; } }

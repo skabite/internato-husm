@@ -141,7 +141,7 @@ const CONVO = (() => {
   function knotStart(hand) {
     const ch = CHARTS[hand] || CHARTS.esquerda;
     const notes = ch.notes.map(([lane, n], i) => ({ lane, f: NOTE[n], t: LEAD + FALL + i * ch.gap, res: null }));
-    knot = { hand, notes, t: 0, errors: 0, misses: 0, perfects: 0, fb: '', fbT: 0, end: notes[notes.length - 1].t + 0.6, touch: null };
+    knot = { hand, notes, t: 0, t0: performance.now(), errors: 0, misses: 0, perfects: 0, fb: '', fbT: 0, end: notes[notes.length - 1].t + 0.6, touch: null };
     mode = 'knot';
     if (!rcan) {
       rcan = document.createElement('canvas'); rcan.id = 'rhythm'; rcan.width = 120; rcan.height = 108;
@@ -157,8 +157,10 @@ const CONVO = (() => {
     return new Promise(res => { resolver = res; });
   }
   // nota mais próxima ainda não resolvida (da faixa pedida)
+  // o tempo do nó é o relógio de verdade (não depende de quantos quadros o celular aguenta)
+  function knotNow() { knot.t = (performance.now() - knot.t0) / 1000; return knot.t; }
   function knotJudge(input) {
-    const k = knot;
+    const k = knot; knotNow();
     let best = null;
     for (const n of k.notes) if (!n.res && Math.abs(n.t - k.t) <= OK && (!best || Math.abs(n.t - k.t) < Math.abs(best.t - k.t))) best = n;
     if (!best || best.lane !== input) { k.errors++; knotFb('ERROU', '#f77'); AUDIO.sfx('bad'); return; }
@@ -175,7 +177,7 @@ const CONVO = (() => {
   function knotTouch(e) {
     if (mode !== 'knot') return;
     e.preventDefault();
-    const k = knot;
+    const k = knot; knotNow();
     if (e.type === 'touchstart') {
       const t = e.changedTouches[0];
       const next = k.notes.find(n => !n.res && n.t - k.t > -OK);
@@ -258,7 +260,7 @@ const CONVO = (() => {
       talk = false;
       if (mode === 'knot') {
         const k = knot;
-        k.t += dt; k.fbT -= dt;
+        knotNow(); k.fbT -= dt;
         for (const n of k.notes) if (!n.res && k.t - n.t > OK) { n.res = 'miss'; k.misses++; knotFb('PERDEU', '#f77'); }
         knotDraw();
         if (k.t >= k.end) knotEnd();
