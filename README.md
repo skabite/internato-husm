@@ -34,7 +34,7 @@ js/util.js           utilidades
 js/audio.js          sequenciador chiptune + efeitos (Bach, Beethoven, Grieg)
 js/textures.js       texturas pixeladas geradas por código
 js/sprites.js        sprite do professor (pixel art em código)
-js/world.js          fachada, saguão, corredor — escala 1 unidade = 1 metro
+js/world.js          entrada do Bloco D (fachada, praça, recepção, escada, corredor, banheiro) — 1 unidade = 1 metro
 js/level1.js         Capítulo 1: ala de trás em MAPA ASCII (1 caractere = 1 m)
 js/level2.js         Capítulo 2: Vascular (Clóvis) e CCIH (arena do chefe), também em ASCII
 js/boss.js           o chefe: Alexandre "Bélgica" Schwartzboldt
@@ -52,6 +52,7 @@ js/main.js           loop, controles, estados, gatilhos
 Opcional `,pPITCH` (olhar pra cima/baixo). Estágios: `,talk` abre a conversa do saguão · `,met` depois do saguão · `,dudu` depois do Dudu (com bisturi) · `,gun` com revólver · `,prof3` depois do Javali · `,clovis` depois do Clóvis (CCIH liberada).
 No modo dev o jogo não pausa sem o mouse travado e expõe `window.__game` para testes automáticos.
 Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
+Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (catracas) · `#dev=-2,-12,-1.08,met` (escada helicoidal) · `#dev=-2.2,-30.3,1.57,met` (banheiro masculino).
 
 ## Mecânica do diálogo
 - **Foco do professor** (0–100%): chegar a 100% faz ele explicar a missão.
@@ -77,3 +78,16 @@ Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
   - Ponto fraco: o telefone toca (entrevista!). Ele para; chegue perto e aperte E → assinatura. 3 assinaturas vencem.
   - Ou na força: 60 de vida (revólver 2, bisturi 1). Zerou, ele se rende e assina tudo.
 - Música: Eine kleine Nachtmusik (Mozart) no Clóvis, 5ª Sinfonia (Beethoven) no chefe.
+
+## Entrada do HUSM (Bloco D) — refeita a partir das fotos de referência
+As fotos ficam só no computador (têm pessoas reais), mas o que foi tirado delas está no código:
+- **Fachada**: térreo com o mural de formas pretas sobre o reboco creme, basculantes com ar-condicionado e a faixa verde de concreto com limo;
+  torre de **6 pavimentos** (térreo + 5 fileiras de janelas, contadas nas fotos), pilares verde-claros, persianas projetadas, platibanda.
+- **Marquise branca** com o letreiro HOSPITAL / HUSM / SUS / EBSERH, totem "Bloco D", placa de "Proibido fumar", bancos e guarda-corpos.
+- **Praça**: bloquete sextavado, meio-fio amarelo, barreiras laranja no retorno, jacarandás, bancos de concreto, ambulância, poste.
+- **Recepção**: balcão curvo dos guichês 21–24, painel de senha (PC0696), coluna verde-petróleo com INFORMAÇÕES, cadeiras azuis, relógio parado em 18h47, catracas.
+- **Hall**: escada helicoidal verde com o miolo verde/vermelho/amarelo, cadeiras de rodas embaixo, elevadores, o galpãozinho de madeira com o quadro da ponte.
+- **Corredor**: parede cinza com barra de granilite, forro de PVC, eletrocalha, quadradinhos azuis no piso, extintor no quadrado vermelho e amarelo, hidrante,
+  placas fotoluminescentes e o sanitário masculino (a porta do fundo abre sozinha).
+- Ainda provisório: a **planta** (onde fica cada sala). Uma foto do "MAPA DO HOSPITAL" da entrada resolveria.
+
