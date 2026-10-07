@@ -22,6 +22,7 @@ const STORY2 = {
   // ---------------- CLÓVIS DA VASCULAR ----------------
   async clovis(c, game) {
     let ap = 0.2;
+    const best = { sala: false, cavalos: false, no: false, perfeitamente: false };   // aprovação máxima = tudo certo
     const meter = () => c.meter(`🏛️ <b>APROVAÇÃO DO CLÓVIS</b> · ${ap.toFixed(1).replace('.', ',')}%`);
     const up = v => { ap = Math.max(0, ap + v); meter(); };
     meter();
@@ -34,7 +35,7 @@ const STORY2 = {
     let i = await c.choose(['Vim. Matei uns javalis no caminho.', 'Vim correndo, professor.', 'O senhor tem uma sala muito bonita.', 'Vim pela porta dos fundos do Professor3.']);
     if (i === 0) { up(0.1); await c.say('clovis', 'Matou. Interessante. Eu teria desviado. Mas cada um tem o seu estilo. O seu é... um estilo.'); }
     if (i === 1) await c.say('clovis', 'Correr é uma escolha. Não seria a minha. Mas é uma escolha.');
-    if (i === 2) { up(0.3); await c.say('clovis', 'Obrigado. É a menor das minhas salas. A de casa tem vista pro mar. A de Gramado tem vista pra outra sala minha.'); }
+    if (i === 2) { up(0.3); best.sala = true; await c.say('clovis', 'Obrigado. É a menor das minhas salas. A de casa tem vista pro mar. A de Gramado tem vista pra outra sala minha.'); }
     if (i === 3) await c.say('clovis', 'Eu imaginei. Você tem cara de quem entra pela porta dos fundos. Não é uma crítica. É uma observação. Que por acaso é uma crítica.');
 
     await c.say('clovis', 'Bom. Vamos ao que interessa. Tem uma infecção nesse hospital. No ar. Eu sinto.');
@@ -42,14 +43,14 @@ const STORY2 = {
     await c.say('clovis', 'E a CCIH não autoriza CEFALEXINA. Cefalexina! Eu dou cefalexina pro meu cavalo. Eu tenho três cavalos. O do meio é alérgico, mas os outros dois tomam.');
     i = await c.choose(['Mas por que a CCIH não autoriza?', 'O senhor tem três cavalos?', 'Cefalexina pra infecção hospitalar não é meio...?']);
     if (i === 0) await c.say('clovis', 'Porque o Alexandre não assina. Ele não assina porque não tem tempo. Ele não tem tempo porque está sempre dando entrevista.');
-    if (i === 1) { up(0.2); await c.say('clovis', 'Três. E uma lancha. Chama "Meropenem". Era pra ser "Cefalexina", mas a CCIH também não autorizou o nome.'); }
+    if (i === 1) { up(0.2); best.cavalos = true; await c.say('clovis', 'Três. E uma lancha. Chama "Meropenem". Era pra ser "Cefalexina", mas a CCIH também não autorizou o nome.'); }
     if (i === 2) { up(-0.1); await c.say('clovis', 'Meio o quê? Termine as frases, interno. Frases pela metade são como pontes de safena pela metade.  ...Eu sei, eu sei. Mas eu tenho razão.'); }
 
     await c.say('clovis', 'Antes de eu te mandar resolver isso, me mostra uma coisa. Dá um nó cirúrgico.');
     await c.say('clovis', 'Com a mão ESQUERDA primeiro. Eu sou ambidestro. Espero que você seja pelo menos destro.');
-    await c.say('narr', '*Laçada no tempo certo, mão esquerda ou direita. Quando vier ⇆, aperta o nó. No ritmo da música. O Clóvis cantarola junto, meio tom acima.*');
+    await c.say('narr', '*Siga as setas: arraste o fio na direção certa, uma laçada de cada vez. Rápido e sem errar. O Clóvis cantarola junto, meio tom acima.*');
     const e = await c.knot('esquerda');
-    if (e.timeout) await c.say('clovis', 'Perdeu o tempo. O fio... soltou. Interessante. Os pacientes também soltam, sabia? Da gente. Pela confiança.');
+    if (e.timeout) await c.say('clovis', 'Demorou. O fio... soltou. Interessante. Os pacientes também soltam, sabia? Da gente. Pela confiança.');
     else if (e.errors === 0) { up(0.4); await c.say('clovis', 'Hm.'); }
     else await c.say('clovis', `${e.errors} ${e.errors === 1 ? 'hesitação' : 'hesitações'}. Na minha época isso era reprovação. Mas a época é outra. Infelizmente.`);
 
@@ -61,6 +62,7 @@ const STORY2 = {
 
     const perfect = !e.timeout && !d.timeout && e.perfect && d.perfect;
     if (perfect) {
+      best.no = true;
       await c.say('narr', '*Ele olha pro nó. Olha pra você. Olha pro nó de novo. Ajusta os óculos sem aro.*');
       ap = 7.3; meter();
       await c.say('clovis', '...Razoável.');
@@ -71,14 +73,27 @@ const STORY2 = {
     }
 
     await c.say('clovis', 'Então. Você vai resolver o problema da CCIH. Vai lá e fala com o Alexandre. O "Bélgica".');
-    i = await c.choose(['Por que "Bélgica"?', 'E se ele não quiser assinar?', 'Certo, professor.']);
+    i = await c.choose(['Por que "Bélgica"?', 'E se ele não quiser assinar?', 'Certo, professor.', 'Perfeitamente, professor.']);
     if (i === 0) await c.say('clovis', 'Ninguém sabe. Ele também não. Perguntaram numa entrevista. Ele deu uma resposta de quarenta minutos e ninguém entendeu.');
     if (i === 1) await c.say('clovis', 'Ele nunca quer. Mas ele está SEMPRE atrasado pra alguma entrevista. Quando o telefone dele tocar, ele assina qualquer coisa pra se livrar de você. Use isso.');
     if (i === 2) await c.say('clovis', '"Certo, professor." Curto. Objetivo. Eu teria dito "Perfeitamente". Mas tudo bem.');
+    if (i === 3) { up(0.6); best.perfeitamente = true; await c.say('clovis', '"Perfeitamente." ...Era exatamente o que eu teria dito. Exatamente. Não sei se gosto disso.'); }
     await c.say('clovis', 'São três documentos: PARECER, JUSTIFICATIVA e TERMO DE RESPONSABILIDADE. Três assinaturas.');
     await c.say('clovis', 'E cuidado com o olhar dele. Não é força de expressão. Esconda-se atrás dos pilares. E ele arremessa seringas. Contaminadas. Ele diz que é "didático".');
     await c.say('narr', '*Ele te entrega uma caneta Montblanc.*');
     await c.say('clovis', 'Pra ele assinar. Não perde. Ela custa mais que o seu carro.  ...Você tem carro? Não responde. Eu já sei.');
+
+    // APROVAÇÃO MÁXIMA: sala elogiada, cavalos, nó perfeito nas duas mãos e "Perfeitamente"
+    if (best.sala && best.cavalos && best.no && best.perfeitamente) {
+      ap = 9.9; meter();
+      await c.say('narr', '*O medidor de aprovação trava em 9,9%. Ninguém nunca viu esse número. Os outros 90,1% são dos cavalos.*');
+      await c.say('clovis', 'Interno. Espera.');
+      await c.say('narr', '*Ele abre um armário de madeira escura. Lá dentro, uma carabina. Coronha de ipê-amarelo, envernizada, com as iniciais C.V. gravadas em latão.*');
+      await c.say('clovis', 'Carabina de ipê. Eu mesmo escolhi a árvore. Ela já tinha caído. Eu acho.');
+      await c.say('clovis', 'Na CCIH você vai precisar de argumentos melhores que o revólver do torácico. Oito tiros. Mais pesada. Mais elegante. Como tudo que é meu.');
+      game.carabina();
+      await c.say('clovis', 'Devolve depois. Encerada. Com óleo de peroba, não com qualquer coisa.');
+    }
   },
 
   // ---------------- O CHEFE ----------------

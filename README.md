@@ -17,7 +17,7 @@ A fonte pixelada vem do Google Fonts (sem internet, cai numa fonte monoespaçada
 | P | alterna resolução interna (180 / 270 / 400 linhas) |
 | M | liga/desliga música |
 | Clique | atacar (bisturi / revólver) |
-| 1 / 2 | bisturi / revólver (fora de diálogo) |
+| 1 / 2 / 3 | bisturi / revólver / carabina de ipê (fora de diálogo) |
 | R | recarregar |
 | 1–5 | opções de diálogo |
 | Espaço | interromper o professor (só quando ele respira!) |
@@ -27,15 +27,20 @@ Abra o link do jogo (GitHub Pages) no Chrome do celular e deite o aparelho. Os c
 - **Joystick**: encoste o dedo na metade esquerda e arraste (empurrar até a borda = correr).
 - **Olhar**: arraste o dedo na metade direita.
 - **ATACAR**: segure pra atacar sem parar; arrastando o dedo no próprio botão você mira ao mesmo tempo.
-- **MIRA** (ligada por padrão): a câmera puxa pro inimigo mais perto do centro e atira sozinha quando ele entra na mira.
-- **USAR** (fica amarelo quando tem algo pra examinar), **ARMA**, **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
+- **MIRA ON/OFF** (ligada por padrão): a câmera puxa de leve pro inimigo mais perto do centro e atira sozinha quando ele entra na mira.
+  Enquanto você arrasta a câmera, ela não puxa (dá pra trocar de alvo).
+- **USAR** (fica amarelo quando tem algo pra examinar), **ARMA** (alterna entre as armas que você tem), **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
 - Nas conversas: toque nas opções; **INTERROMPER!** acende quando o professor respira; **CONTINUAR ▶** avança.
-- Nó cirúrgico do Clóvis: toque na metade esquerda/direita da tela no tempo da nota; arraste o dedo nas notas ⇆.
+- Nó cirúrgico do Clóvis: arraste o dedo na direção da seta, em qualquer lugar da tela.
 - No computador dá pra testar os controles de toque com `index.html#touch`.
 
 ### Publicar no GitHub Pages
 Settings → Pages → *Deploy from a branch* → `main` / `(root)` → Save. Em ~1 min o jogo fica em `https://skabite.github.io/internato-husm/`.
 O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages exige repositório público.
+
+## Auras
+Itens de cura brilham em verde, cada personagem tem um brilho da sua cor, objetos de usar (gavetas, geladeira, álcool gel) brilham em dourado,
+e o objeto que você está olhando pulsa (dá pra examinar com [E] / USAR).
 
 ## Save
 Salva sozinho (no navegador) depois do saguão, depois do Dudu, ao pegar o revólver, ao tomar café e a cada 20 s fora de combate.
@@ -57,6 +62,7 @@ js/story2.js         roteiros do Capítulo 2
 js/combat.js         armas, javalis, café, HUD de combate
 js/convo.js          motor de conversas roteirizadas (Dudu, Professor3, pensamentos)
 js/touch.js          controles de toque (celular): joystick, arrastar pra olhar, botões
+js/aura.js           brilho dos itens de cura, personagens e objetos de usar
 js/story1.js         roteiros do Capítulo 1
 personagens.html     galeria dos personagens (dev)
 js/dialogue.js       sistema e textos da conversa com o professor
@@ -89,9 +95,11 @@ Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (c
 
 ## Capítulo 2 — A infecção no ar
 - A sala do Professor3 ("O Javali") só abre com a Ala C sem javalis (contador no objetivo).
-- Clóvis da Vascular: medidor "APROVAÇÃO DO CLÓVIS" (quase não sobe). Minijogo do nó cirúrgico em ritmo (estilo Guitar Hero), tocando Eine kleine Nachtmusik:
-  notas na faixa esquerda/direita (A/← e D/→, ou tocar na metade da tela) e notas ⇆ "APERTA" (W/↑/espaço, ou arrastar o dedo).
-  Tudo PERFEITO nas duas mãos = conquista rara "elogio do Clóvis".
+- Clóvis da Vascular: medidor "APROVAÇÃO DO CLÓVIS" (quase não sobe). Minijogo do nó cirúrgico por arrasto: aparece uma seta e você
+  arrasta naquela direção (dedo no celular; no computador, segurando o botão do mouse — ou setas/WASD). 6 laçadas por mão;
+  cada acerto toca uma nota de Eine kleine Nachtmusik. Sem errar e em até 6 s nas duas mãos = conquista rara "elogio do Clóvis".
+- **Aprovação máxima** (elogiar a sala, perguntar dos cavalos, nó perfeito e responder "Perfeitamente, professor"): ele te dá a
+  **CARABINA DE IPÊ** — 8 tiros, dano 3, recarga mais lenta. Tecla [3].
 - Professor3, "o Javali": fala grunhindo.
 - Chefe — Alexandre "Bélgica" Schwartzboldt (CCIH):
   - OLHAR PENETRANTE: raio psíquico; tira saúde enquanto ele te enxerga → esconda-se atrás dos pilares.

@@ -128,91 +128,87 @@ const CONVO = (() => {
     laudoRender();
   }
 
-  // ---------- Minijogo: nó cirúrgico em ritmo (estilo Guitar Hero) ----------
-  // Duas faixas: LAÇA com a mão esquerda / direita (toque) e APERTA (arrastar o dedo, ou W/↑/espaço).
-  // As notas tocam Eine kleine Nachtmusik. Resultado: { errors, time, timeout, perfect }.
-  const NOTE = { G4: 392, D4: 293.7, B4: 493.9, D5: 587.3, C5: 523.3, A4: 440, Fs4: 370, E5: 659.3 };
-  const CHARTS = {
-    esquerda: { gap: 0.5, notes: [['L', 'G4'], ['L', 'D4'], ['R', 'G4'], ['L', 'D4'], ['L', 'G4'], ['R', 'D4'], ['L', 'G4'], ['P', 'B4'], ['P', 'D5']] },
-    direita: { gap: 0.44, notes: [['R', 'C5'], ['R', 'A4'], ['L', 'C5'], ['R', 'A4'], ['R', 'C5'], ['L', 'A4'], ['R', 'Fs4'], ['L', 'A4'], ['P', 'D4'], ['P', 'G4']] },
-  };
-  const FALL = 1.4, LEAD = 1.0, PERFECT = 0.11, OK = 0.22;
-  let rcan = null, rctx = null;
+  // ---------- Minijogo: nó cirúrgico por ARRASTO ----------
+  // Aparece uma seta; arraste na direção dela (dedo no celular, mouse segurando o botão no computador, ou setas/WASD).
+  // Cada acerto toca a próxima nota de Eine kleine Nachtmusik e aperta mais o nó.
+  // Resultado: { errors, time, timeout, perfect } — perfeito = sem erro e rápido.
+  const MELODY = [392, 293.7, 392, 293.7, 392, 293.7, 392, 493.9, 587.3, 523.3, 440, 523.3, 440, 523.3, 440, 370, 440, 293.7];
+  const DIRS = ['L', 'R', 'U', 'D'], ARROW = { L: '←', R: '→', U: '↑', D: '↓' };
+  const KNOT_N = 6, KNOT_LIMIT = 12, KNOT_FAST = 6;
+  let kcan = null, kctx = null, mel = 0;
   function knotStart(hand) {
-    const ch = CHARTS[hand] || CHARTS.esquerda;
-    const notes = ch.notes.map(([lane, n], i) => ({ lane, f: NOTE[n], t: LEAD + FALL + i * ch.gap, res: null }));
-    knot = { hand, notes, t: 0, t0: performance.now(), errors: 0, misses: 0, perfects: 0, fb: '', fbT: 0, end: notes[notes.length - 1].t + 0.6, touch: null };
+    const seq = [];
+    while (seq.length < KNOT_N) { const d = U.pick(DIRS); if (d !== seq[seq.length - 1]) seq.push(d); }
+    knot = { hand, seq, i: 0, errors: 0, t0: performance.now(), t: 0, fb: '', fbT: 0, drag: null, shake: 0 };
     mode = 'knot';
-    if (!rcan) {
-      rcan = document.createElement('canvas'); rcan.id = 'rhythm'; rcan.width = 120; rcan.height = 108;
-      document.body.appendChild(rcan); rctx = rcan.getContext('2d');
+    if (!kcan) {
+      kcan = document.createElement('canvas'); kcan.id = 'rhythm'; kcan.width = 120; kcan.height = 108;
+      document.body.appendChild(kcan); kctx = kcan.getContext('2d');
     }
-    rcan.style.display = 'block';
+    kcan.style.display = 'block';
     el.options.innerHTML = '<div class="knot">NÓ · MÃO ' + hand.toUpperCase() + '</div><div class="knot-help">' + (TOUCH.on
-      ? 'toque na metade ESQUERDA ou DIREITA da tela quando a nota chegar na linha · ARRASTE o dedo nas notas ⇆ (aperta o nó)'
-      : '[A]/[←] faixa esquerda · [D]/[→] faixa direita · [W]/[↑]/[ESPAÇO] nas notas ⇆ (aperta o nó)') + '</div>';
-    document.addEventListener('touchstart', knotTouch, { passive: false });
-    document.addEventListener('touchmove', knotTouch, { passive: false });
-    document.addEventListener('touchend', knotTouch, { passive: false });
+      ? 'ARRASTE o dedo na direção da seta (em qualquer lugar da tela)'
+      : 'segure o botão do mouse e ARRASTE na direção da seta · ou use as setas / WASD') + '</div>';
+    for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.addEventListener(ev, knotPointer, { passive: false });
     return new Promise(res => { resolver = res; });
   }
-  // nota mais próxima ainda não resolvida (da faixa pedida)
-  // o tempo do nó é o relógio de verdade (não depende de quantos quadros o celular aguenta)
   function knotNow() { knot.t = (performance.now() - knot.t0) / 1000; return knot.t; }
-  function knotJudge(input) {
+  function knotFb(t, c) { knot.fb = t; knot.fbC = c; knot.fbT = 0.5; }
+  function knotGesture(d) {
     const k = knot; knotNow();
-    let best = null;
-    for (const n of k.notes) if (!n.res && Math.abs(n.t - k.t) <= OK && (!best || Math.abs(n.t - k.t) < Math.abs(best.t - k.t))) best = n;
-    if (!best || best.lane !== input) { k.errors++; knotFb('ERROU', '#f77'); AUDIO.sfx('bad'); return; }
-    const d = Math.abs(best.t - k.t);
-    best.res = d <= PERFECT ? 'perfect' : 'ok';
-    if (best.res === 'perfect') { k.perfects++; knotFb('PERFEITO', '#8f8'); } else knotFb('QUASE', '#ffd84a');
-    AUDIO.sfx('note', best.f, best.lane === 'P' ? 0.22 : 0.13);
+    if (d === k.seq[k.i]) {
+      k.i++; knotFb('BOA', '#8f8');
+      AUDIO.sfx('note', MELODY[mel++ % MELODY.length], 0.16);
+      if (k.i >= k.seq.length) knotEnd();
+    } else { k.errors++; k.shake = 0.25; knotFb('ERROU', '#f77'); AUDIO.sfx('bad'); }
   }
-  function knotFb(t, c) { knot.fb = t; knot.fbC = c; knot.fbT = 0.45; }
   function knotKey(code) {
-    const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'P', ArrowUp: 'P', Space: 'P' };
-    if (m[code]) knotJudge(m[code]);
+    const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'U', ArrowUp: 'U', KeyS: 'D', ArrowDown: 'D' };
+    if (m[code]) knotGesture(m[code]);
   }
-  function knotTouch(e) {
+  // um gesto por toque/clique: soma o movimento até passar de ~30 px e decide a direção dominante
+  function knotPointer(e) {
     if (mode !== 'knot') return;
-    e.preventDefault();
-    const k = knot; knotNow();
-    if (e.type === 'touchstart') {
-      const t = e.changedTouches[0];
-      const next = k.notes.find(n => !n.res && n.t - k.t > -OK);
-      // se a próxima nota é de arrastar, espera o movimento; senão o toque já conta
-      if (next && next.lane === 'P' && next.t - k.t < OK * 2) { k.touch = { x: t.clientX, y: t.clientY, done: false }; return; }
-      knotJudge(t.clientX < innerWidth / 2 ? 'L' : 'R');
-    } else if (e.type === 'touchmove' && k.touch && !k.touch.done) {
-      const t = e.changedTouches[0];
-      if (Math.hypot(t.clientX - k.touch.x, t.clientY - k.touch.y) > 28) { k.touch.done = true; knotJudge('P'); }
-    } else if (e.type === 'touchend') k.touch = null;
-  }
-  function knotDraw() {
-    const g = rctx, k = knot, W = 120, H = 108, HIT = 92;
-    g.fillStyle = '#0b0d12'; g.fillRect(0, 0, W, H);
-    g.fillStyle = '#151a22'; g.fillRect(14, 0, 44, H); g.fillRect(62, 0, 44, H);
-    g.fillStyle = '#c9c2a8'; g.fillRect(10, HIT, 100, 2);
-    g.font = '7px monospace'; g.textAlign = 'center'; g.fillStyle = '#8a8676';
-    g.fillText('ESQ', 36, H - 3); g.fillText('DIR', 84, H - 3);
-    for (const n of k.notes) {
-      if (n.res) continue;
-      const y = HIT - (n.t - k.t) / FALL * HIT;
-      if (y < -8 || y > H + 4) continue;
-      if (n.lane === 'P') { g.fillStyle = '#e8e2d0'; g.fillRect(18, y - 3, 84, 6); g.fillStyle = '#0b0d12'; g.fillText('⇆ APERTA', 60, y + 2); }
-      else { g.fillStyle = n.lane === 'L' ? '#4fc0b0' : '#e0b040'; g.fillRect(n.lane === 'L' ? 22 : 70, y - 3, 28, 6); }
+    const k = knot, touch = e.type.startsWith('touch');
+    if (touch) e.preventDefault();
+    if (e.type === 'touchstart' || (e.type === 'mousedown' && e.button === 0)) { k.drag = { x: 0, y: 0, done: false, lx: touch ? e.changedTouches[0].clientX : 0, ly: touch ? e.changedTouches[0].clientY : 0 }; return; }
+    if (e.type === 'touchend' || e.type === 'mouseup') { k.drag = null; return; }
+    if (!k.drag || k.drag.done) return;
+    if (touch) { const t = e.changedTouches[0]; k.drag.x += t.clientX - k.drag.lx; k.drag.y += t.clientY - k.drag.ly; k.drag.lx = t.clientX; k.drag.ly = t.clientY; }
+    else { k.drag.x += e.movementX || 0; k.drag.y += e.movementY || 0; }
+    if (Math.hypot(k.drag.x, k.drag.y) > 30) {
+      k.drag.done = true;
+      knotGesture(Math.abs(k.drag.x) > Math.abs(k.drag.y) ? (k.drag.x < 0 ? 'L' : 'R') : (k.drag.y < 0 ? 'U' : 'D'));
     }
-    if (k.fbT > 0) { g.font = 'bold 9px monospace'; g.fillStyle = k.fbC; g.fillText(k.fb, 60, 40); }
   }
-  function knotEnd() {
+  function knotDraw(dt) {
+    const g = kctx, k = knot, W = 120, H = 108;
+    g.fillStyle = '#0b0d12'; g.fillRect(0, 0, W, H);
+    // o fio: cada acerto dá mais uma volta no nó
+    g.fillStyle = '#d8d2bc'; g.fillRect(8, 86, 104, 2);
+    for (let i = 0; i < k.i; i++) { g.strokeStyle = '#d8d2bc'; g.lineWidth = 2; g.beginPath(); g.ellipse(60, 80, 4 + i * 2.4, 4, 0, 0, 7); g.stroke(); }
+    // seta atual (treme quando erra)
+    const sx = k.shake > 0 ? Math.sin(k.t * 90) * 3 : 0;
+    const cur = k.seq[k.i];
+    if (cur) {
+      g.font = 'bold 44px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#ffd84a'; g.fillText(ARROW[cur], 60 + sx, 40);
+      g.font = '9px monospace'; g.fillStyle = '#6a6858';
+      g.fillText(k.seq.slice(k.i + 1).map(d => ARROW[d]).join(' '), 60, 68);
+    }
+    // tempo
+    const left = Math.max(0, 1 - k.t / KNOT_LIMIT);
+    g.fillStyle = '#222'; g.fillRect(8, 100, 104, 4);
+    g.fillStyle = k.t < KNOT_FAST ? '#8f8' : '#c55'; g.fillRect(8, 100, 104 * left, 4);
+    if (k.fbT > 0) { g.font = 'bold 9px monospace'; g.fillStyle = k.fbC; g.textAlign = 'center'; g.fillText(k.fb, 60, 10); }
+  }
+  function knotEnd(timeout = false) {
     const k = knot; mode = 'idle'; knot = null;
-    rcan.style.display = 'none';
-    for (const ev of ['touchstart', 'touchmove', 'touchend']) document.removeEventListener(ev, knotTouch);
-    const n = k.notes.length;
-    const res = { errors: k.errors + k.misses, time: k.end, timeout: k.misses >= Math.ceil(n / 2), perfect: k.perfects === n && k.errors === 0 };
+    kcan.style.display = 'none';
+    for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.removeEventListener(ev, knotPointer);
+    const res = { errors: k.errors, time: k.t, timeout, perfect: !timeout && k.errors === 0 && k.t <= KNOT_FAST };
     const r = resolver; resolver = null;
-    setTimeout(() => r(res), 300);
+    setTimeout(() => r(res), 350);
   }
 
   return {
@@ -260,10 +256,9 @@ const CONVO = (() => {
       talk = false;
       if (mode === 'knot') {
         const k = knot;
-        knotNow(); k.fbT -= dt;
-        for (const n of k.notes) if (!n.res && k.t - n.t > OK) { n.res = 'miss'; k.misses++; knotFb('PERDEU', '#f77'); }
-        knotDraw();
-        if (k.t >= k.end) knotEnd();
+        knotNow(); k.fbT -= dt; k.shake -= dt;
+        knotDraw(dt);
+        if (k.t >= KNOT_LIMIT) knotEnd(true);
       }
       if (mode === 'typing') {
         talk = true;
