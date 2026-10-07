@@ -202,7 +202,7 @@
         : 'OBJETIVO: Entregar os laudos ao JAVALI (fim da Ala C)';
     }
     if (G.hasGun) return 'OBJETIVO: Atravessar a ALA C e entregar os laudos ao JAVALI\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver';
-    if (G.duduDone) return 'OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Entregar os laudos ao JAVALI (fim da Ala C)';
+    if (G.duduDone) return 'OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Está em 1 de 5 lugares: 2 gavetas da mesa, 2 armários ou o arquivo\n• Entregar os laudos ao JAVALI (fim da Ala C)';
     if (G.objective) return 'OBJETIVO: Encontrar o PROFESSOR LIBERATO (Endoscopia)';
     return 'OBJETIVO: Entrar no HUSM';
   }
@@ -364,7 +364,7 @@
     L.doors.torax.locked = false;
     L.doors.alaC.locked = false; L.doors.alaC2.locked = false;
     L.doors.torax.lockedMsg = '';
-    setObjective('OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Entregar os laudos ao JAVALI (fim da Ala C)');
+    setObjective(objectiveText());
     AUDIO.play('moonlight', { fade: 3 });
     save();
   }

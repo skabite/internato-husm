@@ -31,7 +31,7 @@ Abra o link do jogo (GitHub Pages) no Chrome do celular e deite o aparelho. Os c
   FORTE puxa mais e atira sozinha quando ele entra na mira. Enquanto você arrasta a câmera, ela não puxa (dá pra trocar de alvo).
 - **USAR** (fica amarelo quando tem algo pra examinar), **ARMA** (alterna entre as armas que você tem), **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
 - Nas conversas: toque nas opções; **INTERROMPER!** acende quando o professor respira; **CONTINUAR ▶** avança.
-- Nó cirúrgico do De Barros: arraste o dedo na direção da seta, em qualquer lugar da tela.
+- Nó cirúrgico do De Barros: arraste o dedo na direção da seta — mão esquerda na metade esquerda da tela, direita na direita (o lado da vez fica aceso).
 - No computador dá pra testar os controles de toque com `index.html#touch`.
 
 ### Publicar no GitHub Pages
@@ -108,6 +108,7 @@ Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (c
 - Professor De Barros: medidor "APROVAÇÃO DO DE BARROS" (quase não sobe). Minijogo do nó cirúrgico por arrasto: aparece uma seta e você
   arrasta naquela direção (dedo no celular; no computador, segurando o botão do mouse — ou setas/WASD). 8 laçadas por mão,
   ~1,4 s por seta (demorou, o fio afrouxa e conta erro); a mão direita tem diagonais (Q E Z C no teclado).
+  No celular, cada mão usa a sua metade da tela (a metade da vez fica acesa); arrastar no lado errado conta erro.
   Cada acerto toca uma nota de Eine kleine Nachtmusik. Sem errar nas duas mãos = conquista rara "elogio do De Barros".
 - **Aprovação máxima** (elogiar a sala, perguntar dos cavalos, nó perfeito e responder "Perfeitamente, professor"): ele te dá a
   **CARABINA DE IPÊ** — 8 tiros, dano 3, recarga mais lenta. Tecla [3].

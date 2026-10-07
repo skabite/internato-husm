@@ -139,7 +139,7 @@ const CONVO = (() => {
   const ARROW = { L: '←', R: '→', U: '↑', D: '↓', UL: '↖', UR: '↗', DL: '↙', DR: '↘' };
   const SECTOR = ['R', 'DR', 'D', 'DL', 'L', 'UL', 'U', 'UR'];       // ângulo da tela (y pra baixo), de 45 em 45°
   const KNOT_N = 8, KNOT_LIMIT = 15, KNOT_FAST = 8, KNOT_STEP = 1.4;
-  let kcan = null, kctx = null, mel = 0;
+  let kcan = null, kctx = null, kside = null, mel = 0;
   function knotStart(hand) {
     const diag = hand === 'direita', pool = diag ? DIRS.concat(DIAG, DIAG) : DIRS;
     const seq = [];
@@ -152,9 +152,15 @@ const CONVO = (() => {
     }
     kcan.style.display = 'block';
     el.options.innerHTML = '<div class="knot">NÓ · MÃO ' + hand.toUpperCase() + '</div><div class="knot-help">' + (TOUCH.on
-      ? 'ARRASTE o dedo na direção da seta (em qualquer lugar da tela) · rápido: o fio afrouxa'
+      ? 'ARRASTE na direção da seta usando só o lado ' + (diag ? 'DIREITO' : 'ESQUERDO') + ' da tela (o lado aceso) · rápido: o fio afrouxa'
       : 'segure o botão do mouse e ARRASTE na direção da seta · ou setas / WASD' + (diag ? ' · diagonais: Q E Z C' : '')) + '</div>';
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.addEventListener(ev, knotPointer, { passive: false });
+    if (TOUCH.on) {                                                    // só no celular: metade da tela de cada mão
+      if (!kside) { kside = document.createElement('div'); kside.id = 'knotside'; kside.innerHTML = '<div class="kon"></div><div class="koff"></div>'; document.body.appendChild(kside); }
+      kside.className = hand === 'direita' ? 'right' : 'left';
+      kside.firstChild.innerHTML = '<div>MÃO ' + hand.toUpperCase() + '</div><span>ARRASTE AQUI</span>';
+      kside.style.display = 'block';
+    }
     return new Promise(res => { resolver = res; });
   }
   function knotNow() { knot.t = (performance.now() - knot.t0) / 1000; return knot.t; }
@@ -177,13 +183,19 @@ const CONVO = (() => {
     if (mode !== 'knot') return;
     const k = knot, touch = e.type.startsWith('touch');
     if (touch) e.preventDefault();
-    if (e.type === 'touchstart' || (e.type === 'mousedown' && e.button === 0)) { k.drag = { x: 0, y: 0, done: false, lx: touch ? e.changedTouches[0].clientX : 0, ly: touch ? e.changedTouches[0].clientY : 0 }; return; }
+    if (e.type === 'touchstart' || (e.type === 'mousedown' && e.button === 0)) {
+      const sx = touch ? e.changedTouches[0].clientX : 0;
+      // no celular, cada mão tem a sua metade da tela; começou do lado errado = erro
+      const wrongSide = touch && (k.hand === 'direita') !== (sx >= innerWidth / 2);
+      k.drag = { x: 0, y: 0, done: false, wrongSide, lx: sx, ly: touch ? e.changedTouches[0].clientY : 0 }; return;
+    }
     if (e.type === 'touchend' || e.type === 'mouseup') { k.drag = null; return; }
     if (!k.drag || k.drag.done) return;
     if (touch) { const t = e.changedTouches[0]; k.drag.x += t.clientX - k.drag.lx; k.drag.y += t.clientY - k.drag.ly; k.drag.lx = t.clientX; k.drag.ly = t.clientY; }
     else { k.drag.x += e.movementX || 0; k.drag.y += e.movementY || 0; }
     if (Math.hypot(k.drag.x, k.drag.y) > 30) {
       k.drag.done = true;
+      if (k.drag.wrongSide) { k.errors++; k.shake = 0.25; knotFb('LADO ERRADO', '#f77'); AUDIO.sfx('bad'); return; }
       const { x, y } = k.drag;
       knotGesture(k.diag ? SECTOR[(Math.round(Math.atan2(y, x) / (Math.PI / 4)) + 8) % 8]
         : Math.abs(x) > Math.abs(y) ? (x < 0 ? 'L' : 'R') : (y < 0 ? 'U' : 'D'));
@@ -214,7 +226,7 @@ const CONVO = (() => {
   }
   function knotEnd(timeout = false) {
     const k = knot; mode = 'idle'; knot = null;
-    kcan.style.display = 'none';
+    kcan.style.display = 'none'; if (kside) kside.style.display = 'none';
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.removeEventListener(ev, knotPointer);
     const res = { errors: k.errors, time: k.t, timeout, perfect: !timeout && k.errors === 0 && k.t <= KNOT_FAST };
     const r = resolver; resolver = null;

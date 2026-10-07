@@ -195,6 +195,11 @@ const LEVEL1 = (() => {
       if (f === 'x-') box(x + 0.01, 0, z - w / 2, x + 0.61, h, z + w / 2, mat, { collide: true });
       if (f === 'x+') box(x - 0.61, 0, z - w / 2, x - 0.01, h, z + w / 2, mat, { collide: true });
       const m = panel(x, y, z, w, h, f, mat);
+      // puxador de metal (gaveta: deitado · armário/arquivo: em pé), pra dar pra ver o que é móvel de revistar
+      const n = { 'z-': [0, -1], 'x-': [-1, 0], 'x+': [1, 0] }[f], gaveta = i < 2;
+      const hw = gaveta ? 0.22 : 0.04, hh = gaveta ? 0.04 : 0.3, hx = x + n[0] * 0.03, hz = z + n[1] * 0.03;
+      if (f === 'z-') box(hx - hw / 2, y - hh / 2, hz - 0.02, hx + hw / 2, y + hh / 2, hz + 0.02, M.metal);
+      else box(hx - 0.02, y - hh / 2, hz - (gaveta ? hw : 0.04) / 2 + (gaveta ? 0 : 0.25), hx + 0.02, y + hh / 2, hz + (gaveta ? hw : 0.04) / 2 + (gaveta ? 0 : 0.25), M.metal);
       m.userData.verb = 'revistar';
       m.userData.onUse = () => {
         if (i === gunAt && !out.gunTaken) { out.gunTaken = true; hooks.onGun(sp.name); return; }
