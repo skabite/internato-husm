@@ -4,7 +4,7 @@ const COMBAT = (() => {
   let scene, camera, hooks, colliders;
   let tex = null;
   const boars = [];
-  // armas de fogo: revólver do torácico e a carabina de ipê do Clóvis
+  // armas de fogo: revólver do torácico e a carabina de ipê do De Barros
   const GUN = { revolver: { mag: 6, cd: 0.38, dmg: 2, reload: 1.6, tol: 0.55 }, carabina: { mag: 8, cd: 0.55, dmg: 3, reload: 2.1, tol: 0.65 } };
   const P = { hp: 100, maxHp: 100, weapon: null, has: { scalpel: false, revolver: false, carabina: false }, ammo: 6, ammoC: 8, reloadMax: 1.6, reloadW: null,
     reload: 0, cd: 0, anim: 0, hurtT: 0, dead: false, infectT: 0 };

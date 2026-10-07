@@ -1,11 +1,12 @@
-// Conversas roteirizadas (async/await): Dudu, Professor3, pensamentos do interno.
+// Conversas roteirizadas (async/await): Liberato, Javali, pensamentos do interno.
 // Usa a mesma caixa de diálogo do Professor, escondendo o medidor de foco.
 const CONVO = (() => {
   const SPEAKERS = {
-    dudu: { char: 'prof2', name: 'DUDU DA GASTRO', cps: 36, blip: [125, 25] },
-    prof3: { char: 'prof3', name: 'PROFESSOR3', cps: 30, blip: [70, 30], pig: true },   // "o Javali": fala grunhindo
-    clovis: { char: 'prof4', name: 'CLÓVIS DA VASCULAR', cps: 33, blip: [150, 30] },
-    belgica: { char: 'chefao', name: 'ALEXANDRE "BÉLGICA" SCHWARTZBOLDT', cps: 52, blip: [140, 80] },
+    dudu: { char: 'prof2', name: 'PROFESSOR LIBERATO', cps: 36, blip: [125, 25] },
+    prof3: { char: 'prof3', name: 'JAVALI', cps: 30, blip: [70, 30], pig: true },   // "o Javali": fala grunhindo
+    clovis: { char: 'prof4', name: 'PROFESSOR DE BARROS', cps: 33, blip: [150, 30] },
+    belgica: { char: 'chefao', name: 'PROFESSOR SCHWARZENEGGER', cps: 52, blip: [140, 80] },
+    falastrao: { char: 'prof5', name: 'PROFESSOR FALASTRÃO', cps: 46, blip: [115, 70] },   // provisório (falta foto)
     eu: { char: null, name: 'VOCÊ (pensando)', cps: 48, blip: null, italic: true },
     narr: { char: null, name: '', cps: 60, blip: null, italic: true },
   };
@@ -54,22 +55,22 @@ const CONVO = (() => {
     el.options.firstChild.onclick = () => advance();
   }
 
-  // ---------- Instagram do Dudu ----------
+  // ---------- Instagram do Liberato ----------
   const IG_GOOD = [
-    'dudu.gastro curtiu uma foto sua de 2019.',
-    'dudu.gastro comentou: "👏👏"',
-    'dudu.gastro comentou: "organizado. gostei."',
-    'dudu.gastro comentou na sua foto de formatura: "jaleco bem passado."',
-    'dudu.gastro respondeu seu story: "✔️"',
-    'dudu.gastro comentou: "essa foto tá torta 2 graus. mas ok."',
-    'dudu.gastro curtiu seu comentário.',
-    'dudu.gastro comentou: "pontual 👌" (ironia? não dá pra saber)',
+    'prof.liberato curtiu uma foto sua de 2019.',
+    'prof.liberato comentou: "👏👏"',
+    'prof.liberato comentou: "organizado. gostei."',
+    'prof.liberato comentou na sua foto de formatura: "jaleco bem passado."',
+    'prof.liberato respondeu seu story: "✔️"',
+    'prof.liberato comentou: "essa foto tá torta 2 graus. mas ok."',
+    'prof.liberato curtiu seu comentário.',
+    'prof.liberato comentou: "pontual 👌" (ironia? não dá pra saber)',
   ];
   const IG_BAD = [
-    'dudu.gastro visualizou seu story. Não reagiu.',
-    'dudu.gastro apagou o próprio comentário na sua foto.',
-    'dudu.gastro descurtiu uma foto sua de 2019.',
-    'dudu.gastro comentou: "."',
+    'prof.liberato visualizou seu story. Não reagiu.',
+    'prof.liberato apagou o próprio comentário na sua foto.',
+    'prof.liberato descurtiu uma foto sua de 2019.',
+    'prof.liberato comentou: "."',
   ];
   const igDeck = new Map();
   function nextIg(list) {
@@ -79,15 +80,15 @@ const CONVO = (() => {
   }
   function igRender() {
     const f = igScore > 0;
-    el.ig.innerHTML = `📱 <b>@dudu.gastro</b> · ${f ? '<span class="ok">SEGUE VOCÊ</span>' : '<span class="no">NÃO SEGUE VOCÊ</span>'}`;
+    el.ig.innerHTML = `📱 <b>@prof.liberato</b> · ${f ? '<span class="ok">SEGUE VOCÊ</span>' : '<span class="no">NÃO SEGUE VOCÊ</span>'}`;
   }
   function ig(delta) {
     const before = igScore > 0;
     igScore += delta;
     const after = igScore > 0;
     igRender();
-    if (before && !after) onNotify && onNotify('dudu.gastro deixou de seguir você.');
-    if (!before && after) onNotify && onNotify('dudu.gastro começou a seguir você de volta.');
+    if (before && !after) onNotify && onNotify('prof.liberato deixou de seguir você.');
+    if (!before && after) onNotify && onNotify('prof.liberato começou a seguir você de volta.');
     if (before === after) onNotify && onNotify(nextIg(delta > 0 ? IG_GOOD : IG_BAD));
   }
 
@@ -133,13 +134,17 @@ const CONVO = (() => {
   // Cada acerto toca a próxima nota de Eine kleine Nachtmusik e aperta mais o nó.
   // Resultado: { errors, time, timeout, perfect } — perfeito = sem erro e rápido.
   const MELODY = [392, 293.7, 392, 293.7, 392, 293.7, 392, 493.9, 587.3, 523.3, 440, 523.3, 440, 523.3, 440, 370, 440, 293.7];
-  const DIRS = ['L', 'R', 'U', 'D'], ARROW = { L: '←', R: '→', U: '↑', D: '↓' };
-  const KNOT_N = 6, KNOT_LIMIT = 12, KNOT_FAST = 6;
-  let kcan = null, kctx = null, mel = 0;
+  // mão esquerda: 4 direções · mão direita: 8 (com diagonais). Cada seta tem ~1,4 s: demorou, o fio afrouxa (conta erro).
+  const DIRS = ['L', 'R', 'U', 'D'], DIAG = ['UL', 'UR', 'DL', 'DR'];
+  const ARROW = { L: '←', R: '→', U: '↑', D: '↓', UL: '↖', UR: '↗', DL: '↙', DR: '↘' };
+  const SECTOR = ['R', 'DR', 'D', 'DL', 'L', 'UL', 'U', 'UR'];       // ângulo da tela (y pra baixo), de 45 em 45°
+  const KNOT_N = 8, KNOT_LIMIT = 15, KNOT_FAST = 8, KNOT_STEP = 1.4;
+  let kcan = null, kctx = null, kside = null, mel = 0;
   function knotStart(hand) {
+    const diag = hand === 'direita', pool = diag ? DIRS.concat(DIAG, DIAG) : DIRS;
     const seq = [];
-    while (seq.length < KNOT_N) { const d = U.pick(DIRS); if (d !== seq[seq.length - 1]) seq.push(d); }
-    knot = { hand, seq, i: 0, errors: 0, t0: performance.now(), t: 0, fb: '', fbT: 0, drag: null, shake: 0 };
+    while (seq.length < KNOT_N) { const d = U.pick(pool); if (d !== seq[seq.length - 1]) seq.push(d); }
+    knot = { hand, seq, diag, i: 0, errors: 0, t0: performance.now(), t: 0, step0: -0.6, fb: '', fbT: 0, drag: null, shake: 0 };
     mode = 'knot';
     if (!kcan) {
       kcan = document.createElement('canvas'); kcan.id = 'rhythm'; kcan.width = 120; kcan.height = 108;
@@ -147,9 +152,15 @@ const CONVO = (() => {
     }
     kcan.style.display = 'block';
     el.options.innerHTML = '<div class="knot">NÓ · MÃO ' + hand.toUpperCase() + '</div><div class="knot-help">' + (TOUCH.on
-      ? 'ARRASTE o dedo na direção da seta (em qualquer lugar da tela)'
-      : 'segure o botão do mouse e ARRASTE na direção da seta · ou use as setas / WASD') + '</div>';
+      ? 'ARRASTE na direção da seta usando só o lado ' + (diag ? 'DIREITO' : 'ESQUERDO') + ' da tela (o lado aceso) · rápido: o fio afrouxa'
+      : 'segure o botão do mouse e ARRASTE na direção da seta · ou setas / WASD' + (diag ? ' · diagonais: Q E Z C' : '')) + '</div>';
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.addEventListener(ev, knotPointer, { passive: false });
+    if (TOUCH.on) {                                                    // só no celular: metade da tela de cada mão
+      if (!kside) { kside = document.createElement('div'); kside.id = 'knotside'; kside.innerHTML = '<div class="kon"></div><div class="koff"></div>'; document.body.appendChild(kside); }
+      kside.className = hand === 'direita' ? 'right' : 'left';
+      kside.firstChild.innerHTML = '<div>MÃO ' + hand.toUpperCase() + '</div><span>ARRASTE AQUI</span>';
+      kside.style.display = 'block';
+    }
     return new Promise(res => { resolver = res; });
   }
   function knotNow() { knot.t = (performance.now() - knot.t0) / 1000; return knot.t; }
@@ -157,13 +168,14 @@ const CONVO = (() => {
   function knotGesture(d) {
     const k = knot; knotNow();
     if (d === k.seq[k.i]) {
-      k.i++; knotFb('BOA', '#8f8');
+      k.i++; k.step0 = k.t; knotFb('BOA', '#8f8');
       AUDIO.sfx('note', MELODY[mel++ % MELODY.length], 0.16);
       if (k.i >= k.seq.length) knotEnd();
     } else { k.errors++; k.shake = 0.25; knotFb('ERROU', '#f77'); AUDIO.sfx('bad'); }
   }
   function knotKey(code) {
-    const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'U', ArrowUp: 'U', KeyS: 'D', ArrowDown: 'D' };
+    const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'U', ArrowUp: 'U', KeyS: 'D', ArrowDown: 'D',
+      KeyQ: 'UL', KeyE: 'UR', KeyZ: 'DL', KeyC: 'DR' };
     if (m[code]) knotGesture(m[code]);
   }
   // um gesto por toque/clique: soma o movimento até passar de ~30 px e decide a direção dominante
@@ -171,14 +183,22 @@ const CONVO = (() => {
     if (mode !== 'knot') return;
     const k = knot, touch = e.type.startsWith('touch');
     if (touch) e.preventDefault();
-    if (e.type === 'touchstart' || (e.type === 'mousedown' && e.button === 0)) { k.drag = { x: 0, y: 0, done: false, lx: touch ? e.changedTouches[0].clientX : 0, ly: touch ? e.changedTouches[0].clientY : 0 }; return; }
+    if (e.type === 'touchstart' || (e.type === 'mousedown' && e.button === 0)) {
+      const sx = touch ? e.changedTouches[0].clientX : 0;
+      // no celular, cada mão tem a sua metade da tela; começou do lado errado = erro
+      const wrongSide = touch && (k.hand === 'direita') !== (sx >= innerWidth / 2);
+      k.drag = { x: 0, y: 0, done: false, wrongSide, lx: sx, ly: touch ? e.changedTouches[0].clientY : 0 }; return;
+    }
     if (e.type === 'touchend' || e.type === 'mouseup') { k.drag = null; return; }
     if (!k.drag || k.drag.done) return;
     if (touch) { const t = e.changedTouches[0]; k.drag.x += t.clientX - k.drag.lx; k.drag.y += t.clientY - k.drag.ly; k.drag.lx = t.clientX; k.drag.ly = t.clientY; }
     else { k.drag.x += e.movementX || 0; k.drag.y += e.movementY || 0; }
     if (Math.hypot(k.drag.x, k.drag.y) > 30) {
       k.drag.done = true;
-      knotGesture(Math.abs(k.drag.x) > Math.abs(k.drag.y) ? (k.drag.x < 0 ? 'L' : 'R') : (k.drag.y < 0 ? 'U' : 'D'));
+      if (k.drag.wrongSide) { k.errors++; k.shake = 0.25; knotFb('LADO ERRADO', '#f77'); AUDIO.sfx('bad'); return; }
+      const { x, y } = k.drag;
+      knotGesture(k.diag ? SECTOR[(Math.round(Math.atan2(y, x) / (Math.PI / 4)) + 8) % 8]
+        : Math.abs(x) > Math.abs(y) ? (x < 0 ? 'L' : 'R') : (y < 0 ? 'U' : 'D'));
     }
   }
   function knotDraw(dt) {
@@ -195,6 +215,8 @@ const CONVO = (() => {
       g.fillStyle = '#ffd84a'; g.fillText(ARROW[cur], 60 + sx, 40);
       g.font = '9px monospace'; g.fillStyle = '#6a6858';
       g.fillText(k.seq.slice(k.i + 1).map(d => ARROW[d]).join(' '), 60, 68);
+      const st = Math.max(0, 1 - (k.t - k.step0) / KNOT_STEP);          // tempo desta seta
+      g.fillStyle = st > 0.35 ? '#ffd84a' : '#f77'; g.fillRect(40, 56, 40 * st, 2);
     }
     // tempo
     const left = Math.max(0, 1 - k.t / KNOT_LIMIT);
@@ -204,7 +226,7 @@ const CONVO = (() => {
   }
   function knotEnd(timeout = false) {
     const k = knot; mode = 'idle'; knot = null;
-    kcan.style.display = 'none';
+    kcan.style.display = 'none'; if (kside) kside.style.display = 'none';
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.removeEventListener(ev, knotPointer);
     const res = { errors: k.errors, time: k.t, timeout, perfect: !timeout && k.errors === 0 && k.t <= KNOT_FAST };
     const r = resolver; resolver = null;
@@ -248,7 +270,7 @@ const CONVO = (() => {
         el.focoWrap.style.visibility = ''; el.breath.style.display = ''; el.silence.style.display = ''; el.ig.style.display = 'none';
         el.portrait.style.display = 'block'; el.text.style.fontStyle = 'normal'; el.text.style.color = '';
         el.help.textContent = '[1-4] responder · [ESPAÇO] interromper (só quando ele respira)';
-        el.name.textContent = 'PROFESSOR';
+        el.name.textContent = 'PROFESSOR MONTEIRO';
       }
     },
     update(dt, time) {
@@ -257,6 +279,7 @@ const CONVO = (() => {
       if (mode === 'knot') {
         const k = knot;
         knotNow(); k.fbT -= dt; k.shake -= dt;
+        if (k.t - k.step0 > KNOT_STEP) { k.errors++; k.step0 = k.t; k.shake = 0.25; knotFb('FROUXO', '#f77'); AUDIO.sfx('bad'); }
         knotDraw(dt);
         if (k.t >= KNOT_LIMIT) knotEnd(true);
       }
@@ -268,7 +291,7 @@ const CONVO = (() => {
           const ch = q.text[q.i++]; q.shown += ch;
           if (speaker.blip && ch !== ' ' && q.i % 3 === 0) AUDIO.sfx('blip', speaker.blip[0], speaker.blip[1]);
           if (speaker.pig && (ch === '.' || ch === '!' || ch === '?' || ch === ',') && Math.random() < 0.55) AUDIO.sfx(Math.random() < 0.65 ? 'oink' : 'grunt', 0.55);
-          if (ch === '.' || ch === '?' || ch === '!') q.acc -= 4;   // pausa nas frases (o Dudu fala pausado)
+          if (ch === '.' || ch === '?' || ch === '!') q.acc -= 4;   // pausa nas frases (o Liberato fala pausado)
         }
         el.text.textContent = q.shown;
         if (q.i >= q.text.length) { mode = 'waiting'; showNext(); }

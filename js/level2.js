@@ -1,6 +1,6 @@
-// CAPÍTULO 2 — Cirurgia Vascular (Clóvis) e CCIH (arena do chefe).
+// CAPÍTULO 2 — Cirurgia Vascular (De Barros) e CCIH (arena do chefe).
 // LAYOUT PROVISÓRIO em ASCII: 1 caractere = 1 m.   #  parede   .  piso   c  café
-// Coluna 0 = x -30, linha 0 = z -106 (encosta na porta dos fundos da sala do Professor3).
+// Coluna 0 = x -30, linha 0 = z -106 (encosta na porta dos fundos da sala do Javali).
 const LEVEL2 = (() => {
   const MAP = [
     '#############################..#############################',
@@ -89,7 +89,7 @@ const LEVEL2 = (() => {
     box(X0, -0.02, Z0 - zh, X0 + xw, 0.02, Z0, M.granilite);
     box(X0, WALL_H - 0.05, Z0 - zh, X0 + xw, WALL_H, Z0, M.ceiling);
     box(X0, WALL_H, Z0 - zh, X0 + xw, hooks.TOP, Z0, M.concrete);
-    colliders.push({ x1: -200, x2: 200, z1: -400, z2: Z0 - zh });
+    colliders.push({ x1: -200, x2: 200, z1: -300, z2: Z0 - zh });
 
     MAP.forEach((row, r) => [...row].forEach((ch, c) => {
       if (ch === 'c') out.cafes.push(hooks.cafe(cx(c), cz(r)));
@@ -126,24 +126,24 @@ const LEVEL2 = (() => {
     ccL.partner = ccR; ccR.partner = ccL; ccR.mesh.userData.onUse = () => ccL.tryOpen();
 
     // ---------- PLACAS ----------
-    sign('CIRURGIA VASCULAR — PROF. CLÓVIS', -1.99, 2.62, -114.5, 2.6, 0.3, 'x+', { w: 320, h: 24, size: 14, fg: '#fff', bg: '#5a1a2a', border: true });
+    sign('CIRURGIA VASCULAR — PROF. DE BARROS', -1.99, 2.62, -114.5, 2.6, 0.3, 'x+', { w: 320, h: 24, size: 14, fg: '#fff', bg: '#5a1a2a', border: true });
     sign('ECODOPPLER', 1.99, 2.62, -114.5, 1.8, 0.3, 'x-', { w: 128, h: 20, size: 13, fg: '#fff', bg: '#1d4a7a' });
     sign('CCIH — COMISSÃO DE CONTROLE DE INFECÇÃO HOSPITALAR', 0, 2.72, -123.98, 3.8, 0.35, 'z+', { w: 512, h: 24, size: 15, fg: '#fff', bg: '#1a5a3a', border: true });
     sign('LAVE AS MÃOS', 0, 1.7, -123.97, 1.4, 0.3, 'z+', { w: 96, h: 20, size: 13, fg: '#1a5a3a', bg: '#e8f4ec' });
 
-    // ---------- SALA DO CLÓVIS ----------
-    box(-14, 0, -111.6, -9, 0.78, -110.6, M.wood, { collide: true, msg: 'A mesa do Clóvis. Duas canetas tinteiro, uma de cada lado. Duas evoluções sendo escritas ao mesmo tempo.' });
+    // ---------- SALA DO DE BARROS ----------
+    box(-14, 0, -111.6, -9, 0.78, -110.6, M.wood, { collide: true, msg: 'A mesa do De Barros. Duas canetas tinteiro, uma de cada lado. Duas evoluções sendo escritas ao mesmo tempo.' });
     box(-12.2, 0.78, -111.4, -11.8, 0.82, -110.9, M.dark);
-    panel(-12, 1.8, -109.02, 2.2, 1.4, 'z-', new THREE.MeshPhongMaterial({ map: TEX.horse }), { msg: 'Quadro a óleo: um cavalo. O cavalo do Clóvis. Provavelmente o cavalo tem um quadro do Clóvis na baia.' });
-    box(-20.9, 0, -113, -19.6, 1.2, -111, M.wood, { collide: true, msg: 'Maquete de lancha, escala 1:20. Na proa: "CLÓVIS III". Ninguém sabe o que houve com a I e a II.' });
+    panel(-12, 1.8, -109.02, 2.2, 1.4, 'z-', new THREE.MeshPhongMaterial({ map: TEX.horse }), { msg: 'Quadro a óleo: um cavalo. O cavalo do De Barros. Provavelmente o cavalo tem um quadro do De Barros na baia.' });
+    box(-20.9, 0, -113, -19.6, 1.2, -111, M.wood, { collide: true, msg: 'Maquete de lancha, escala 1:20. Na proa: "DE BARROS III". Ninguém sabe o que houve com a I e a II.' });
     box(-4.2, 0, -110, -3.2, 1.0, -109.2, M.metal, { collide: true, msg: 'Dois tacos de golfe: um canhoto, um destro. Ambidestro até no golfe.' });
     box(-20.9, 0, -119.8, -17, 1.9, -119.2, M.wood, { collide: true, msg: 'Estante. Livros de vascular, um guia de vinhos de Bordeaux e um extrato bancário emoldurado.' });
-    sign('"A EXCELÊNCIA NÃO É UM ATO, É UM PATRIMÔNIO." — C.', -12, 2.4, -119.97, 3.2, 0.3, 'z+', { w: 384, h: 24, size: 12, fg: '#d8c060', bg: '#2a1a10' });
+    sign('"A EXCELÊNCIA NÃO É UM ATO, É UM PATRIMÔNIO." — D.B.', -12, 2.4, -119.97, 3.2, 0.3, 'z+', { w: 384, h: 24, size: 12, fg: '#d8c060', bg: '#2a1a10' });
     out.clovisPos = new THREE.Vector3(-12, 0, -109.9);
     out.zoneClovis = { x1: -21, x2: -3, z1: -120, z2: -109 };
 
     // ---------- ECODOPPLER ----------
-    box(8, 0, -111, 9.2, 1.5, -110, M.dark, { collide: true, msg: 'Aparelho de ecodoppler. Desligado. Na tela, um adesivo: "PROPRIEDADE DO CLÓVIS. SIM, ESSE TAMBÉM."' });
+    box(8, 0, -111, 9.2, 1.5, -110, M.dark, { collide: true, msg: 'Aparelho de ecodoppler. Desligado. Na tela, um adesivo: "PROPRIEDADE DO DE BARROS. SIM, ESSE TAMBÉM."' });
     hooks.stretcher(12, -113, Math.PI / 2);
 
     // ---------- CCIH (arena) ----------

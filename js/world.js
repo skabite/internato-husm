@@ -173,7 +173,7 @@ const WORLD = (() => {
       spawn: new THREE.Vector3(0, 0, 44),
       profStart: new THREE.Vector3(0.5, 0, -7.5),
       profIdle: new THREE.Vector3(-10.35, 0, -9.4),      // ao lado do bebedouro, conversando com ele
-      endStretcher: anim.endStretcher, red: [redA, redB], M, TOP,
+      endStretcher: anim.endStretcher, stairHit: anim.stairHit, red: [redA, redB], M, TOP,
     };
   }
 
@@ -432,11 +432,11 @@ const WORLD = (() => {
       const a = i * D, y = 0.2 + i * 0.2, rm = (RIN + ROUT) / 2;
       const st = new THREE.Mesh(new THREE.BoxGeometry(ROUT - RIN, 0.2, 0.62), M.step);
       st.position.set(SC.x + Math.cos(a + D / 2) * rm, y - 0.1, SC.z + Math.sin(a + D / 2) * rm);
-      st.rotation.y = -(a + D / 2); scene.add(st);
+      st.rotation.y = -(a + D / 2); st.raycast = () => {}; scene.add(st);
       const band = new THREE.Mesh(new THREE.CylinderGeometry(ROUT, ROUT, 0.55, 3, 1, true, Math.PI / 2 - a - D, D), helix);
-      band.position.set(SC.x, y - 0.12, SC.z); scene.add(band);
+      band.position.set(SC.x, y - 0.12, SC.z); band.raycast = () => {}; scene.add(band);
       const under = new THREE.Mesh(new THREE.CylinderGeometry(ROUT - 0.02, ROUT - 0.02, 0.22, 3, 1, true, Math.PI / 2 - a - D, D), M.white);
-      under.position.set(SC.x, y - 0.5, SC.z); scene.add(under);                // borda branca por baixo da faixa
+      under.position.set(SC.x, y - 0.5, SC.z); under.raycast = () => {}; scene.add(under);                // borda branca por baixo da faixa
       if (i % 2 === 0) box(SC.x + Math.cos(a) * (ROUT - 0.08) - 0.02, y, SC.z + Math.sin(a) * (ROUT - 0.08) - 0.02,
         SC.x + Math.cos(a) * (ROUT - 0.08) + 0.02, y + 0.95, SC.z + Math.sin(a) * (ROUT - 0.08) + 0.02, M.metal);
     }
@@ -444,8 +444,8 @@ const WORLD = (() => {
       const t = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 9, 6), col(c, { emissive: 0x111111 }));
       t.position.set(SC.x + Math.cos(k * 2.1) * 0.16, 4.5, SC.z + Math.sin(k * 2.1) * 0.16); scene.add(t);
     });
-    const hit = new THREE.Mesh(new THREE.CylinderGeometry(ROUT, ROUT, 3.4, 8), new THREE.MeshBasicMaterial({ visible: false }));
-    hit.position.set(SC.x, 1.7, SC.z); scene.add(hit);
+    const hit = new THREE.Mesh(new THREE.CylinderGeometry(ROUT + 0.15, ROUT + 0.15, 3.4, 8), new THREE.MeshBasicMaterial({ visible: false }));
+    hit.position.set(SC.x, 1.7, SC.z); scene.add(hit); anim.stairHit = hit;
     hit.userData.msg = 'Escada helicoidal. No miolo, faixas verde, vermelha e amarela — as cores do Rio Grande. Lá em cima, escuridão total. Um degrau rangeu sozinho.';
     interactables.push(hit);
     colliders.push({ x1: SC.x - ROUT + 0.1, x2: SC.x + ROUT - 0.1, z1: SC.z - ROUT + 0.1, z2: SC.z + ROUT - 0.1 });
@@ -549,7 +549,7 @@ const WORLD = (() => {
     ext.userData.msg = 'Extintor de incêndio. Validade: 2019. Claro.'; interactables.push(ext);
     box(-1.5, 1.52, -27.7, -1.42, 1.62, -27.6, M.black);
     sign('E', -1.59, 2.0, -27.65, 0.28, 0.28, 'x+', { w: 16, h: 16, size: 12, fg: '#fff', bg: '#c01818' });
-    box(1.5, 0.9, -31.3, 1.6, 2.1, -30.5, M.red, { msg: 'Hidrante. A mangueira foi enrolada por alguém muito, muito caprichoso. O Dudu?' });
+    box(1.5, 0.9, -31.3, 1.6, 2.1, -30.5, M.red, { msg: 'Hidrante. A mangueira foi enrolada por alguém muito, muito caprichoso. O Liberato?' });
     box(1.5, 1.05, -42.05, 1.6, 1.35, -41.85, M.white, { msg: 'Dispenser de álcool gel. Vazio, claro.' });
     box(-1.6, 1.05, -38.05, -1.5, 1.35, -37.85, M.white, { msg: 'Dispenser de álcool gel. Vazio também.' });
 

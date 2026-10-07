@@ -14,8 +14,14 @@ const TOUCH = (() => {
   const tap = code => { key(code, true); setTimeout(() => key(code, false), 60); };
 
   let root, stick, knob, btn = {}, fireHeld = false, lastManual = 0;
-  let assist = true;
-  try { assist = localStorage.getItem('internato-mira') !== 'off'; } catch (e) { /* sem storage */ }
+  // mira assistida: LEVE (padrão: puxa de leve, você atira) · FORTE (puxa mais e atira sozinha) · OFF
+  const AIM = {
+    leve: { cone: 0.26, pull: 1.6, auto: false, label: 'LEVE', msg: 'Mira LEVE: puxa de leve pro alvo; quem atira é você.' },
+    forte: { cone: 0.44, pull: 3.5, auto: true, label: 'FORTE', msg: 'Mira FORTE: puxa pro alvo e atira sozinha quando ele entra na mira.' },
+    off: { label: 'OFF', msg: 'Mira assistida desligada.' },
+  };
+  let aim = 'leve';
+  try { const v = localStorage.getItem('internato-mira2'); if (AIM[v]) aim = v; } catch (e) { /* sem storage */ }
   const joy = { id: null, x0: 0, y0: 0 }, look = { id: null, x: 0, y: 0 };
   const JOY_R = 56;
 
@@ -94,8 +100,9 @@ const TOUCH = (() => {
       const t = e.changedTouches[0]; if (look.id === null) { look.id = fireId = t.identifier; look.x = t.clientX; look.y = t.clientY; }
     });
     btn.aim = button('small aim', 'MIRA<br>ON', () => {
-      assist = !assist; try { localStorage.setItem('internato-mira', assist ? 'on' : 'off'); } catch (e) { /* sem storage */ }
-      H.toast(assist ? 'Mira assistida: LIGADA (gira sozinha pro alvo e atira quando estiver na mira)' : 'Mira assistida: DESLIGADA', 2.5);
+      aim = { leve: 'forte', forte: 'off', off: 'leve' }[aim];
+      try { localStorage.setItem('internato-mira2', aim); } catch (e) { /* sem storage */ }
+      H.toast(AIM[aim].msg, 2.5);
     });
     btn.use = button('use', 'USAR', () => tap('KeyE'));
     btn.weapon = button('small weapon', 'ARMA', () => {                // bisturi → revólver → carabina → ...
@@ -124,11 +131,11 @@ const TOUCH = (() => {
     const show = (b, v) => { b.style.display = v ? '' : 'none'; };
     for (const k of ['use', 'light', 'px', 'pause']) show(btn[k], playing);
     show(btn.aim, playing && COMBAT.P.weapon);
-    btn.aim.classList.toggle('hot', assist);
+    btn.aim.classList.toggle('hot', aim !== 'off');
     show(btn.fire, playing && COMBAT.P.weapon);
     show(btn.weapon, playing && (COMBAT.P.has.revolver || COMBAT.P.has.carabina));
     show(btn.reload, playing && (COMBAT.P.weapon === 'revolver' || COMBAT.P.weapon === 'carabina'));
-    btn.aim.innerHTML = assist ? 'MIRA<br>ON' : 'MIRA<br>OFF';
+    btn.aim.innerHTML = 'MIRA<br>' + AIM[aim].label;
     show(btn.talk, talking && !knot);
     btn.talk.textContent = DIALOGUE.active ? 'INTERROMPER!' : 'CONTINUAR ▶';
     btn.talk.classList.toggle('hot', DIALOGUE.active && document.getElementById('breath').classList.contains('on'));
@@ -136,17 +143,17 @@ const TOUCH = (() => {
     if (!playing && joy.id !== null) releaseStick();
     if (!playing) { look.id = null; fireHeld = false; return; }
     if (fireHeld) H.fire();
-    if (assist && COMBAT.P.weapon) aimAssist(dt);
+    if (aim !== 'off' && COMBAT.P.weapon) aimAssist(dt, AIM[aim]);
   }
 
   // mira assistida (só no celular): procura o alvo visível mais perto do centro da tela,
-  // gira a câmera até ele e atira sozinho quando ele entra na mira
-  function aimAssist(dt) {
+  // gira a câmera até ele (e, no modo FORTE, atira sozinho quando ele entra na mira)
+  function aimAssist(dt, mode) {
     const P = H.player(), w = COMBAT.P.weapon, range = w === 'carabina' ? 30 : w === 'revolver' ? 24 : 2.2;
     const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
     const cands = COMBAT.boars.filter(b => b.state !== 'dead').map(b => ({ x: b.x, z: b.z, r: 0.55 }))
       .concat(BOSS.active ? BOSS.targets() : []);
-    let best = null, bestA = 0.44;                                 // ~25° pra cada lado
+    let best = null, bestA = mode.cone;                            // LEVE ~15°, FORTE ~25° pra cada lado
     for (const t of cands) {
       const dx = t.x - P.pos.x, dz = t.z - P.pos.z, d = Math.hypot(dx, dz);
       if (d < 0.2 || d > range) continue;
@@ -157,7 +164,8 @@ const TOUCH = (() => {
     const want = Math.atan2(-best.dx, -best.dz);
     let diff = ((want - P.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
     // "ímã" suave — e só quando você não está mexendo a câmera (assim dá pra trocar de alvo)
-    if (performance.now() - lastManual > 450) P.yaw += diff * Math.min(1, dt * 3.5);
+    if (performance.now() - lastManual > 450) P.yaw += diff * Math.min(1, dt * mode.pull);
+    if (!mode.auto) return;
     const perp = Math.abs(Math.sin(diff)) * best.d;
     if (perp < (best.t.r || 0.5) * 0.8 && COMBAT.P.reload <= 0 && COMBAT.P.cd <= 0) H.fire();
   }

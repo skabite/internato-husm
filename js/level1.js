@@ -148,7 +148,7 @@ const LEVEL1 = (() => {
     door('prof3', -1, -97.15, 1, -97.05, [-2, 0, 0], { su: 2, locked: true,
       lockedMsg: 'Uma voz lá de dentro: "SÓ ABRO QUANDO ESSES BICHOS PARAREM DE GRUNHIR!"' });
     box(-1, 2.4, -105.55, 1, WALL_H, -105.45, M.wallLow);
-    door('prof3back', -1, -105.55, 1, -105.45, [-2, 0, 0], { su: 2, locked: true, lockedMsg: 'Porta dos fundos. Trancada. O Professor3 está com a chave... e te observando.' });
+    door('prof3back', -1, -105.55, 1, -105.45, [-2, 0, 0], { su: 2, locked: true, lockedMsg: 'Porta dos fundos. Trancada. O Javali está com a chave... e te observando.' });
     sign('VASCULAR · CCIH ↓', 0, 2.62, -105.44, 1.8, 0.3, 'z+', { w: 128, h: 20, size: 12, fg: '#fff', bg: '#2a5a3a' });
 
     // ---------- PLACAS ----------
@@ -158,14 +158,14 @@ const LEVEL1 = (() => {
     sign('PRESCRIÇÃO', 24, 2.5, -61.01, 1.6, 0.3, 'z-', { w: 96, h: 18, size: 12, fg: '#222', bg: '#ddd' });
     sign('ALA C', 0, 2.72, -64.98, 1.6, 0.4, 'z+', { w: 64, h: 18, size: 14, fg: '#fff', bg: '#8a1a1a', border: true });
     sign('NÃO ALIMENTE OS ANIMAIS', 0, 1.6, -64.97, 1.6, 0.25, 'z+', { w: 192, h: 20, size: 12, fg: '#111', bg: '#f0e060' });
-    sign('PROFESSOR3', 0, 2.62, -96.98, 1.6, 0.3, 'z+', { w: 96, h: 18, size: 12, fg: '#222', bg: '#ddd' });
+    sign('JAVALI', 0, 2.62, -96.98, 1.6, 0.3, 'z+', { w: 96, h: 18, size: 12, fg: '#222', bg: '#ddd' });
 
-    // ---------- ENDOSCOPIA (Dudu) ----------
+    // ---------- ENDOSCOPIA (Liberato) ----------
     box(-14, 0, -49.2, -13, 1.6, -48.4, M.dark, { collide: true, msg: 'Torre de vídeo da endoscopia. Ligada no nobreak. A tela mostra... você prefere não saber.' });
     panel(-13.5, 1.25, -49.21, 0.7, 0.5, 'z+', new THREE.MeshBasicMaterial({ color: 0xd87a8a }));
     const scrLight = new THREE.PointLight(0xff9aaa, 0.9, 7, 2); scrLight.position.set(-13.5, 1.4, -50); scene.add(scrLight);
     hooks.stretcher(-8, -50.5, Math.PI / 2);
-    box(-18.9, 0, -58.9, -16, 0.9, -57.4, M.metal, { collide: true, msg: 'Pia de lavagem dos endoscópios. Impecável. Tem uma etiqueta: "LIMPO 19h02 — D."' });
+    box(-18.9, 0, -58.9, -16, 0.9, -57.4, M.metal, { collide: true, msg: 'Pia de lavagem dos endoscópios. Impecável. Tem uma etiqueta: "LIMPO 19h02 — L."' });
     box(-6, 0, -58.9, -3.2, 1.9, -58.3, M.wood, { collide: true, msg: 'Armário de aparelhos. Cada colonoscópio pendurado à mesma distância exata do outro. Você mede com o dedo. 15 cm. Todos.' });
     WORLD.sign('SILÊNCIO — EXAME EM ANDAMENTO', -11, 2.3, -58.98, 2.4, 0.3, 'z+', { w: 256, h: 24, size: 13, fg: '#fff', bg: '#5a2a4a' });
     out.duduPos = new THREE.Vector3(-11.5, 0, -51.8);
@@ -177,21 +177,33 @@ const LEVEL1 = (() => {
     const spots = [
       { at: [8.9, 0.5, -51.01, 1.0, 0.3, 'z-'], name: 'Gaveta de cima da mesa', msg: 'Post-its: "NÃO MEXA NA MINHA GAVETA". Você mexeu.' },
       { at: [11.1, 0.25, -51.01, 1.0, 0.3, 'z-'], name: 'Gaveta de baixo da mesa', msg: 'Um Sabiston, três canetas sem tampa e uma foto autografada de um pneumotórax hipertensivo.' },
-      { at: [18.39, 1.0, -50.5, 1.2, 2.0, 'x-'], name: 'Armário de aço', msg: 'Catorze caixas de fio de sutura, organizadas por cor. O Dudu aprovaria.' },
+      { at: [18.39, 1.0, -50.5, 1.2, 2.0, 'x-'], name: 'Armário de aço', msg: 'Catorze caixas de fio de sutura, organizadas por cor. O Liberato aprovaria.' },
       { at: [18.39, 1.0, -54.5, 1.2, 2.0, 'x-'], name: 'Armário de madeira', msg: 'Dois drenos de tórax, um jaleco de 1998 e um cheiro forte de naftalina.' },
       { at: [3.61, 0.6, -57.5, 1.4, 1.2, 'x+'], name: 'Arquivo', msg: 'Prontuários antigos. Um deles tem só uma palavra escrita: "JAVALI?". Data de ontem.' },
     ];
     const gunAt = Math.floor(Math.random() * spots.length);
+    const HINT = [                                                    // pista sobre onde ele está (sorteado)
+      'Pensando bem... a gaveta de cima da mesa parecia pesada demais pra só ter post-it.',
+      'Pensando bem... a gaveta de baixo da mesa estava emperrada. Como se tivesse algo pesado dentro.',
+      'Pensando bem... o armário de aço tinha um cadeado aberto. Aberto às pressas.',
+      'Pensando bem... tinha um cheiro de óleo de arma vindo do armário de madeira. Não era só naftalina.',
+      'Pensando bem... o arquivo de metal tem uma gaveta que não fecha. Tem alguma coisa pesada lá.',
+    ];
     spots.forEach((sp, i) => {
       const [x, y, z, w, h, f] = sp.at;
       const mat = i === 2 || i === 4 ? M.metal : M.wood;
       if (f === 'x-') box(x + 0.01, 0, z - w / 2, x + 0.61, h, z + w / 2, mat, { collide: true });
       if (f === 'x+') box(x - 0.61, 0, z - w / 2, x - 0.01, h, z + w / 2, mat, { collide: true });
       const m = panel(x, y, z, w, h, f, mat);
+      // puxador de metal (gaveta: deitado · armário/arquivo: em pé), pra dar pra ver o que é móvel de revistar
+      const n = { 'z-': [0, -1], 'x-': [-1, 0], 'x+': [1, 0] }[f], gaveta = i < 2;
+      const hw = gaveta ? 0.22 : 0.04, hh = gaveta ? 0.04 : 0.3, hx = x + n[0] * 0.03, hz = z + n[1] * 0.03;
+      if (f === 'z-') box(hx - hw / 2, y - hh / 2, hz - 0.02, hx + hw / 2, y + hh / 2, hz + 0.02, M.metal);
+      else box(hx - 0.02, y - hh / 2, hz - (gaveta ? hw : 0.04) / 2 + (gaveta ? 0 : 0.25), hx + 0.02, y + hh / 2, hz + (gaveta ? hw : 0.04) / 2 + (gaveta ? 0 : 0.25), M.metal);
       m.userData.verb = 'revistar';
       m.userData.onUse = () => {
         if (i === gunAt && !out.gunTaken) { out.gunTaken = true; hooks.onGun(sp.name); return; }
-        hooks.toast(sp.name + ': ' + sp.msg, 5);
+        hooks.toast(sp.name + ': ' + sp.msg + (out.gunTaken ? '' : '\n' + HINT[gunAt]), 6);
       };
       out.searchables.push(m);
     });
@@ -201,7 +213,7 @@ const LEVEL1 = (() => {
     box(-27, 0, -55, -25.5, 0.75, -53.5, M.wood, { collide: true, msg: 'Mesa da copa. Tem um bolo pela metade com a vela "6". Ninguém sabe de quem é.' });
     const fridge = box(-27.95, 0, -50.5, -27.3, 1.8, -49.5, M.metal, { collide: true, msg: 'Geladeira.' });
     fridge.userData.verb = 'abrir a geladeira';
-    fridge.userData.onUse = () => hooks.onMarmita();   // a marmita do Dudu: cura muito, mas ele vai saber
+    fridge.userData.onUse = () => hooks.onMarmita();   // a marmita do Liberato: cura muito, mas ele vai saber
     box(-23.6, 0.9, -48.6, -23, 1.2, -48.1, M.dark, { msg: 'O micro-ondas. Cheiro de peixe. Ninguém assume.' });
     box(-24, 0, -48.6, -22.4, 0.9, -48.05, M.wood, { collide: true });
 
@@ -223,8 +235,8 @@ const LEVEL1 = (() => {
     out.zoneWard = { x1: -26, x2: 26, z1: -97, z2: -65 };
     out.checkpoint = new THREE.Vector3(0, 0, -63.2);
 
-    // ---------- SALA DO PROFESSOR3 ----------
-    box(-2, 0, -103.6, 2, 0.78, -102.6, M.wood, { collide: true, msg: 'A mesa do Professor3. Uma pilha de laudos, todos fora de ordem. O Dudu teria um infarto.' });
+    // ---------- SALA DO JAVALI ----------
+    box(-2, 0, -103.6, 2, 0.78, -102.6, M.wood, { collide: true, msg: 'A mesa do Javali. Uma pilha de laudos, todos fora de ordem. O Liberato teria um infarto.' });
     const lamp = new THREE.PointLight(0xffc070, 1.6, 9, 2); lamp.position.set(1.4, 1.3, -103); scene.add(lamp);
     box(1.2, 0.78, -103.2, 1.6, 1.15, -102.9, M.metal);
     sign('MELHOR PROFESSOR 2019', -5, 1.7, -104.98, 1.6, 0.6, 'z+', { w: 128, h: 48, size: 12, fg: '#5a4a10', bg: '#d8c060', border: true });

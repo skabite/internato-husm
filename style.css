@@ -148,3 +148,13 @@ body.touch #keys, body.touch #dlg-help { display: none; }
 }
 body.touch #dialogue { padding-right: 150px; }
 @media (max-height: 330px) { #rhythm { width: 140px; height: 126px; } }
+
+/* nó do De Barros no celular: a metade da tela da mão da vez fica acesa */
+#knotside { position: fixed; inset: 0; display: none; pointer-events: none; z-index: 4; }
+#knotside .kon, #knotside .koff { position: absolute; top: 0; bottom: 0; width: 50%; }
+#knotside .kon { background: rgba(255, 216, 74, 0.12); border: 3px dashed rgba(255, 216, 74, 0.6); display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; font-family: 'Press Start 2P', monospace; font-size: 13px; line-height: 1.8; color: #ffd84a; text-shadow: 2px 2px #000; }
+#knotside .kon span { font-size: 9px; color: #fff; }
+#knotside .koff { background: rgba(0, 0, 0, 0.6); }
+#knotside.left .kon { left: 0; } #knotside.left .koff { right: 0; }
+#knotside.right .kon { right: 0; } #knotside.right .koff { left: 0; }

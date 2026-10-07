@@ -36,9 +36,10 @@
   W.colliders.push({ x1: -200, x2: 200, z1: 75, z2: 200 }, { x1: -200, x2: -85, z1: -200, z2: 200 }, { x1: 85, x2: 200, z1: -200, z2: 200 });
   const L = LEVEL1.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGun: where => onGun(where), onMarmita: () => onMarmita() });
   const L2 = LEVEL2.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, cafe: (x, z) => L.makeCafe(x, z), onGel: g => onGel(g) });
+  const L3 = LEVEL3.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onUp: () => climbStairs() });
   const allCafes = () => L.cafes.concat(L2.cafes, W.pickups);   // só acrescentar no fim (o save guarda índices)
   const allDoors = () => Object.values(L.doors).concat(Object.values(L2.doors));
-  const allLights = () => L.lights.concat(L2.lights);
+  const allLights = () => L.lights.concat(L2.lights, L3.lights);
 
   // ---------- LANTERNA ----------
   const flashlight = new THREE.SpotLight(0xfff0d0, 2.4, 26, 0.5, 0.55, 1.5);
@@ -67,14 +68,15 @@
   const prof3 = makeNPC('prof3', L.prof3Pos, 0.9, 1.8);
   const clovis = makeNPC('prof4', L2.clovisPos, 0.92, 1.9);      // alto
   const belgica = makeNPC('chefao', L2.bossPos, 0.9, 1.8);
-  W.colliders.push(dudu.col, prof3.col, clovis.col);
-  const npcs = [dudu, prof3, clovis, belgica];
+  const falastrao = makeNPC('prof5', L3.falastraoPos, 0.95, 1.85);   // chefe do PS (Capítulo 3)
+  W.colliders.push(dudu.col, prof3.col, clovis.col, falastrao.col);
+  const npcs = [dudu, prof3, clovis, belgica, falastrao];
 
   // ---------- ESTADO ----------
   const G = {
     state: 'boot', paused: false, met: false, objective: false, scare: 0, ended: false,
     profTarget: null, mutterT: 3, time: 0,
-    duduDone: false, hasGun: false, kills: 0, prof3Done: false, clovisDone: false, bossStarted: false, bossDone: false, psyT: 0, flashT: 0, achievement: false, musicMode: 'explore', convoTarget: null, wardGruntT: 3,
+    duduDone: false, hasGun: false, kills: 0, prof3Done: false, clovisDone: false, bossStarted: false, bossDone: false, plantaoStarted: false, plantaoDone: false, psStarted: false, psyT: 0, flashT: 0, achievement: false, musicMode: 'explore', convoTarget: null, wardGruntT: 3,
   };
   const P = { pos: W.spawn.clone(), yaw: 0, pitch: 0, bob: 0, stepAcc: 0, moving: false };
 
@@ -117,7 +119,7 @@
   function renderBossBar(S) {
     if (!S) { show('bossbar', false); return; }
     show('bossbar');
-    $('bossbar').innerHTML = '<div class="bname">ALEXANDRE "BÉLGICA" SCHWARTZBOLDT — CCIH</div><div class="docs">' +
+    $('bossbar').innerHTML = '<div class="bname">PROFESSOR SCHWARZENEGGER — CCIH</div><div class="docs">' +
       BOSS.DOCS.map((d, i) => '<span class="' + (i < S.sig ? 'ok' : '') + '">' + (i < S.sig ? '☑ ' : '☐ ') + d + '</span>').join('') + '</div>' +
       '<div class="bhp"><div style="width:' + (100 * S.hp / S.maxHp) + '%"></div></div>';
   }
@@ -126,7 +128,7 @@
   // ---------- AURAS (itens de cura, personagens, objetos de usar) ----------
   AURA.init(scene);
   for (const c of allCafes()) AURA.add({ at: c.cup.getWorldPosition(new THREE.Vector3()).setY(c.cup.position.y + 0.1), color: 0x5cff8a, w: 1.1, opacity: 0.9, ring: 0.45, visible: () => !c.taken });
-  [[profNPC, 0xffd27a], [dudu, 0x8ac8ff], [prof3, 0xffa060], [clovis, 0xc8a8ff], [belgica, 0xb050ff]].forEach(([n, color]) =>
+  [[profNPC, 0xffd27a], [dudu, 0x8ac8ff], [prof3, 0xffa060], [clovis, 0xc8a8ff], [belgica, 0xb050ff], [falastrao, 0xff8a5a]].forEach(([n, color]) =>
     AURA.add({ follow: () => n.mesh.position, color, w: 1.8, h: 2.7, opacity: 0.6, ring: 0.65, behind: 0.08, visible: () => n.mesh.visible }));
   for (const m of W.interactables) {
     const verb = m.userData.verb;
@@ -179,6 +181,7 @@
       pos: [P.pos.x, P.pos.z], yaw: P.yaw, met: G.objective, scare: G.scare > 0,
       duduDone: G.duduDone, hasGun: G.hasGun, following: CONVO.following,
       prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita, carabina: COMBAT.P.has.carabina,
+      bossDone: G.bossDone, plantaoDone: G.plantaoDone,
       hp: COMBAT.P.hp, maxHp: COMBAT.P.maxHp, kills: G.kills,
       dead: COMBAT.boars.map((b, i) => (b.state === 'dead' && i < L.boars.length ? i : -1)).filter(i => i >= 0),
       cafes: allCafes().map((c, i) => (c.taken ? i : -1)).filter(i => i >= 0),
@@ -189,16 +192,18 @@
   }
   function wardLeft() { return COMBAT.boars.filter((b, i) => i < L.boars.length && b.state !== 'dead').length; }
   function objectiveText() {
-    if (G.clovisDone) return 'OBJETIVO: Resolver a CCIH com o "BÉLGICA" — 3 assinaturas ou na bala\n• Fuja do olhar (pilares) · atire nele e nas seringas · telefone tocou: [E]';
-    if (G.prof3Done) return 'OBJETIVO: Falar com o CLÓVIS DA VASCULAR (porta dos fundos do Professor3)';
+    if (G.plantaoDone) return 'OBJETIVO: Descer a ESCADA CARACOL (hall da recepção) até o PS\n• Convencer o PROFESSOR FALASTRÃO (Chefia do PS) a fechar o PS';
+    if (G.bossDone) return 'OBJETIVO: Ir embora pra casa (saída pela recepção)';
+    if (G.clovisDone) return 'OBJETIVO: Resolver a CCIH com o SCHWARZENEGGER — 3 assinaturas ou na bala\n• Fuja do olhar (pilares) · atire nele e nas seringas · telefone tocou: [E]';
+    if (G.prof3Done) return 'OBJETIVO: Falar com o PROFESSOR DE BARROS (porta dos fundos do Javali)';
     if (G.hasGun) {
       const n = wardLeft();
       return n > 0 ? 'OBJETIVO: Limpar a ALA C — javalis restantes: ' + n + '\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver'
-        : 'OBJETIVO: Entregar os laudos ao PROFESSOR3 (fim da Ala C)';
+        : 'OBJETIVO: Entregar os laudos ao JAVALI (fim da Ala C)';
     }
-    if (G.hasGun) return 'OBJETIVO: Atravessar a ALA C e entregar os laudos ao PROFESSOR3\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver';
-    if (G.duduDone) return 'OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Entregar os laudos ao PROFESSOR3 (fim da Ala C)';
-    if (G.objective) return 'OBJETIVO: Encontrar o DUDU DA GASTRO (Endoscopia)';
+    if (G.hasGun) return 'OBJETIVO: Atravessar a ALA C e entregar os laudos ao JAVALI\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver';
+    if (G.duduDone) return 'OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Está em 1 de 5 lugares: 2 gavetas da mesa, 2 armários ou o arquivo\n• Entregar os laudos ao JAVALI (fim da Ala C)';
+    if (G.objective) return 'OBJETIVO: Encontrar o PROFESSOR LIBERATO (Endoscopia)';
     return 'OBJETIVO: Entrar no HUSM';
   }
   function applySave(s) {
@@ -220,6 +225,8 @@
     if (s.hasGun) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
     if (s.prof3Done) { G.prof3Started = G.prof3Done = true; L.doors.prof3.locked = false; L.doors.prof3back.locked = false; moveProf3Aside(); }
     if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false; }
+    if (s.bossDone) setupChapter3();
+    if (s.plantaoDone) setupPlantao();
     G.achievement = !!s.achievement; G.marmita = !!s.marmita;
     if (s.carabina) COMBAT.give('carabina');
     COMBAT.P.maxHp = s.maxHp || 100; COMBAT.P.hp = s.hp || COMBAT.P.maxHp;
@@ -249,7 +256,7 @@
     show('boot', false); show('title');
     const s = readSave();
     show('title-save', !!s); show('title-new', !s);
-    if (s) $('save-info').textContent = `salvo em ${new Date(s.date).toLocaleString('pt-BR')} · ${s.clovisDone ? 'a caminho da CCIH' : s.prof3Done ? 'depois do Javali' : s.hasGun ? 'com revólver' : s.duduDone ? 'depois do Dudu' : 'depois do saguão'}`;
+    if (s) $('save-info').textContent = `salvo em ${new Date(s.date).toLocaleString('pt-BR')} · ${s.plantaoDone ? 'de plantão (PS)' : s.bossDone ? 'depois do Schwarzenegger' : s.clovisDone ? 'a caminho da CCIH' : s.prof3Done ? 'depois do Javali' : s.hasGun ? 'com revólver' : s.duduDone ? 'depois do Liberato' : 'depois do saguão'}`;
     G.state = 'title';
   };
   $('title').onclick = () => { if (!readSave()) startNew(); };
@@ -285,7 +292,7 @@
   // ---------- EXAMINAR ----------
   const ray = new THREE.Raycaster(); ray.far = 2.6;
   let lookTarget = null, rayFrame = 0;
-  const skipRay = new Set([prof, dudu.mesh, prof3.mesh, clovis.mesh, belgica.mesh]);
+  const skipRay = new Set([prof, dudu.mesh, prof3.mesh, clovis.mesh, belgica.mesh, falastrao.mesh]);
   function updateLook() {
     if (++rayFrame % 4) return;
     ray.setFromCamera({ x: 0, y: 0 }, camera);
@@ -311,7 +318,7 @@
     G.state = 'play';
     G.objective = true;
     document.body.classList.remove('talking');
-    setObjective('OBJETIVO: Encontrar o DUDU DA GASTRO (Endoscopia)');
+    setObjective('OBJETIVO: Encontrar o PROFESSOR LIBERATO (Endoscopia)');
     if (kind === 'desmaio') toast('Você "desmaia". Quando abre os olhos, ele está explicando os tomates para o bebedouro.', 6);
     else toast('Você sai andando rápido. Ele não percebe. Continua falando... com o bebedouro.', 6);
     if (snack) {
@@ -339,7 +346,7 @@
     return res;
   }
 
-  async function startDudu() {
+  async function startLiberato() {
     G.duduStarted = true;
     AUDIO.play('prelude', { fade: 1 });
     let following = true;
@@ -347,9 +354,9 @@
       following = await STORY1.dudu(c, { giveScalpel: () => { COMBAT.give('scalpel'); AUDIO.sfx('pickup'); }, following: () => CONVO.following });
       if (following) {
         COMBAT.P.maxHp += 25; COMBAT.P.hp = COMBAT.P.maxHp;
-        await c.say('narr', '*O Dudu ainda te segue no Instagram. Você se sente estranhamente protegido. (+25 de saúde máxima)*');
+        await c.say('narr', '*O Liberato ainda te segue no Instagram. Você se sente estranhamente protegido. (+25 de saúde máxima)*');
       } else {
-        await c.say('narr', '*O Dudu não te segue mais no Instagram. Você vai ter que se virar sozinho.*');
+        await c.say('narr', '*O Liberato não te segue mais no Instagram. Você vai ter que se virar sozinho.*');
       }
       await STORY1.thought(c);
     }, { instagram: true, target: dudu });
@@ -357,7 +364,7 @@
     L.doors.torax.locked = false;
     L.doors.alaC.locked = false; L.doors.alaC2.locked = false;
     L.doors.torax.lockedMsg = '';
-    setObjective('OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Entregar os laudos ao PROFESSOR3 (fim da Ala C)');
+    setObjective(objectiveText());
     AUDIO.play('moonlight', { fade: 3 });
     save();
   }
@@ -367,7 +374,7 @@
     await runConvo(c => STORY1.gunFound(c, where));
     COMBAT.give('revolver'); G.hasGun = true;
     save();
-    setObjective('OBJETIVO: Atravessar a ALA C e entregar os laudos ao PROFESSOR3\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver');
+    setObjective('OBJETIVO: Atravessar a ALA C e entregar os laudos ao JAVALI\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver');
     // emboscada: um javali invade o corredor transversal
     setTimeout(() => {
       AUDIO.sfx('bang');
@@ -403,10 +410,10 @@
     AUDIO.play('nacht', { fade: 1 });
     await runConvo(c => STORY2.clovis(c, { carabina: () => {
       COMBAT.give('carabina'); AUDIO.sfx('achievement');
-      notify('Você ganhou a CARABINA DE IPÊ do Clóvis. [3] pra usar. Aprovação máxima: 9,9%.', '🏆 APROVAÇÃO MÁXIMA');
+      notify('Você ganhou a CARABINA DE IPÊ do De Barros. [3] pra usar. Aprovação máxima: 9,9%.', '🏆 APROVAÇÃO MÁXIMA');
     }, achievement: () => {
       G.achievement = true; AUDIO.sfx('achievement');
-      notify('Você recebeu um ELOGIO do Clóvis. Isso acontece com 0,3% dos internos.', '🏆 CONQUISTA RARA');
+      notify('Você recebeu um ELOGIO do De Barros. Isso acontece com 0,3% dos internos.', '🏆 CONQUISTA RARA');
     } }), { meter: true, target: clovis });
     G.clovisDone = true;
     L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false;
@@ -431,22 +438,70 @@
     AUDIO.stop(0.4);
     await runConvo(c => STORY2.belgicaDefeat(c), { target: belgica });
     belgica.mesh.visible = false; show('bossbar', false);
-    chapterEnd(2);
+    setupChapter3();
+    titleCard('CAPÍTULO 3\n\nPLANTÃO');
+    AUDIO.play('moonlight', { fade: 3 });
+    save();
   }
-  // a marmita do Dudu, na geladeira da copa: cura 50, mas se ele te seguia, deixa de seguir (e leva o bônus junto)
+
+  // ---------- CAPÍTULO 3: O PLANTÃO ----------
+  // a arena reabre e o Liberato fica de tocaia no corredor, na frente da Endoscopia
+  function setupChapter3() {
+    G.bossStarted = G.bossDone = true; belgica.mesh.visible = false;
+    const i = W.colliders.indexOf(gate); if (i >= 0) W.colliders.splice(i, 1);
+    L2.doors.ccih.locked = false; L2.doors.ccih.tryOpen();
+    dudu.mesh.position.set(-0.8, dudu.h / 2, -54.5);
+    Object.assign(dudu.col, { x1: -1.1, x2: -0.5, z1: -54.8, z2: -54.2 });
+    setObjective(objectiveText());
+  }
+  async function startPlantao() {
+    G.plantaoStarted = true;
+    AUDIO.play('prelude', { fade: 1 });
+    await runConvo(c => STORY3.liberato(c), { target: dudu });
+    dudu.mesh.position.x = -1.7; Object.assign(dudu.col, { x1: -2, x2: -1.4 });   // libera o corredor
+    setupPlantao();
+    AUDIO.play('moonlight', { fade: 3 });
+    save();
+  }
+  // a escada caracol do hall passa a descer pro PS
+  function setupPlantao() {
+    G.plantaoStarted = G.plantaoDone = true;
+    W.stairHit.userData.verb = 'descer pro PS';
+    W.stairHit.userData.onUse = () => stairTravel('Você desce a escada caracol.\nUm andar. Dois.\nO cheiro de álcool 70% aumenta.', L3.arrive, L3.arriveYaw);
+    setObjective(objectiveText());
+  }
+  function climbStairs() { stairTravel('Você sobe a escada caracol.\nO hall continua escuro.', new THREE.Vector3(1.4, 0, -15.5), -Math.PI / 2); }
+  function stairTravel(text, to, yaw) {
+    if (G.state !== 'play') return;
+    G.state = 'travel';
+    const el = $('intro'); el.textContent = text; el.style.opacity = 1; el.style.background = '#000'; show('intro');
+    for (let k = 0; k < 6; k++) setTimeout(() => AUDIO.sfx('step', false), 200 + k * 260);
+    setTimeout(() => { P.pos.copy(to); P.yaw = yaw; P.pitch = 0; }, 900);
+    setTimeout(() => { el.style.opacity = 0; }, 1900);
+    setTimeout(() => { show('intro', false); el.style.background = ''; G.state = 'play'; relockOrPause(); save(true); }, 2900);
+  }
+  async function startFalastrao() {
+    G.psStarted = true;
+    AUDIO.play('toccata', { fade: 0.5 });
+    await runConvo(c => STORY3.falastrao(c), { target: falastrao });
+    falastrao.mesh.visible = false;
+    const i = W.colliders.indexOf(falastrao.col); if (i >= 0) W.colliders.splice(i, 1);
+    chapterEnd(3);
+  }
+  // a marmita do Liberato, na geladeira da copa: cura 50, mas se ele te seguia, deixa de seguir (e leva o bônus junto)
   function onMarmita() {
-    if (G.marmita) { toast('Geladeira. Só sobrou o pote vazio da marmita do Dudu. E a culpa.', 3); return; }
+    if (G.marmita) { toast('Geladeira. Só sobrou o pote vazio da marmita do Liberato. E a culpa.', 3); return; }
     G.marmita = true; COMBAT.heal(50); AUDIO.sfx('pickup');
-    toast('Marmita "DUDU — NÃO TOCAR — SÉRIO". Você comeu. Arroz, feijão e frango em porções geometricamente iguais. (+50)', 5);
+    toast('Marmita "LIBERATO — NÃO TOCAR — SÉRIO". Você comeu. Arroz, feijão e frango em porções geometricamente iguais. (+50)', 5);
     if (G.duduDone && CONVO.following) {
       CONVO.setFollowing(false);
       COMBAT.P.maxHp = Math.max(100, COMBAT.P.maxHp - 25); COMBAT.P.hp = Math.min(COMBAT.P.hp, COMBAT.P.maxHp);
-      setTimeout(() => notify('dudu.gastro deixou de seguir você. (ele sabe.) −25 de saúde máxima'), 1800);
+      setTimeout(() => notify('prof.liberato deixou de seguir você. (ele sabe.) −25 de saúde máxima'), 1800);
     }
     save(true);
   }
   function onGel(g) {
-    if (g.used) { toast('Dispenser de álcool gel. Vazio. Alguém usou tudo. Provavelmente o Dudu.', 3); return; }
+    if (g.used) { toast('Dispenser de álcool gel. Vazio. Alguém usou tudo. Provavelmente o Liberato.', 3); return; }
     g.used = true; COMBAT.heal(10); COMBAT.P.infectT = 0; AUDIO.sfx('pickup');
     toast('Álcool gel. Mãos limpas, infecção controlada. (+10, cura a infecção)', 3);
   }
@@ -457,14 +512,14 @@
     document.exitPointerLock && document.exitPointerLock();
     $('dead-msg').textContent = U.pick([
       'Um javali passou por cima de você.\nEm pleno HUSM. Ninguém vai acreditar.',
-      'Causa da síncope: javali.\nO Dudu vai querer isso em ordem crescente.',
+      'Causa da síncope: javali.\nO Liberato vai querer isso em ordem crescente.',
       'Você virou estatística.\nO residente da noite vai ter que preencher a notificação.',
     ]);
     if (BOSS.active) $('dead-msg').textContent = U.pick([
-      'O olhar do Bélgica atravessou sua alma.\nE o seu Lattes.',
+      'O olhar do Schwarzenegger atravessou sua alma.\nE o seu Lattes.',
       'Seringa contaminada.\nA CCIH vai abrir uma investigação. Sobre você.',
       'Ele nem precisou encostar em você.\nTambém não precisou chegar no horário.',
-      ...(COMBAT.P.has.carabina ? ['Nem a carabina de ipê resolveu.\nO Clóvis vai querer ela de volta. Encerada.'] : []),
+      ...(COMBAT.P.has.carabina ? ['Nem a carabina de ipê resolveu.\nO De Barros vai querer ela de volta. Encerada.'] : []),
     ]);
     show('dead'); show('hud', false);
     AUDIO.stop(0.5);
@@ -492,7 +547,7 @@
     show('hud', false); show('pause', false);
     $('end').innerHTML =
       `<div class="title-sub2">FIM DO CAPÍTULO ${n}</div>` +
-      `<div>CEFALEXINA LIBERADA. Registrado em ata.\nJavalis abatidos: ${G.kills}\nDudu ${CONVO.following ? 'ainda te segue' : 'não te segue mais'} no Instagram.\n${G.achievement ? '🏆 Você recebeu um elogio do Clóvis.' : 'O Clóvis não te elogiou. Quase ninguém recebe.'}\n\nA infecção continua no ar...\nCONTINUA</div>` +
+      `<div>${n >= 3 ? 'PS FECHADO. Por decisão dele. Anotado: decisão DELE.\nPlantão encerrado... por enquanto.' : 'CEFALEXINA LIBERADA. Registrado em ata.'}\nJavalis abatidos: ${G.kills}${COMBAT.P.has.carabina ? '\n🪵 Carabina de ipê na mochila. Encerada.' : ''}\nLiberato ${CONVO.following ? 'ainda te segue' : 'não te segue mais'} no Instagram.\n${G.achievement ? '🏆 Você recebeu um elogio do De Barros.' : 'O De Barros não te elogiou. Quase ninguém recebe.'}\n\n${n >= 3 ? 'O Falastrão está dando entrevista na rádio...' : 'A infecção continua no ar...'}\nCONTINUA</div>` +
       '<div class="small">clique para recomeçar</div>';
     show('end');
   }
@@ -516,11 +571,13 @@
   // ---------- GATILHOS DO CAPÍTULO 1 ----------
   const inZone = (z, p = P.pos) => p.x > z.x1 && p.x < z.x2 && p.z > z.z1 && p.z < z.z2;
   function updateChapter(dt) {
-    if (G.objective && !G.duduStarted && inZone(L.zoneEndo)) startDudu();
+    if (G.objective && !G.duduStarted && inZone(L.zoneEndo)) startLiberato();
     if (G.duduDone && !G.prof3Started && inZone(L.zoneProf3)) startProf3();
     if (G.prof3Done && !G.clovisStarted && inZone(L2.zoneClovis)) startClovis();
     if (G.clovisDone && !G.bossStarted && !G.bossDone && inZone(L2.zoneArena)) startBoss();
-    // Ala C: a porta do Professor3 só abre sem nenhum javali vivo
+    if (G.bossDone && !G.plantaoStarted && Math.hypot(P.pos.x - dudu.mesh.position.x, P.pos.z - dudu.mesh.position.z) < 3.2) startPlantao();
+    if (G.plantaoDone && !G.psStarted && inZone(L3.zoneChefia)) startFalastrao();
+    // Ala C: a porta do Javali só abre sem nenhum javali vivo
     if (G.hasGun || G.duduDone) {
       const n = wardLeft();
       if (n !== G.wardLeft) {
@@ -601,10 +658,10 @@
     if (G.objective && G.state === 'play') {
       G.mutterT -= dt;
       const d = Math.hypot(P.pos.x - prof.position.x, P.pos.z - prof.position.z);
-      if (G.mutterT <= 0 && d < 9) { subtitle('PROFESSOR (para o bebedouro): ' + U.pick(DIALOGUE.MUTTER)); G.mutterT = 6; }
+      if (G.mutterT <= 0 && d < 9) { subtitle('PROF. MONTEIRO (para o bebedouro): ' + U.pick(DIALOGUE.MUTTER)); G.mutterT = 6; }
     }
 
-    // Dudu, Professor3, Clóvis e o Bélgica (na luta, o BOSS controla os quadros dele)
+    // Liberato, Javali, De Barros e o Schwarzenegger (na luta, o BOSS controla os quadros dele)
     for (const n of npcs) {
       n.face();
       if (n === belgica && BOSS.active) continue;
@@ -684,6 +741,7 @@
     updateProf(dt);
     updateDoors(dt);
     W.update(dt, P.pos, G.state === 'play' && !G.paused);
+    L3.update(dt);
     updateLights(dt);
     TOUCH.update(dt);
     if (G.state !== 'play') AURA.setFocus(null);
@@ -711,9 +769,9 @@
   });
 
   // modo de desenvolvimento: index.html#dev=x,z,yaw[,pPITCH][,estágio] pula as telas (sem áudio)
-  //   talk = abre a conversa do saguão · met = depois do saguão · dudu = depois do Dudu (bisturi) · gun = com revólver
-  //   prof3 = depois do Javali (Ala C limpa) · clovis = depois do Clóvis (CCIH liberada)
-  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met|,dudu|,gun|,prof3|,clovis)?/);
+  //   talk = abre a conversa do saguão · met = depois do saguão · dudu = depois do Liberato (bisturi) · gun = com revólver
+  //   prof3 = depois do Javali (Ala C limpa) · clovis = depois do De Barros (CCIH liberada)
+  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met|,dudu|,gun|,prof3|,clovis|,ch3|,ps)?/);
   if (dev) {
     G.dev = true;
     window.__game = { P, G, BOSS, COMBAT, CONVO, bossMesh: belgica.mesh };   // só no modo dev, para testes automáticos
@@ -724,7 +782,7 @@
     const stage = dev[5];
     if (stage === ',talk') startTalk();
     if (stage && stage !== ',talk') { G.met = G.objective = true; G.profTarget = W.profIdle.clone(); }
-    const later = [',prof3', ',clovis'].includes(stage);
+    const later = [',prof3', ',clovis', ',ch3', ',ps'].includes(stage);
     if (stage === ',dudu' || stage === ',gun' || later) {
       G.duduStarted = G.duduDone = true; COMBAT.give('scalpel');
       for (const k in L.doors) L.doors[k].locked = false;
@@ -734,7 +792,9 @@
       G.prof3Started = G.prof3Done = true; moveProf3Aside();
       COMBAT.boars.forEach((b, i) => COMBAT.killSilently(i));
     }
-    if (stage === ',clovis') { G.clovisStarted = G.clovisDone = true; for (const k in L2.doors) L2.doors[k].locked = false; }
+    if ([',clovis', ',ch3', ',ps'].includes(stage)) { G.clovisStarted = G.clovisDone = true; for (const k in L2.doors) L2.doors[k].locked = false; }
+    if (stage === ',ch3' || stage === ',ps') setupChapter3();
+    if (stage === ',ps') setupPlantao();
   }
   requestAnimationFrame(frame);
 })();
