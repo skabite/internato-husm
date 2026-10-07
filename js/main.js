@@ -123,6 +123,18 @@
   }
   for (const s of L.boars) COMBAT.spawn(s.x, s.z);
 
+  // ---------- AURAS (itens de cura, personagens, objetos de usar) ----------
+  AURA.init(scene);
+  for (const c of allCafes()) AURA.add({ at: c.cup.getWorldPosition(new THREE.Vector3()).setY(c.cup.position.y + 0.1), color: 0x5cff8a, w: 1.1, opacity: 0.9, ring: 0.45, visible: () => !c.taken });
+  [[profNPC, 0xffd27a], [dudu, 0x8ac8ff], [prof3, 0xffa060], [clovis, 0xc8a8ff], [belgica, 0xb050ff]].forEach(([n, color]) =>
+    AURA.add({ follow: () => n.mesh.position, color, w: 1.8, h: 2.7, opacity: 0.6, ring: 0.65, behind: 0.08, visible: () => n.mesh.visible }));
+  for (const m of W.interactables) {
+    const verb = m.userData.verb;
+    if (!m.userData.onUse || verb === 'abrir') continue;          // portas não brilham (seriam muitas)
+    const visible = verb === 'revistar' ? () => !L.gunTaken : verb === 'abrir a geladeira' ? () => !G.marmita : null;
+    AURA.addObject(m, { color: 0xffc050, opacity: 0.45, visible });
+  }
+
   // ---------- ENTRADA ----------
   const keys = {};
   addEventListener('keydown', e => {
@@ -138,6 +150,7 @@
     }
     if (e.code === 'Digit1') COMBAT.select('scalpel');
     if (e.code === 'Digit2') COMBAT.select('revolver');
+    if (e.code === 'Digit3') COMBAT.select('carabina');
     if (e.code === 'KeyR') COMBAT.startReload();
   });
   addEventListener('keyup', e => { keys[e.code] = false; });
@@ -165,7 +178,7 @@
     const data = {
       pos: [P.pos.x, P.pos.z], yaw: P.yaw, met: G.objective, scare: G.scare > 0,
       duduDone: G.duduDone, hasGun: G.hasGun, following: CONVO.following,
-      prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita,
+      prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita, carabina: COMBAT.P.has.carabina,
       hp: COMBAT.P.hp, maxHp: COMBAT.P.maxHp, kills: G.kills,
       dead: COMBAT.boars.map((b, i) => (b.state === 'dead' && i < L.boars.length ? i : -1)).filter(i => i >= 0),
       cafes: allCafes().map((c, i) => (c.taken ? i : -1)).filter(i => i >= 0),
@@ -208,6 +221,7 @@
     if (s.prof3Done) { G.prof3Started = G.prof3Done = true; L.doors.prof3.locked = false; L.doors.prof3back.locked = false; moveProf3Aside(); }
     if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false; }
     G.achievement = !!s.achievement; G.marmita = !!s.marmita;
+    if (s.carabina) COMBAT.give('carabina');
     COMBAT.P.maxHp = s.maxHp || 100; COMBAT.P.hp = s.hp || COMBAT.P.maxHp;
     G.kills = s.kills || 0;
     (s.dead || []).forEach(i => COMBAT.killSilently(i));
@@ -281,6 +295,7 @@
       if (h.object.userData.msg || h.object.userData.onUse) lookTarget = h.object;
       break;
     }
+    AURA.setFocus(lookTarget);
     const verb = lookTarget && lookTarget.userData.verb;
     $('hint').textContent = lookTarget ? `${TOUCH.on ? '' : '[E] '}${verb || 'examinar'}` : '';
   }
@@ -386,7 +401,10 @@
   async function startClovis() {
     G.clovisStarted = true;
     AUDIO.play('nacht', { fade: 1 });
-    await runConvo(c => STORY2.clovis(c, { achievement: () => {
+    await runConvo(c => STORY2.clovis(c, { carabina: () => {
+      COMBAT.give('carabina'); AUDIO.sfx('achievement');
+      notify('Você ganhou a CARABINA DE IPÊ do Clóvis. [3] pra usar. Aprovação máxima: 9,9%.', '🏆 APROVAÇÃO MÁXIMA');
+    }, achievement: () => {
       G.achievement = true; AUDIO.sfx('achievement');
       notify('Você recebeu um ELOGIO do Clóvis. Isso acontece com 0,3% dos internos.', '🏆 CONQUISTA RARA');
     } }), { meter: true, target: clovis });
@@ -446,6 +464,7 @@
       'O olhar do Bélgica atravessou sua alma.\nE o seu Lattes.',
       'Seringa contaminada.\nA CCIH vai abrir uma investigação. Sobre você.',
       'Ele nem precisou encostar em você.\nTambém não precisou chegar no horário.',
+      ...(COMBAT.P.has.carabina ? ['Nem a carabina de ipê resolveu.\nO Clóvis vai querer ela de volta. Encerada.'] : []),
     ]);
     show('dead'); show('hud', false);
     AUDIO.stop(0.5);
@@ -667,6 +686,8 @@
     W.update(dt, P.pos, G.state === 'play' && !G.paused);
     updateLights(dt);
     TOUCH.update(dt);
+    if (G.state !== 'play') AURA.setFocus(null);
+    AURA.update(G.time, camera);
 
     camera.position.set(P.pos.x, 1.62 + Math.sin(P.bob) * 0.035, P.pos.z);
     camera.rotation.set(P.pitch, P.yaw, 0);

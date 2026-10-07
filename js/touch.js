@@ -13,7 +13,7 @@ const TOUCH = (() => {
   };
   const tap = code => { key(code, true); setTimeout(() => key(code, false), 60); };
 
-  let root, stick, knob, btn = {}, fireHeld = false;
+  let root, stick, knob, btn = {}, fireHeld = false, lastManual = 0;
   let assist = true;
   try { assist = localStorage.getItem('internato-mira') !== 'off'; } catch (e) { /* sem storage */ }
   const joy = { id: null, x0: 0, y0: 0 }, look = { id: null, x: 0, y: 0 };
@@ -57,7 +57,11 @@ const TOUCH = (() => {
   function onMove(e) {
     for (const t of Array.from(e.changedTouches)) {
       if (t.identifier === joy.id) setStick(t.clientX - joy.x0, t.clientY - joy.y0);
-      if (t.identifier === look.id) { H.look(t.clientX - look.x, t.clientY - look.y); look.x = t.clientX; look.y = t.clientY; }
+      if (t.identifier === look.id) {
+        const dx = t.clientX - look.x, dy = t.clientY - look.y;
+        H.look(dx, dy); look.x = t.clientX; look.y = t.clientY;
+        if (Math.abs(dx) + Math.abs(dy) > 1) lastManual = performance.now();   // mexeu a câmera: a mira assistida espera
+      }
     }
     if (joy.id !== null || look.id !== null) e.preventDefault();
   }
@@ -89,12 +93,16 @@ const TOUCH = (() => {
     btn.fire.addEventListener('touchstart', e => {                // o mesmo dedo também mira
       const t = e.changedTouches[0]; if (look.id === null) { look.id = fireId = t.identifier; look.x = t.clientX; look.y = t.clientY; }
     });
-    btn.aim = button('small aim', 'MIRA', () => {
+    btn.aim = button('small aim', 'MIRA<br>ON', () => {
       assist = !assist; try { localStorage.setItem('internato-mira', assist ? 'on' : 'off'); } catch (e) { /* sem storage */ }
       H.toast(assist ? 'Mira assistida: LIGADA (gira sozinha pro alvo e atira quando estiver na mira)' : 'Mira assistida: DESLIGADA', 2.5);
     });
     btn.use = button('use', 'USAR', () => tap('KeyE'));
-    btn.weapon = button('small weapon', 'ARMA', () => tap(COMBAT.P.weapon === 'revolver' ? 'Digit1' : 'Digit2'));
+    btn.weapon = button('small weapon', 'ARMA', () => {                // bisturi → revólver → carabina → ...
+      const order = ['scalpel', 'revolver', 'carabina'].filter(w => COMBAT.P.has[w]);
+      const next = order[(order.indexOf(COMBAT.P.weapon) + 1) % order.length];
+      tap({ scalpel: 'Digit1', revolver: 'Digit2', carabina: 'Digit3' }[next]);
+    });
     btn.reload = button('small reload', 'R', () => tap('KeyR'));
     btn.light = button('small light', '🔦', () => tap('KeyF'));
     btn.px = button('small px', 'PX', () => tap('KeyP'));
@@ -118,8 +126,9 @@ const TOUCH = (() => {
     show(btn.aim, playing && COMBAT.P.weapon);
     btn.aim.classList.toggle('hot', assist);
     show(btn.fire, playing && COMBAT.P.weapon);
-    show(btn.weapon, playing && COMBAT.P.has.revolver);
-    show(btn.reload, playing && COMBAT.P.weapon === 'revolver');
+    show(btn.weapon, playing && (COMBAT.P.has.revolver || COMBAT.P.has.carabina));
+    show(btn.reload, playing && (COMBAT.P.weapon === 'revolver' || COMBAT.P.weapon === 'carabina'));
+    btn.aim.innerHTML = assist ? 'MIRA<br>ON' : 'MIRA<br>OFF';
     show(btn.talk, talking && !knot);
     btn.talk.textContent = DIALOGUE.active ? 'INTERROMPER!' : 'CONTINUAR ▶';
     btn.talk.classList.toggle('hot', DIALOGUE.active && document.getElementById('breath').classList.contains('on'));
@@ -133,11 +142,11 @@ const TOUCH = (() => {
   // mira assistida (só no celular): procura o alvo visível mais perto do centro da tela,
   // gira a câmera até ele e atira sozinho quando ele entra na mira
   function aimAssist(dt) {
-    const P = H.player(), w = COMBAT.P.weapon, range = w === 'revolver' ? 24 : 2.2;
+    const P = H.player(), w = COMBAT.P.weapon, range = w === 'carabina' ? 30 : w === 'revolver' ? 24 : 2.2;
     const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
     const cands = COMBAT.boars.filter(b => b.state !== 'dead').map(b => ({ x: b.x, z: b.z, r: 0.55 }))
       .concat(BOSS.active ? BOSS.targets() : []);
-    let best = null, bestA = 0.62;                                 // ~35° pra cada lado
+    let best = null, bestA = 0.44;                                 // ~25° pra cada lado
     for (const t of cands) {
       const dx = t.x - P.pos.x, dz = t.z - P.pos.z, d = Math.hypot(dx, dz);
       if (d < 0.2 || d > range) continue;
@@ -147,7 +156,8 @@ const TOUCH = (() => {
     if (!best) return;
     const want = Math.atan2(-best.dx, -best.dz);
     let diff = ((want - P.yaw + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-    P.yaw += diff * Math.min(1, dt * 7);                           // "ímã" na mira
+    // "ímã" suave — e só quando você não está mexendo a câmera (assim dá pra trocar de alvo)
+    if (performance.now() - lastManual > 450) P.yaw += diff * Math.min(1, dt * 3.5);
     const perp = Math.abs(Math.sin(diff)) * best.d;
     if (perp < (best.t.r || 0.5) * 0.8 && COMBAT.P.reload <= 0 && COMBAT.P.cd <= 0) H.fire();
   }

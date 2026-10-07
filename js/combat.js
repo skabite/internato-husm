@@ -4,7 +4,9 @@ const COMBAT = (() => {
   let scene, camera, hooks, colliders;
   let tex = null;
   const boars = [];
-  const P = { hp: 100, maxHp: 100, weapon: null, has: { scalpel: false, revolver: false }, ammo: 6,
+  // armas de fogo: revólver do torácico e a carabina de ipê do Clóvis
+  const GUN = { revolver: { mag: 6, cd: 0.38, dmg: 2, reload: 1.6, tol: 0.55 }, carabina: { mag: 8, cd: 0.55, dmg: 3, reload: 2.1, tol: 0.65 } };
+  const P = { hp: 100, maxHp: 100, weapon: null, has: { scalpel: false, revolver: false, carabina: false }, ammo: 6, ammoC: 8, reloadMax: 1.6, reloadW: null,
     reload: 0, cd: 0, anim: 0, hurtT: 0, dead: false, infectT: 0 };
   let muzzle, wcan, wctx, hudEl, hpEl, ammoEl, dmgEl, lastAlert = -99, time = 0;
 
@@ -164,10 +166,12 @@ const COMBAT = (() => {
       else if (hit) { AUDIO.sfx('stab'); hurtBoar(hit, 1); } else AUDIO.sfx('swish');
       return;
     }
-    // revólver
-    if (P.ammo <= 0) { AUDIO.sfx('dry'); startReload(); return; }
-    P.ammo--; P.cd = 0.38; P.anim = 0.12;
-    AUDIO.sfx('shot');
+    // revólver / carabina
+    const gun = GUN[P.weapon], carb = P.weapon === 'carabina';
+    if ((carb ? P.ammoC : P.ammo) <= 0) { AUDIO.sfx('dry'); startReload(); return; }
+    if (carb) P.ammoC--; else P.ammo--;
+    P.cd = gun.cd; P.anim = 0.12;
+    AUDIO.sfx('shot'); if (carb) AUDIO.sfx('bang');
     muzzle.intensity = 4;
     const wall = rayWall(pp.x, pp.z, fx, fz, 60);
     let hit = null, best = wall;
@@ -177,7 +181,7 @@ const COMBAT = (() => {
       const along = dx * fx + dz * fz;
       if (along <= 0 || along >= best) continue;
       const perp = Math.abs(dx * fz - dz * fx);
-      if (perp < 0.55 + along * 0.015) { best = along; hit = b; }
+      if (perp < gun.tol + along * 0.015) { best = along; hit = b; }
     }
     let extra = null;
     for (const t of (hooks.targets ? hooks.targets() : [])) {
@@ -185,15 +189,16 @@ const COMBAT = (() => {
       if (along <= 0 || along >= best) continue;
       if (Math.abs(dx * fz - dz * fx) < t.r + along * 0.012) { best = along; extra = t; hit = null; }
     }
-    if (extra) extra.hit(2);
-    else if (hit) hurtBoar(hit, 2);
+    if (extra) extra.hit(gun.dmg);
+    else if (hit) hurtBoar(hit, gun.dmg);
     // o barulho acorda os javalis por perto
     for (const b of boars) if (b.state === 'idle' && Math.hypot(b.x - pp.x, b.z - pp.z) < 22) b.state = 'chase';
-    if (P.ammo === 0) setTimeout(startReload, 350);
+    if ((carb ? P.ammoC : P.ammo) === 0) setTimeout(startReload, 350);
   }
   function startReload() {
-    if (P.weapon !== 'revolver' || P.reload > 0 || P.ammo === 6) return;
-    P.reload = 1.6; AUDIO.sfx('reload');
+    const gun = GUN[P.weapon];
+    if (!gun || P.reload > 0 || (P.weapon === 'carabina' ? P.ammoC : P.ammo) === gun.mag) return;
+    P.reload = P.reloadMax = gun.reload; P.reloadW = P.weapon; AUDIO.sfx('reload');
   }
   function select(w) {
     if (!P.has[w] || P.weapon === w) return;
@@ -208,8 +213,8 @@ const COMBAT = (() => {
     const frames = SPRITES.WEAPONS[P.weapon];
     const img = frames[P.anim > 0 ? 1 : 0];
     let ox = moving ? Math.sin(bob) * 3 : 0, oy = moving ? Math.abs(Math.cos(bob)) * 3 : 0;
-    if (P.reload > 0) oy += 40 * Math.sin(Math.PI * (1 - P.reload / 1.6));
-    if (P.weapon === 'revolver' && P.anim > 0) oy += 3;
+    if (P.reload > 0) oy += 40 * Math.sin(Math.PI * (1 - P.reload / P.reloadMax));
+    if (GUN[P.weapon] && P.anim > 0) oy += P.weapon === 'carabina' ? 5 : 3;
     wctx.drawImage(img, Math.round(ox), Math.round(oy));
   }
   function drawStats() {
@@ -217,6 +222,7 @@ const COMBAT = (() => {
     hpEl.textContent = `SAÚDE ${Math.ceil(P.hp)}`;
     hpEl.style.color = P.hp > 60 ? '#e8e2cc' : P.hp > 30 ? '#ffcf5a' : '#ff6a5a';
     ammoEl.textContent = (P.infectT > 0 ? 'INFECTADO! · ' : '') + (P.weapon === 'revolver' ? `BALAS ${P.ammo}/6${P.reload > 0 ? ' · recarregando' : ''}`
+      : P.weapon === 'carabina' ? `CARABINA DE IPÊ ${P.ammoC}/8${P.reload > 0 ? ' · recarregando' : ''}`
       : P.weapon === 'scalpel' ? 'BISTURI Nº 22' : '');
     ammoEl.style.color = P.infectT > 0 ? '#8f6' : '';
     dmgEl.style.opacity = P.hurtT > 0 ? P.hurtT * 1.6 : (P.hp < 25 ? 0.15 + Math.sin(time * 4) * 0.08 : 0);
@@ -240,7 +246,7 @@ const COMBAT = (() => {
     blocks(x, z, r) { return boars.some(b => b.state !== 'dead' && Math.hypot(b.x - x, b.z - z) < r + 0.45); },
     killSilently(i) { const b = boars[i]; if (b) { b.state = 'dead'; b.hp = 0; b.vx = b.vz = 0; place(b); } },
     resetAfterDeath() {
-      P.hp = P.maxHp; P.dead = false; P.hurtT = 0; P.infectT = 0; P.reload = 0; P.ammo = 6;
+      P.hp = P.maxHp; P.dead = false; P.hurtT = 0; P.infectT = 0; P.reload = 0; P.ammo = 6; P.ammoC = 8;
       for (const b of boars) if (b.state !== 'dead') { b.x = b.sx; b.z = b.sz; b.state = 'idle'; b.vx = b.vz = 0; b.chargeT = 0; b.hp = 3; place(b); }
     },
     update(dt, active, bob, moving) {
@@ -249,7 +255,7 @@ const COMBAT = (() => {
       if (P.anim > 0) P.anim -= dt;
       if (P.hurtT > 0) P.hurtT -= dt;
       if (P.infectT > 0 && active && !P.dead) { P.infectT -= dt; P.hp -= dt * 2.5; if (P.hp <= 0) { P.hp = 0; P.dead = true; hooks.onDeath(); } }
-      if (P.reload > 0) { P.reload -= dt; if (P.reload <= 0) { P.reload = 0; P.ammo = 6; } }
+      if (P.reload > 0) { P.reload -= dt; if (P.reload <= 0) { P.reload = 0; if (P.reloadW === 'carabina') P.ammoC = 8; else P.ammo = 6; } }
       muzzle.intensity = Math.max(0, muzzle.intensity - dt * 40);
       for (const b of boars) active ? updateBoar(b, dt) : place(b);
       drawWeapon(bob, moving);

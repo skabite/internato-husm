@@ -345,7 +345,26 @@ const SPRITES = (() => {
   }
 
   const BOAR = { front: [0, 1, 2].map(boarFront), side: [0, 1, 2].map(boarSide), dead: boarDead() };
-  const WEAPONS = { revolver: [revolver(false), revolver(true)], scalpel: [scalpel(false), scalpel(true)] };
+  // carabina de ipê do Clóvis: cano longo subindo pro centro, coronha de ipê-amarelo com florzinhas gravadas
+  function carabina(fire) {
+    return weaponCanvas((p, g) => {
+      const o = fire ? 5 : 0;
+      if (fire) {
+        g.fillStyle = '#fff6b0'; g.beginPath(); g.arc(47, 4, 10, 0, 7); g.fill();
+        g.fillStyle = '#ffd040'; [[34, 2], [60, 2], [47, -8], [40, 13], [55, 13]].forEach(([x, y]) => g.fillRect(x - 2, y - 2, 5, 5));
+      }
+      for (let i = 0; i < 30; i++) p(i % 6 < 3 ? '#a8742a' : '#94621e', 50 + i * 0.75, 44 + i + o, 16, 1);   // coronha de ipê (veios)
+      p('#d8b030', 58, 56 + o, 2, 2); p('#d8b030', 64, 62 + o, 2, 2); p('#e8c840', 61, 59 + o, 1, 1);       // florzinhas de ipê
+      p('#c8a040', 52, 46 + o, 4, 3);                                                                      // plaquinha "C.V."
+      p('#ecebe4', 34, 62 + o, 30, 10); p('#b9b8b0', 34, 62 + o, 30, 1);                                   // punho do jaleco
+      p('#d9a77c', 38, 46 + o, 18, 16); p('#b07e58', 38, 46 + o, 2, 16);                                   // mão
+      p('#3a3c40', 42, 30 + o, 12, 18); p('#5a5c62', 43, 31 + o, 2, 16);                                   // ferrolho
+      p('#a8742a', 41, 34 + o, 3, 12);                                                                     // guarda-mão de madeira
+      p('#2a2c30', 45, 6 + o, 6, 26); p('#6a6c72', 47, 6 + o, 2, 25);                                      // cano longo
+      p('#1a1a1c', 46, 3 + o, 4, 4);                                                                       // massa de mira
+    });
+  }
+  const WEAPONS = { revolver: [revolver(false), revolver(true)], scalpel: [scalpel(false), scalpel(true)], carabina: [carabina(false), carabina(true)] };
 
   const SYRINGE = syringe();
 

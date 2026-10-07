@@ -118,7 +118,7 @@ body.touch #keys, body.touch #dlg-help { display: none; }
 #touch .talk { right: calc(18px + env(safe-area-inset-right)); top: 34%; width: auto; height: auto; padding: 14px 16px; border-radius: 8px; font-size: 11px; z-index: 6; }
 #touch .stick { position: absolute; width: 112px; height: 112px; border: 2px solid #fff4; border-radius: 50%; background: #0004; display: none; }
 #touch .knob { position: absolute; left: 32px; top: 32px; width: 44px; height: 44px; border-radius: 50%; background: #fff5; }
-#touch .aim { right: calc(170px + env(safe-area-inset-right)); top: 12px; font-size: 7px; }
+#touch .aim { right: calc(170px + env(safe-area-inset-right)); top: 12px; font-size: 7px; line-height: 1.4; text-align: center; }
 #rhythm { position: fixed; left: 50%; top: 4%; transform: translateX(-50%); width: 300px; height: 270px; display: none; z-index: 7;
   image-rendering: pixelated; border: 3px double #c9c2a8; background: #0b0d12; pointer-events: none; }
 
