@@ -34,9 +34,9 @@
   // ---------- MUNDO ----------
   const W = WORLD.build(scene);
   W.colliders.push({ x1: -200, x2: 200, z1: 75, z2: 200 }, { x1: -200, x2: -85, z1: -200, z2: 200 }, { x1: 85, x2: 200, z1: -200, z2: 200 });
-  const L = LEVEL1.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGun: where => onGun(where) });
+  const L = LEVEL1.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGun: where => onGun(where), onMarmita: () => onMarmita() });
   const L2 = LEVEL2.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, cafe: (x, z) => L.makeCafe(x, z), onGel: g => onGel(g) });
-  const allCafes = () => L.cafes.concat(L2.cafes);
+  const allCafes = () => L.cafes.concat(L2.cafes, W.pickups);   // só acrescentar no fim (o save guarda índices)
   const allDoors = () => Object.values(L.doors).concat(Object.values(L2.doors));
   const allLights = () => L.lights.concat(L2.lights);
 
@@ -165,7 +165,7 @@
     const data = {
       pos: [P.pos.x, P.pos.z], yaw: P.yaw, met: G.objective, scare: G.scare > 0,
       duduDone: G.duduDone, hasGun: G.hasGun, following: CONVO.following,
-      prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement,
+      prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita,
       hp: COMBAT.P.hp, maxHp: COMBAT.P.maxHp, kills: G.kills,
       dead: COMBAT.boars.map((b, i) => (b.state === 'dead' && i < L.boars.length ? i : -1)).filter(i => i >= 0),
       cafes: allCafes().map((c, i) => (c.taken ? i : -1)).filter(i => i >= 0),
@@ -207,7 +207,7 @@
     if (s.hasGun) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
     if (s.prof3Done) { G.prof3Started = G.prof3Done = true; L.doors.prof3.locked = false; L.doors.prof3back.locked = false; moveProf3Aside(); }
     if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false; }
-    G.achievement = !!s.achievement;
+    G.achievement = !!s.achievement; G.marmita = !!s.marmita;
     COMBAT.P.maxHp = s.maxHp || 100; COMBAT.P.hp = s.hp || COMBAT.P.maxHp;
     G.kills = s.kills || 0;
     (s.dead || []).forEach(i => COMBAT.killSilently(i));
@@ -292,13 +292,17 @@
     document.body.classList.add('talking');
     DIALOGUE.start(onTalkEnd);
   }
-  function onTalkEnd(kind) {
+  function onTalkEnd(kind, snack) {
     G.state = 'play';
     G.objective = true;
     document.body.classList.remove('talking');
     setObjective('OBJETIVO: Encontrar o DUDU DA GASTRO (Endoscopia)');
     if (kind === 'desmaio') toast('Você "desmaia". Quando abre os olhos, ele está explicando os tomates para o bebedouro.', 6);
     else toast('Você sai andando rápido. Ele não percebe. Continua falando... com o bebedouro.', 6);
+    if (snack) {
+      COMBAT.P.maxHp += 10; COMBAT.P.hp = COMBAT.P.maxHp;
+      setTimeout(() => toast('O café e o biscoito do professor fizeram efeito: +10 de saúde máxima.', 4), 6300);
+    }
     G.profTarget = W.profIdle.clone();
     setTimeout(() => { if (!G.ended) AUDIO.play('moonlight', { fade: 4 }); }, 2500);
     relockOrPause();
@@ -327,7 +331,7 @@
     await runConvo(async c => {
       following = await STORY1.dudu(c, { giveScalpel: () => { COMBAT.give('scalpel'); AUDIO.sfx('pickup'); }, following: () => CONVO.following });
       if (following) {
-        COMBAT.P.maxHp = 125; COMBAT.P.hp = 125;
+        COMBAT.P.maxHp += 25; COMBAT.P.hp = COMBAT.P.maxHp;
         await c.say('narr', '*O Dudu ainda te segue no Instagram. Você se sente estranhamente protegido. (+25 de saúde máxima)*');
       } else {
         await c.say('narr', '*O Dudu não te segue mais no Instagram. Você vai ter que se virar sozinho.*');
@@ -410,6 +414,18 @@
     await runConvo(c => STORY2.belgicaDefeat(c), { target: belgica });
     belgica.mesh.visible = false; show('bossbar', false);
     chapterEnd(2);
+  }
+  // a marmita do Dudu, na geladeira da copa: cura 50, mas se ele te seguia, deixa de seguir (e leva o bônus junto)
+  function onMarmita() {
+    if (G.marmita) { toast('Geladeira. Só sobrou o pote vazio da marmita do Dudu. E a culpa.', 3); return; }
+    G.marmita = true; COMBAT.heal(50); AUDIO.sfx('pickup');
+    toast('Marmita "DUDU — NÃO TOCAR — SÉRIO". Você comeu. Arroz, feijão e frango em porções geometricamente iguais. (+50)', 5);
+    if (G.duduDone && CONVO.following) {
+      CONVO.setFollowing(false);
+      COMBAT.P.maxHp = Math.max(100, COMBAT.P.maxHp - 25); COMBAT.P.hp = Math.min(COMBAT.P.hp, COMBAT.P.maxHp);
+      setTimeout(() => notify('dudu.gastro deixou de seguir você. (ele sabe.) −25 de saúde máxima'), 1800);
+    }
+    save(true);
   }
   function onGel(g) {
     if (g.used) { toast('Dispenser de álcool gel. Vazio. Alguém usou tudo. Provavelmente o Dudu.', 3); return; }
@@ -503,9 +519,10 @@
       if (c.taken) continue;
       c.cup.rotation.y += dt;
       if (Math.hypot(c.x - P.pos.x, c.z - P.pos.z) < 0.9) {
-        if (COMBAT.P.hp >= COMBAT.P.maxHp && COMBAT.P.infectT <= 0) { if (!c.warned) { toast('Café da copa. Você está bem por enquanto. Guarda pra depois.', 2.5); c.warned = true; } continue; }
-        c.taken = true; c.cup.visible = false; COMBAT.heal(30); COMBAT.P.infectT = 0; AUDIO.sfx('pickup'); save(true);
-        toast(U.pick(['Café da copa. Frio. Amargo. Perfeito. (+30)', 'Café passado às 6h da manhã. Ainda funciona. (+30)', 'Café com um gosto leve de micro-ondas de peixe. (+30)']), 3);
+        const needCure = c.cure !== false && COMBAT.P.infectT > 0;
+        if (COMBAT.P.hp >= COMBAT.P.maxHp && !needCure) { if (!c.warned) { toast(c.full || 'Café da copa. Você está bem por enquanto. Guarda pra depois.', 2.5); c.warned = true; } continue; }
+        c.taken = true; c.cup.visible = false; COMBAT.heal(c.heal || 30); if (c.cure !== false) COMBAT.P.infectT = 0; AUDIO.sfx('pickup'); save(true);
+        toast(U.pick(c.msgs || ['Café da copa. Frio. Amargo. Perfeito. (+30)', 'Café passado às 6h da manhã. Ainda funciona. (+30)', 'Café com um gosto leve de micro-ondas de peixe. (+30)']), 3);
       }
     }
     // grunhidos atrás da porta da Ala C
@@ -649,7 +666,7 @@
     updateDoors(dt);
     W.update(dt, P.pos, G.state === 'play' && !G.paused);
     updateLights(dt);
-    TOUCH.update();
+    TOUCH.update(dt);
 
     camera.position.set(P.pos.x, 1.62 + Math.sin(P.bob) * 0.035, P.pos.z);
     camera.rotation.set(P.pitch, P.yaw, 0);
@@ -669,6 +686,7 @@
     look: (dx, dy) => { if (G.state !== 'play' || G.paused) return; P.yaw -= dx * 0.0055; P.pitch = U.clamp(P.pitch - dy * 0.0055, -1.35, 1.35); },
     fire: () => { if (G.state === 'play' && !G.paused) COMBAT.fire(); },
     pause: () => { if (G.state === 'play') { G.paused = true; show('pause'); } },
+    player: () => P, toast,
   });
 
   // modo de desenvolvimento: index.html#dev=x,z,yaw[,pPITCH][,estágio] pula as telas (sem áudio)

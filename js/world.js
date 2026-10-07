@@ -166,8 +166,10 @@ const WORLD = (() => {
       bulb.position.copy(l.position); scene.add(bulb); l.userData.bulb = bulb;
     }
 
+    const pickups = buildPickups(M);
+
     return {
-      colliders, interactables, update,
+      colliders, interactables, update, pickups,
       spawn: new THREE.Vector3(0, 0, 44),
       profStart: new THREE.Vector3(0.5, 0, -7.5),
       profIdle: new THREE.Vector3(-10.35, 0, -9.4),      // ao lado do bebedouro, conversando com ele
@@ -471,7 +473,7 @@ const WORLD = (() => {
     for (const dz of [-0.6, 0, 0.6]) box(8.46, 2.62, -21.9 + dz - 0.05, 8.5, 2.85, -21.9 + dz + 0.05, M.dark); // entalhes
     panel(13.98, 1.65, -21.9, 3.2, 1.6, 'x-', mat(TEX.bridge, 3.2, 1.6, { emissive: 0x111111 }), {
       msg: 'Quadro: uma ponte de ferro sobre o rio. Bonito. Alguém desenhou um vulto no meio da ponte com caneta Bic.' });
-    box(12.95, 0.4, -23.5, 13.75, 0.5, -20.3, M.red, { collide: true, msg: 'Banco vermelho. Uma cuia de chimarrão esquecida. A erva ainda está úmida.' });
+    box(12.95, 0.4, -23.5, 13.75, 0.5, -20.3, M.red, { collide: true, msg: 'Banco vermelho. Alguém saiu correndo e deixou o chimarrão. A erva ainda está úmida.' });
     box(13.6, 0.5, -23.5, 13.75, 0.95, -20.3, M.red);
     for (const z of [-19.2, -24.6]) plant(9.2, z, M);
 
@@ -611,6 +613,55 @@ const WORLD = (() => {
     panel(-8, 1.75, RZ2 - 0.02, 3, 1.0, 'z-', new THREE.MeshPhongMaterial({ color: 0x3a4448, shininess: 120, specular: 0xaabbcc }), {
       msg: 'Espelho. Você parece cansado. Atrás de você, a porta... não. Nada.' });
     sign('NÃO JOGUE LIXO NO CHÃO!!!', RX2 - 0.02, 1.9, -32.4, 0.9, 0.3, 'x-', { w: 160, h: 40, size: 12, fg: '#111', bg: '#f2f2ec' });
+  }
+
+  // =====================================================================
+  // ITENS DE CURA (além do café da copa): pegam sozinhos ao passar perto, se você estiver ferido.
+  // A ORDEM IMPORTA: o save guarda o índice de cada item pego — só acrescente no fim.
+  // =====================================================================
+  const KINDS = {
+    chimarrao: { heal: 40, cure: false, msgs: ['Chimarrão do galpãozinho. Amargo, quente, gaúcho. Ninguém vai sentir falta. Vão sim. (+40)'],
+      full: 'Uma cuia de chimarrão no banco vermelho. Guarda pra quando precisar. Ninguém toma chimarrão sem precisar.' },
+    bolacha: { heal: 15, cure: false, msgs: ['Pacote de bolacha Maria. Ou Maizena. Ninguém sabe a diferença. (+15)', 'Bolacha Maria pela metade. A outra metade, só Deus sabe. (+15)'],
+      full: 'Um pacote de bolacha Maria. Você não está com fome... ainda.' },
+    dipirona: { heal: 20, cure: false, msgs: ['Dipirona 1 g, dose única. "Se dor ou se javali." (+20)'],
+      full: 'Uma cartela de dipirona. Sem dor, sem dipirona. Protocolo.' },
+    soro: { heal: 25, cure: true, msgs: ['Soro fisiológico 0,9%, direto do bolso. Hidratou e lavou a infecção. (+25, cura a infecção)'],
+      full: 'Um frasco de soro fisiológico. Melhor guardar pra quando a CCIH te pegar.' },
+  };
+  function buildPickups(M) {
+    const list = [];
+    const add = (kind, x, z, make, onStool = true) => {
+      const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+      if (onStool) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.72, 0.35), M.metal); st.position.y = 0.36; g.add(st); }
+      const item = new THREE.Group(); item.position.y = onStool ? 0.8 : 0.5; g.add(item); make(item);
+      list.push(Object.assign({ x, z, group: g, cup: item, taken: false, kind }, KINDS[kind]));
+    };
+    const m = (geo, c, extra = {}) => new THREE.Mesh(geo, new THREE.MeshPhongMaterial(Object.assign({ color: c, emissive: 0x222222 }, extra)));
+    const cuia = it => {
+      const c = m(new THREE.CylinderGeometry(0.075, 0.05, 0.12, 8), 0x5a4426); c.position.y = 0.06; it.add(c);
+      const e = m(new THREE.CylinderGeometry(0.068, 0.068, 0.01, 8), 0x5f8a2a); e.position.y = 0.12; it.add(e);
+      const b = m(new THREE.CylinderGeometry(0.008, 0.008, 0.2, 4), 0xc8c8c8, { shininess: 60 }); b.position.set(0.02, 0.17, 0); b.rotation.z = -0.3; it.add(b);
+    };
+    const pack = it => {
+      const a = m(new THREE.BoxGeometry(0.22, 0.06, 0.12), 0xd8b040); a.position.y = 0.03; it.add(a);
+      const b = m(new THREE.BoxGeometry(0.06, 0.062, 0.122), 0xb02a20); b.position.y = 0.03; it.add(b);
+    };
+    const pills = it => {
+      const a = m(new THREE.BoxGeometry(0.14, 0.05, 0.08), 0xeeeeea); a.position.y = 0.025; it.add(a);
+      const b = m(new THREE.BoxGeometry(0.142, 0.052, 0.025), 0x2a5aa8); b.position.y = 0.025; it.add(b);
+    };
+    const bag = it => {
+      const a = m(new THREE.BoxGeometry(0.14, 0.22, 0.045), 0x9ad0f0, { transparent: true, opacity: 0.8, emissive: 0x204060 }); a.position.y = 0.11; it.add(a);
+      const b = m(new THREE.CylinderGeometry(0.015, 0.015, 0.05, 6), 0x2a8a3a); b.position.y = 0.245; it.add(b);
+    };
+    add('chimarrao', 13.25, -21.9, cuia, false);   // banco vermelho do galpãozinho
+    add('bolacha', 24.5, -57, pack);               // Prescrição (Cap. 1)
+    add('dipirona', -14, -82, pills);              // Ala C
+    add('bolacha', -18, -118, pack);               // Vascular (Cap. 2)
+    add('soro', -20, -150, bag);                   // arena da CCIH
+    add('soro', 20, -138, bag);
+    return list;
   }
 
   // anima o que é do mapa: porta do banheiro, luminária de emergência, painel de senha

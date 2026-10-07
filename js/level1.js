@@ -199,7 +199,9 @@ const LEVEL1 = (() => {
 
     // ---------- COPA ----------
     box(-27, 0, -55, -25.5, 0.75, -53.5, M.wood, { collide: true, msg: 'Mesa da copa. Tem um bolo pela metade com a vela "6". Ninguém sabe de quem é.' });
-    box(-27.95, 0, -50.5, -27.3, 1.8, -49.5, M.metal, { collide: true, msg: 'Geladeira. Sem luz, mas ainda gelada. Uma marmita etiquetada: "DUDU — NÃO TOCAR — SÉRIO".' });
+    const fridge = box(-27.95, 0, -50.5, -27.3, 1.8, -49.5, M.metal, { collide: true, msg: 'Geladeira.' });
+    fridge.userData.verb = 'abrir a geladeira';
+    fridge.userData.onUse = () => hooks.onMarmita();   // a marmita do Dudu: cura muito, mas ele vai saber
     box(-23.6, 0.9, -48.6, -23, 1.2, -48.1, M.dark, { msg: 'O micro-ondas. Cheiro de peixe. Ninguém assume.' });
     box(-24, 0, -48.6, -22.4, 0.9, -48.05, M.wood, { collide: true });
 

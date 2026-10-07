@@ -26,9 +26,11 @@ A fonte pixelada vem do Google Fonts (sem internet, cai numa fonte monoespaçada
 Abra o link do jogo (GitHub Pages) no Chrome do celular e deite o aparelho. Os controles de toque aparecem sozinhos:
 - **Joystick**: encoste o dedo na metade esquerda e arraste (empurrar até a borda = correr).
 - **Olhar**: arraste o dedo na metade direita.
-- **ATACAR**, **USAR** (fica amarelo quando tem algo pra examinar), **ARMA**, **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
+- **ATACAR**: segure pra atacar sem parar; arrastando o dedo no próprio botão você mira ao mesmo tempo.
+- **MIRA** (ligada por padrão): a câmera puxa pro inimigo mais perto do centro e atira sozinha quando ele entra na mira.
+- **USAR** (fica amarelo quando tem algo pra examinar), **ARMA**, **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
 - Nas conversas: toque nas opções; **INTERROMPER!** acende quando o professor respira; **CONTINUAR ▶** avança.
-- Nó cirúrgico do Clóvis: um direcional pra cada polegar.
+- Nó cirúrgico do Clóvis: toque na metade esquerda/direita da tela no tempo da nota; arraste o dedo nas notas ⇆.
 - No computador dá pra testar os controles de toque com `index.html#touch`.
 
 ### Publicar no GitHub Pages
@@ -71,21 +73,26 @@ Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (c
 ## Mecânica do diálogo
 - **Foco do professor** (0–100%): chegar a 100% faz ele explicar a missão.
 - Opções que alimentam a tangente baixam o foco; opções que puxam pro assunto sobem (mas ele pode sequestrar o assunto).
-- **Interromper** com Espaço durante a respiração = +foco. Fora da respiração = ele acelera.
+- **Interromper** com Espaço durante a respiração = +foco. Fora da respiração ele não lida: perde o fio e recomeça do começo (−foco).
+- Ele divaga sobre saúde coletiva, TI em saúde e gestão, e oferece café e biscoito: aceitar = +10 de saúde máxima no fim da conversa.
 - Silêncio demais (barra vermelha) = ele preenche com outra história.
-- A música (Na Gruta do Rei da Montanha) acelera junto com ele.
+- A música (Na Gruta do Rei da Montanha) acompanha a empolgação dele, sem exagero.
 
 ## Capítulo 1 — Dudu da Gastro
-- Dudu: você chegou atrasado. Medidor do Instagram (ele te segue ou deixa de seguir). Se terminar seguido: +25 de saúde máxima.
+- Dudu: você chegou atrasado. Medidor do Instagram (ele te segue ou deixa de seguir; curte, comenta, visualiza e não reage). Se terminar seguido: +25 de saúde máxima.
 - Minijogo: ordenar os laudos de colonoscopia por prontuário crescente.
 - Revólver do cirurgião torácico: escondido num de 5 móveis da sala (sorteado a cada partida).
-- Ala C: javalis (olhos brilham no escuro, investem quando perto). Café da copa cura 30.
+- Ala C: javalis (olhos brilham no escuro, investem quando perto).
+- Cura: café da copa (+30, cura infecção), bolacha Maria (+15), dipirona (+20), soro fisiológico (+25, cura infecção),
+  chimarrão no galpãozinho (+40) e a marmita do Dudu na geladeira da copa (+50 — mas se ele te seguia, deixa de seguir e leva os +25).
 - Música: Prelúdio em Dó (Bach) no Dudu, Verão/Presto (Vivaldi) no combate.
 
 ## Capítulo 2 — A infecção no ar
 - A sala do Professor3 ("O Javali") só abre com a Ala C sem javalis (contador no objetivo).
-- Clóvis da Vascular: medidor "APROVAÇÃO DO CLÓVIS" (quase não sobe). Minijogo do nó cirúrgico: mão esquerda (W A S D) e direita (setas).
-  Perfeito e rápido nas duas mãos = conquista rara "elogio do Clóvis".
+- Clóvis da Vascular: medidor "APROVAÇÃO DO CLÓVIS" (quase não sobe). Minijogo do nó cirúrgico em ritmo (estilo Guitar Hero), tocando Eine kleine Nachtmusik:
+  notas na faixa esquerda/direita (A/← e D/→, ou tocar na metade da tela) e notas ⇆ "APERTA" (W/↑/espaço, ou arrastar o dedo).
+  Tudo PERFEITO nas duas mãos = conquista rara "elogio do Clóvis".
+- Professor3, "o Javali": fala grunhindo.
 - Chefe — Alexandre "Bélgica" Schwartzboldt (CCIH):
   - OLHAR PENETRANTE: raio psíquico; tira saúde enquanto ele te enxerga → esconda-se atrás dos pilares.
   - SERINGAS CONTAMINADAS: dano + infecção (café ou álcool gel curam). Dá pra destruir no ar com tiro.

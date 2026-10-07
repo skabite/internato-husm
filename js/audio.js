@@ -366,6 +366,18 @@ const AUDIO = (() => {
       o.connect(g); g.connect(sfxGain); o.start(t); o.stop(t + 0.8);
     },
     click() { const t = ctx.currentTime; noise(t, 0.03, 0.2, sfxGain, 'bandpass', 2500, 2); },
+    note(f, dur = 0.14) { const t = ctx.currentTime; tone(f, t, dur, 'square', 0.08, sfxGain, 1); tone(f * 2, t, dur * 0.6, 'triangle', 0.03, sfxGain, 1); },
+    oink(vol = 1) { // "óinc" nasal do Javali
+      const t = ctx.currentTime;
+      for (let k = 0; k < 2; k++) {
+        const s = t + k * 0.17;
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(260, s); o.frequency.linearRampToValueAtTime(380, s + 0.04); o.frequency.linearRampToValueAtTime(190, s + 0.13);
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 3;
+        const g = ctx.createGain(); g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.16 * vol, s + 0.02); g.gain.linearRampToValueAtTime(0, s + 0.14);
+        o.connect(f); f.connect(g); g.connect(sfxGain); o.start(s); o.stop(s + 0.15);
+      }
+    },
     creak() { // dobradiça enferrujada (porta abrindo sozinha)
       const t = ctx.currentTime;
       const o = ctx.createOscillator(); o.type = 'sawtooth';
