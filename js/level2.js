@@ -138,7 +138,7 @@ const LEVEL2 = (() => {
     box(-20.9, 0, -113, -19.6, 1.2, -111, M.wood, { collide: true, msg: 'Maquete de lancha, escala 1:20. Na proa: "DE BARROS III". Ninguém sabe o que houve com a I e a II.' });
     box(-4.2, 0, -110, -3.2, 1.0, -109.2, M.metal, { collide: true, msg: 'Dois tacos de golfe: um canhoto, um destro. Ambidestro até no golfe.' });
     box(-20.9, 0, -119.8, -17, 1.9, -119.2, M.wood, { collide: true, msg: 'Estante. Livros de vascular, um guia de vinhos de Bordeaux e um extrato bancário emoldurado.' });
-    sign('"A EXCELÊNCIA NÃO É UM ATO, É UM PATRIMÔNIO." — C.', -12, 2.4, -119.97, 3.2, 0.3, 'z+', { w: 384, h: 24, size: 12, fg: '#d8c060', bg: '#2a1a10' });
+    sign('"A EXCELÊNCIA NÃO É UM ATO, É UM PATRIMÔNIO." — D.B.', -12, 2.4, -119.97, 3.2, 0.3, 'z+', { w: 384, h: 24, size: 12, fg: '#d8c060', bg: '#2a1a10' });
     out.clovisPos = new THREE.Vector3(-12, 0, -109.9);
     out.zoneClovis = { x1: -21, x2: -3, z1: -120, z2: -109 };
 

@@ -182,6 +182,13 @@ const LEVEL1 = (() => {
       { at: [3.61, 0.6, -57.5, 1.4, 1.2, 'x+'], name: 'Arquivo', msg: 'Prontuários antigos. Um deles tem só uma palavra escrita: "JAVALI?". Data de ontem.' },
     ];
     const gunAt = Math.floor(Math.random() * spots.length);
+    const HINT = [                                                    // pista sobre onde ele está (sorteado)
+      'Pensando bem... a gaveta de cima da mesa parecia pesada demais pra só ter post-it.',
+      'Pensando bem... a gaveta de baixo da mesa estava emperrada. Como se tivesse algo pesado dentro.',
+      'Pensando bem... o armário de aço tinha um cadeado aberto. Aberto às pressas.',
+      'Pensando bem... tinha um cheiro de óleo de arma vindo do armário de madeira. Não era só naftalina.',
+      'Pensando bem... o arquivo de metal tem uma gaveta que não fecha. Tem alguma coisa pesada lá.',
+    ];
     spots.forEach((sp, i) => {
       const [x, y, z, w, h, f] = sp.at;
       const mat = i === 2 || i === 4 ? M.metal : M.wood;
@@ -191,7 +198,7 @@ const LEVEL1 = (() => {
       m.userData.verb = 'revistar';
       m.userData.onUse = () => {
         if (i === gunAt && !out.gunTaken) { out.gunTaken = true; hooks.onGun(sp.name); return; }
-        hooks.toast(sp.name + ': ' + sp.msg, 5);
+        hooks.toast(sp.name + ': ' + sp.msg + (out.gunTaken ? '' : '\n' + HINT[gunAt]), 6);
       };
       out.searchables.push(m);
     });

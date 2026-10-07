@@ -27,8 +27,8 @@ Abra o link do jogo (GitHub Pages) no Chrome do celular e deite o aparelho. Os c
 - **Joystick**: encoste o dedo na metade esquerda e arraste (empurrar até a borda = correr).
 - **Olhar**: arraste o dedo na metade direita.
 - **ATACAR**: segure pra atacar sem parar; arrastando o dedo no próprio botão você mira ao mesmo tempo.
-- **MIRA ON/OFF** (ligada por padrão): a câmera puxa de leve pro inimigo mais perto do centro e atira sozinha quando ele entra na mira.
-  Enquanto você arrasta a câmera, ela não puxa (dá pra trocar de alvo).
+- **MIRA LEVE / FORTE / OFF** (toque pra alternar): LEVE (padrão) puxa a câmera de leve pro inimigo e quem atira é você;
+  FORTE puxa mais e atira sozinha quando ele entra na mira. Enquanto você arrasta a câmera, ela não puxa (dá pra trocar de alvo).
 - **USAR** (fica amarelo quando tem algo pra examinar), **ARMA** (alterna entre as armas que você tem), **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
 - Nas conversas: toque nas opções; **INTERROMPER!** acende quando o professor respira; **CONTINUAR ▶** avança.
 - Nó cirúrgico do De Barros: arraste o dedo na direção da seta, em qualquer lugar da tela.
@@ -106,8 +106,9 @@ Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (c
 ## Capítulo 2 — A infecção no ar
 - A sala do Javali só abre com a Ala C sem javalis (contador no objetivo).
 - Professor De Barros: medidor "APROVAÇÃO DO DE BARROS" (quase não sobe). Minijogo do nó cirúrgico por arrasto: aparece uma seta e você
-  arrasta naquela direção (dedo no celular; no computador, segurando o botão do mouse — ou setas/WASD). 6 laçadas por mão;
-  cada acerto toca uma nota de Eine kleine Nachtmusik. Sem errar e em até 6 s nas duas mãos = conquista rara "elogio do De Barros".
+  arrasta naquela direção (dedo no celular; no computador, segurando o botão do mouse — ou setas/WASD). 8 laçadas por mão,
+  ~1,4 s por seta (demorou, o fio afrouxa e conta erro); a mão direita tem diagonais (Q E Z C no teclado).
+  Cada acerto toca uma nota de Eine kleine Nachtmusik. Sem errar nas duas mãos = conquista rara "elogio do De Barros".
 - **Aprovação máxima** (elogiar a sala, perguntar dos cavalos, nó perfeito e responder "Perfeitamente, professor"): ele te dá a
   **CARABINA DE IPÊ** — 8 tiros, dano 3, recarga mais lenta. Tecla [3].
 - Javali: fala grunhindo.

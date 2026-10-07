@@ -134,13 +134,17 @@ const CONVO = (() => {
   // Cada acerto toca a próxima nota de Eine kleine Nachtmusik e aperta mais o nó.
   // Resultado: { errors, time, timeout, perfect } — perfeito = sem erro e rápido.
   const MELODY = [392, 293.7, 392, 293.7, 392, 293.7, 392, 493.9, 587.3, 523.3, 440, 523.3, 440, 523.3, 440, 370, 440, 293.7];
-  const DIRS = ['L', 'R', 'U', 'D'], ARROW = { L: '←', R: '→', U: '↑', D: '↓' };
-  const KNOT_N = 6, KNOT_LIMIT = 12, KNOT_FAST = 6;
+  // mão esquerda: 4 direções · mão direita: 8 (com diagonais). Cada seta tem ~1,4 s: demorou, o fio afrouxa (conta erro).
+  const DIRS = ['L', 'R', 'U', 'D'], DIAG = ['UL', 'UR', 'DL', 'DR'];
+  const ARROW = { L: '←', R: '→', U: '↑', D: '↓', UL: '↖', UR: '↗', DL: '↙', DR: '↘' };
+  const SECTOR = ['R', 'DR', 'D', 'DL', 'L', 'UL', 'U', 'UR'];       // ângulo da tela (y pra baixo), de 45 em 45°
+  const KNOT_N = 8, KNOT_LIMIT = 15, KNOT_FAST = 8, KNOT_STEP = 1.4;
   let kcan = null, kctx = null, mel = 0;
   function knotStart(hand) {
+    const diag = hand === 'direita', pool = diag ? DIRS.concat(DIAG, DIAG) : DIRS;
     const seq = [];
-    while (seq.length < KNOT_N) { const d = U.pick(DIRS); if (d !== seq[seq.length - 1]) seq.push(d); }
-    knot = { hand, seq, i: 0, errors: 0, t0: performance.now(), t: 0, fb: '', fbT: 0, drag: null, shake: 0 };
+    while (seq.length < KNOT_N) { const d = U.pick(pool); if (d !== seq[seq.length - 1]) seq.push(d); }
+    knot = { hand, seq, diag, i: 0, errors: 0, t0: performance.now(), t: 0, step0: -0.6, fb: '', fbT: 0, drag: null, shake: 0 };
     mode = 'knot';
     if (!kcan) {
       kcan = document.createElement('canvas'); kcan.id = 'rhythm'; kcan.width = 120; kcan.height = 108;
@@ -148,8 +152,8 @@ const CONVO = (() => {
     }
     kcan.style.display = 'block';
     el.options.innerHTML = '<div class="knot">NÓ · MÃO ' + hand.toUpperCase() + '</div><div class="knot-help">' + (TOUCH.on
-      ? 'ARRASTE o dedo na direção da seta (em qualquer lugar da tela)'
-      : 'segure o botão do mouse e ARRASTE na direção da seta · ou use as setas / WASD') + '</div>';
+      ? 'ARRASTE o dedo na direção da seta (em qualquer lugar da tela) · rápido: o fio afrouxa'
+      : 'segure o botão do mouse e ARRASTE na direção da seta · ou setas / WASD' + (diag ? ' · diagonais: Q E Z C' : '')) + '</div>';
     for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.addEventListener(ev, knotPointer, { passive: false });
     return new Promise(res => { resolver = res; });
   }
@@ -158,13 +162,14 @@ const CONVO = (() => {
   function knotGesture(d) {
     const k = knot; knotNow();
     if (d === k.seq[k.i]) {
-      k.i++; knotFb('BOA', '#8f8');
+      k.i++; k.step0 = k.t; knotFb('BOA', '#8f8');
       AUDIO.sfx('note', MELODY[mel++ % MELODY.length], 0.16);
       if (k.i >= k.seq.length) knotEnd();
     } else { k.errors++; k.shake = 0.25; knotFb('ERROU', '#f77'); AUDIO.sfx('bad'); }
   }
   function knotKey(code) {
-    const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'U', ArrowUp: 'U', KeyS: 'D', ArrowDown: 'D' };
+    const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'U', ArrowUp: 'U', KeyS: 'D', ArrowDown: 'D',
+      KeyQ: 'UL', KeyE: 'UR', KeyZ: 'DL', KeyC: 'DR' };
     if (m[code]) knotGesture(m[code]);
   }
   // um gesto por toque/clique: soma o movimento até passar de ~30 px e decide a direção dominante
@@ -179,7 +184,9 @@ const CONVO = (() => {
     else { k.drag.x += e.movementX || 0; k.drag.y += e.movementY || 0; }
     if (Math.hypot(k.drag.x, k.drag.y) > 30) {
       k.drag.done = true;
-      knotGesture(Math.abs(k.drag.x) > Math.abs(k.drag.y) ? (k.drag.x < 0 ? 'L' : 'R') : (k.drag.y < 0 ? 'U' : 'D'));
+      const { x, y } = k.drag;
+      knotGesture(k.diag ? SECTOR[(Math.round(Math.atan2(y, x) / (Math.PI / 4)) + 8) % 8]
+        : Math.abs(x) > Math.abs(y) ? (x < 0 ? 'L' : 'R') : (y < 0 ? 'U' : 'D'));
     }
   }
   function knotDraw(dt) {
@@ -196,6 +203,8 @@ const CONVO = (() => {
       g.fillStyle = '#ffd84a'; g.fillText(ARROW[cur], 60 + sx, 40);
       g.font = '9px monospace'; g.fillStyle = '#6a6858';
       g.fillText(k.seq.slice(k.i + 1).map(d => ARROW[d]).join(' '), 60, 68);
+      const st = Math.max(0, 1 - (k.t - k.step0) / KNOT_STEP);          // tempo desta seta
+      g.fillStyle = st > 0.35 ? '#ffd84a' : '#f77'; g.fillRect(40, 56, 40 * st, 2);
     }
     // tempo
     const left = Math.max(0, 1 - k.t / KNOT_LIMIT);
@@ -258,6 +267,7 @@ const CONVO = (() => {
       if (mode === 'knot') {
         const k = knot;
         knotNow(); k.fbT -= dt; k.shake -= dt;
+        if (k.t - k.step0 > KNOT_STEP) { k.errors++; k.step0 = k.t; k.shake = 0.25; knotFb('FROUXO', '#f77'); AUDIO.sfx('bad'); }
         knotDraw(dt);
         if (k.t >= KNOT_LIMIT) knotEnd(true);
       }
