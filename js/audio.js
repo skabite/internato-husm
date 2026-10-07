@@ -88,7 +88,7 @@ const AUDIO = (() => {
     };
   })();
 
-  // J. S. Bach — Prelúdio em Dó maior, BWV 846 (o Dudu: metódico, repetitivo, em ordem)
+  // J. S. Bach — Prelúdio em Dó maior, BWV 846 (o Liberato: metódico, repetitivo, em ordem)
   (() => {
     const bars = [
       'C4 E4 G4 C5 E5', 'C4 D4 A4 D5 F5', 'B3 D4 G4 D5 F5', 'C4 E4 G4 C5 E5',
@@ -133,7 +133,7 @@ const AUDIO = (() => {
     };
   })();
 
-  // W. A. Mozart — Eine kleine Nachtmusik (o Clóvis: elegante, rico, levemente superior)
+  // W. A. Mozart — Eine kleine Nachtmusik (o De Barros: elegante, rico, levemente superior)
   (() => {
     const lead = [
       'G5:1 R:0.5 D5:0.5 G5:1 R:0.5 D5:0.5', 'G5:0.5 D5:0.5 G5:0.5 B5:0.5 D6:2',
@@ -155,7 +155,7 @@ const AUDIO = (() => {
     };
   })();
 
-  // L. v. Beethoven — 5ª Sinfonia, 1º mov. (chefe: o Bélgica)
+  // L. v. Beethoven — 5ª Sinfonia, 1º mov. (chefe: o Schwarzenegger)
   (() => {
     const e = s => s.split(' ').map(n => n.includes(':') ? n : n + ':0.5').join(' ');
     const lead = [

@@ -4,7 +4,7 @@ const SPRITES = (() => {
   const CHARS = {
     // o professor do saguão (pressão de fala)
     prof1: {
-      nome: 'PROFESSOR', skin: '#e2b48e', skinD: '#b98a66',
+      nome: 'PROFESSOR MONTEIRO', skin: '#e2b48e', skinD: '#b98a66',
       hair: 'bald', hairC: '#9a958c', hairD: '#6e6a64',
       glasses: 'thick', glassC: '#141414', beard: 'stubble', beardC: '#8f8a84',
       coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#f2f2f0', shirtD: '#c9cfd8', tie: null,
@@ -12,28 +12,36 @@ const SPRITES = (() => {
     },
     // gastroenterologia
     prof2: {
-      nome: 'DUDU DA GASTRO', skin: '#dcaa84', skinD: '#b07e5a', short: true,
+      nome: 'PROFESSOR LIBERATO', skin: '#dcaa84', skinD: '#b07e5a', short: true,
       hair: 'short', hairC: '#2e2620', hairD: '#1a1512',
       glasses: null, beard: null,
       coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#cfc8e6', shirtD: '#a59dc4', tie: null,
       faceRx: 11.5, faceRy: 13.5, brows: '#2a221c', mouth: 'smile',
     },
     prof3: {
-      nome: 'PROFESSOR3', skin: '#d6a47c', skinD: '#a97a56',
+      nome: 'JAVALI', skin: '#d6a47c', skinD: '#a97a56',
       hair: 'sidepart', hairC: '#3a3836', hairD: '#8d8a86',
       glasses: 'thin', glassC: '#3a3a3a', beard: null,
       coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#9fd8c8', shirtD: '#6fb0a0', tie: null,
       faceRx: 10.5, faceRy: 13.5, brows: '#2a2826', mouth: 'smile',
     },
     prof4: {
-      nome: 'CLÓVIS DA VASCULAR', skin: '#ecc3a6', skinD: '#c49a7e',
+      nome: 'PROFESSOR DE BARROS', skin: '#ecc3a6', skinD: '#c49a7e',
       hair: 'slicked', hairC: '#c9c2ae', hairD: '#9a927e',
       glasses: 'rimless', glassC: '#c8ccd0', beard: null,
       coat: '#f4f4f0', coatD: '#c4c4bc', shirt: '#d9cfee', shirtD: '#b3a6d6', tie: null,
       faceRx: 10.5, faceRy: 14, brows: '#a89a80', mouth: 'neutral', tall: true,
     },
+    // chefe do PS — PROVISÓRIO até chegar a foto de referência: pijama cirúrgico verde, cabelo bagunçado grisalho, barba por fazer
+    prof5: {
+      nome: 'PROFESSOR FALASTRÃO', skin: '#e0b088', skinD: '#b48660',
+      hair: 'messy', hairC: '#8a8478', hairD: '#5a564e',
+      glasses: null, beard: 'stubble', beardC: '#6a645a',
+      coat: '#4f9a86', coatD: '#3a7666', shirt: '#4f9a86', shirtD: '#3a7666', tie: null,
+      faceRx: 12, faceRy: 13.5, brows: '#4a463e', mouth: 'smile',
+    },
     chefao: {
-      nome: 'ALEXANDRE "BÉLGICA" SCHWARTZBOLDT', skin: '#dcaa86', skinD: '#b07e5e',
+      nome: 'PROFESSOR SCHWARZENEGGER', skin: '#dcaa86', skinD: '#b07e5e',
       hair: 'messy', hairC: '#4a3426', hairD: '#8a8078',
       glasses: 'thick', glassC: '#141414', beard: null,
       coat: '#b88a3e', coatD: '#8a6428', shirt: '#aac6e6', shirtD: '#7f9fc4', tie: null, lanyard: '#c0202a',
@@ -345,7 +353,7 @@ const SPRITES = (() => {
   }
 
   const BOAR = { front: [0, 1, 2].map(boarFront), side: [0, 1, 2].map(boarSide), dead: boarDead() };
-  // carabina de ipê do Clóvis: cano longo subindo pro centro, coronha de ipê-amarelo com florzinhas gravadas
+  // carabina de ipê do De Barros: cano longo subindo pro centro, coronha de ipê-amarelo com florzinhas gravadas
   function carabina(fire) {
     return weaponCanvas((p, g) => {
       const o = fire ? 5 : 0;
@@ -355,7 +363,7 @@ const SPRITES = (() => {
       }
       for (let i = 0; i < 30; i++) p(i % 6 < 3 ? '#a8742a' : '#94621e', 50 + i * 0.75, 44 + i + o, 16, 1);   // coronha de ipê (veios)
       p('#d8b030', 58, 56 + o, 2, 2); p('#d8b030', 64, 62 + o, 2, 2); p('#e8c840', 61, 59 + o, 1, 1);       // florzinhas de ipê
-      p('#c8a040', 52, 46 + o, 4, 3);                                                                      // plaquinha "C.V."
+      p('#c8a040', 52, 46 + o, 4, 3);                                                                      // plaquinha "D.B."
       p('#ecebe4', 34, 62 + o, 30, 10); p('#b9b8b0', 34, 62 + o, 30, 1);                                   // punho do jaleco
       p('#d9a77c', 38, 46 + o, 18, 16); p('#b07e58', 38, 46 + o, 2, 16);                                   // mão
       p('#3a3c40', 42, 30 + o, 12, 18); p('#5a5c62', 43, 31 + o, 2, 16);                                   // ferrolho

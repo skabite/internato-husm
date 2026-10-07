@@ -1,11 +1,12 @@
-// Conversas roteirizadas (async/await): Dudu, Professor3, pensamentos do interno.
+// Conversas roteirizadas (async/await): Liberato, Javali, pensamentos do interno.
 // Usa a mesma caixa de diálogo do Professor, escondendo o medidor de foco.
 const CONVO = (() => {
   const SPEAKERS = {
-    dudu: { char: 'prof2', name: 'DUDU DA GASTRO', cps: 36, blip: [125, 25] },
-    prof3: { char: 'prof3', name: 'PROFESSOR3', cps: 30, blip: [70, 30], pig: true },   // "o Javali": fala grunhindo
-    clovis: { char: 'prof4', name: 'CLÓVIS DA VASCULAR', cps: 33, blip: [150, 30] },
-    belgica: { char: 'chefao', name: 'ALEXANDRE "BÉLGICA" SCHWARTZBOLDT', cps: 52, blip: [140, 80] },
+    dudu: { char: 'prof2', name: 'PROFESSOR LIBERATO', cps: 36, blip: [125, 25] },
+    prof3: { char: 'prof3', name: 'JAVALI', cps: 30, blip: [70, 30], pig: true },   // "o Javali": fala grunhindo
+    clovis: { char: 'prof4', name: 'PROFESSOR DE BARROS', cps: 33, blip: [150, 30] },
+    belgica: { char: 'chefao', name: 'PROFESSOR SCHWARZENEGGER', cps: 52, blip: [140, 80] },
+    falastrao: { char: 'prof5', name: 'PROFESSOR FALASTRÃO', cps: 46, blip: [115, 70] },   // provisório (falta foto)
     eu: { char: null, name: 'VOCÊ (pensando)', cps: 48, blip: null, italic: true },
     narr: { char: null, name: '', cps: 60, blip: null, italic: true },
   };
@@ -54,22 +55,22 @@ const CONVO = (() => {
     el.options.firstChild.onclick = () => advance();
   }
 
-  // ---------- Instagram do Dudu ----------
+  // ---------- Instagram do Liberato ----------
   const IG_GOOD = [
-    'dudu.gastro curtiu uma foto sua de 2019.',
-    'dudu.gastro comentou: "👏👏"',
-    'dudu.gastro comentou: "organizado. gostei."',
-    'dudu.gastro comentou na sua foto de formatura: "jaleco bem passado."',
-    'dudu.gastro respondeu seu story: "✔️"',
-    'dudu.gastro comentou: "essa foto tá torta 2 graus. mas ok."',
-    'dudu.gastro curtiu seu comentário.',
-    'dudu.gastro comentou: "pontual 👌" (ironia? não dá pra saber)',
+    'prof.liberato curtiu uma foto sua de 2019.',
+    'prof.liberato comentou: "👏👏"',
+    'prof.liberato comentou: "organizado. gostei."',
+    'prof.liberato comentou na sua foto de formatura: "jaleco bem passado."',
+    'prof.liberato respondeu seu story: "✔️"',
+    'prof.liberato comentou: "essa foto tá torta 2 graus. mas ok."',
+    'prof.liberato curtiu seu comentário.',
+    'prof.liberato comentou: "pontual 👌" (ironia? não dá pra saber)',
   ];
   const IG_BAD = [
-    'dudu.gastro visualizou seu story. Não reagiu.',
-    'dudu.gastro apagou o próprio comentário na sua foto.',
-    'dudu.gastro descurtiu uma foto sua de 2019.',
-    'dudu.gastro comentou: "."',
+    'prof.liberato visualizou seu story. Não reagiu.',
+    'prof.liberato apagou o próprio comentário na sua foto.',
+    'prof.liberato descurtiu uma foto sua de 2019.',
+    'prof.liberato comentou: "."',
   ];
   const igDeck = new Map();
   function nextIg(list) {
@@ -79,15 +80,15 @@ const CONVO = (() => {
   }
   function igRender() {
     const f = igScore > 0;
-    el.ig.innerHTML = `📱 <b>@dudu.gastro</b> · ${f ? '<span class="ok">SEGUE VOCÊ</span>' : '<span class="no">NÃO SEGUE VOCÊ</span>'}`;
+    el.ig.innerHTML = `📱 <b>@prof.liberato</b> · ${f ? '<span class="ok">SEGUE VOCÊ</span>' : '<span class="no">NÃO SEGUE VOCÊ</span>'}`;
   }
   function ig(delta) {
     const before = igScore > 0;
     igScore += delta;
     const after = igScore > 0;
     igRender();
-    if (before && !after) onNotify && onNotify('dudu.gastro deixou de seguir você.');
-    if (!before && after) onNotify && onNotify('dudu.gastro começou a seguir você de volta.');
+    if (before && !after) onNotify && onNotify('prof.liberato deixou de seguir você.');
+    if (!before && after) onNotify && onNotify('prof.liberato começou a seguir você de volta.');
     if (before === after) onNotify && onNotify(nextIg(delta > 0 ? IG_GOOD : IG_BAD));
   }
 
@@ -248,7 +249,7 @@ const CONVO = (() => {
         el.focoWrap.style.visibility = ''; el.breath.style.display = ''; el.silence.style.display = ''; el.ig.style.display = 'none';
         el.portrait.style.display = 'block'; el.text.style.fontStyle = 'normal'; el.text.style.color = '';
         el.help.textContent = '[1-4] responder · [ESPAÇO] interromper (só quando ele respira)';
-        el.name.textContent = 'PROFESSOR';
+        el.name.textContent = 'PROFESSOR MONTEIRO';
       }
     },
     update(dt, time) {
@@ -268,7 +269,7 @@ const CONVO = (() => {
           const ch = q.text[q.i++]; q.shown += ch;
           if (speaker.blip && ch !== ' ' && q.i % 3 === 0) AUDIO.sfx('blip', speaker.blip[0], speaker.blip[1]);
           if (speaker.pig && (ch === '.' || ch === '!' || ch === '?' || ch === ',') && Math.random() < 0.55) AUDIO.sfx(Math.random() < 0.65 ? 'oink' : 'grunt', 0.55);
-          if (ch === '.' || ch === '?' || ch === '!') q.acc -= 4;   // pausa nas frases (o Dudu fala pausado)
+          if (ch === '.' || ch === '?' || ch === '!') q.acc -= 4;   // pausa nas frases (o Liberato fala pausado)
         }
         el.text.textContent = q.shown;
         if (q.i >= q.text.length) { mode = 'waiting'; showNext(); }

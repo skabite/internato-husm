@@ -77,8 +77,8 @@ const DIALOGUE = (() => {
 
   const MISSION = [
     '...O quê? A energia. A ENERGIA! Claro. Foco. Ok. Escuta bem, porque eu só vou falar uma vez. Duas no máximo. Sete se você deixar.',
-    'Caiu tudo às 18h12. O gerador não assumiu. O quadro de transferência fica numa sala lá no fundo, depois da manutenção, e tá trancada. E a chave... a chave tá com o PROFESSOR2.',
-    'O Professor2, da GASTROENTEROLOGIA. Você conhece? Alto. Ou baixo. Médio. Usa jaleco. Enfim, um gastro. Ele tava na endoscopia quando a luz caiu, deve tá lá em cima. Ou embaixo. A endoscopia mudou de lugar umas três vezes, eu não acompanho.',
+    'Caiu tudo às 18h12. O gerador não assumiu. O quadro de transferência fica numa sala lá no fundo, depois da manutenção, e tá trancada. E a chave... a chave tá com o PROFESSOR LIBERATO.',
+    'O Liberato, da GASTROENTEROLOGIA. Você conhece? Alto. Ou baixo. Médio. Usa jaleco. Enfim, um gastro. Ele tava na endoscopia quando a luz caiu, deve tá lá em cima. Ou embaixo. A endoscopia mudou de lugar umas três vezes, eu não acompanho.',
     'Vai pelo corredor dos ambulatórios. Usa a lanterna. E se você ouvir alguma coisa lá no fundo... não. Nada. Deve ser o vento. Vai lá!',
   ];
   const TRAP = 'Ah! E só mais uma coisinha, antes que eu esqueça, sobre os tomates, é rapidinho, é que o gato do vizinho—';
@@ -163,7 +163,7 @@ const DIALOGUE = (() => {
 
     if (phase === 'mission') {
       missionIdx++;
-      if (missionIdx < MISSION.length) return say(MISSION[missionIdx], () => { options = [{ t: missionIdx === MISSION.length - 1 ? '[Entendi. Professor2, gastro.]' : '[Continuar]' }]; showChoices(); }, false);
+      if (missionIdx < MISSION.length) return say(MISSION[missionIdx], () => { options = [{ t: missionIdx === MISSION.length - 1 ? '[Entendi. Liberato, gastro.]' : '[Continuar]' }]; showChoices(); }, false);
       phase = 'trap';
       AUDIO.play('mountain', { bpm: 150, fade: 0.1 });
       return say(TRAP, () => { options = [{ t: '[SAIR ANDANDO RÁPIDO]' }, { t: '[Fingir um desmaio leve]' }]; showChoices(); }, false);

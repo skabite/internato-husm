@@ -1,4 +1,4 @@
-// CHEFE: Alexandre "Bélgica" Schwartzboldt (CCIH).
+// CHEFE: Professor Schwarzenegger (CCIH).
 // Ataques: OLHAR PENETRANTE (raio psíquico — quebre a linha de visão atrás dos pilares)
 //          e SERINGAS CONTAMINADAS (dá pra destruir no ar com tiro).
 // Ponto fraco: está sempre atrasado pra uma entrevista. Quando o telefone toca, ele para —

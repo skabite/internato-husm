@@ -1,6 +1,6 @@
 // Roteiros do Capítulo 1. Cada um é uma função async que recebe a api do CONVO (say, choose, ig, laudos, wait).
 const STORY1 = {
-  // ---------------- DUDU DA GASTRO ----------------
+  // ---------------- PROFESSOR LIBERATO ----------------
   async dudu(c, game) {
     await c.say('dudu', 'Você chegou atrasado.');
     await c.say('dudu', 'Dezenove horas e quatro minutos. O internato começa às dezenove horas. Não às dezenove e quatro. Às dezenove.');
@@ -45,7 +45,7 @@ const STORY1 = {
     if (i === 3) { c.ig(-1); await c.say('dudu', 'Eu tô vendo você abrir o Instagram. Eu tô vendo você ver que eu deixei de te seguir em 2024. E voltei. E deixei de novo.'); }
 
     await c.say('dudu', 'Enfim. Como você chegou atrasado, você vai passar a noite no hospital. Plantão. Sem luz. É pedagógico.');
-    await c.say('dudu', 'E, a propósito: leve esses laudos de colonoscopia para o Professor3, lá no fim da Ala C.');
+    await c.say('dudu', 'E, a propósito: leve esses laudos de colonoscopia para o Javali, lá no fim da Ala C.');
     await c.say('dudu', 'Mas não assim. Eles precisam estar em ordem crescente de prontuário. Crescente. Arrume.');
     const erros = await c.laudos();
     if (erros === 0) { c.ig(+1); await c.say('dudu', 'Perfeito. Quer dizer... aceitável. Não, perfeito. Não espalha que eu disse isso.'); }
@@ -85,10 +85,10 @@ const STORY1 = {
     await c.say('eu', 'Ok. Ok. Agora é só atravessar a Ala C.');
   },
 
-  // ---------------- PROFESSOR3 ----------------
+  // ---------------- JAVALI ----------------
   async prof3(c, game) {
     await c.say('prof3', '...');
-    await c.say('prof3', 'Ah. Os laudos do Dudu.');
+    await c.say('prof3', 'Ah. Os laudos do Liberato.');
     await c.say('narr', '*Ele folheia. Devagar. Muito devagar.*');
     await c.say('prof3', 'Em ordem crescente de prontuário. Claro que estão.');
     await c.say('prof3', `Você atravessou a Ala C? Com esse barulho todo? ${game.kills > 0 ? `E esses ${game.kills} javalis aí atrás de você no chão?` : ''}`);

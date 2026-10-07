@@ -315,7 +315,7 @@ const TEX = (() => {
     }
   });
 
-  // quadro a óleo do cavalo do Clóvis
+  // quadro a óleo do cavalo do De Barros
   T.horse = make(48, 32, (g, w, h) => {
     speckle(g, w, h, [34, 52, 38], 14, 50);
     g.fillStyle = "#6a4a2a"; g.fillRect(14, 12, 18, 8); g.fillRect(30, 7, 4, 8); g.fillRect(32, 6, 7, 4);  // corpo, pescoço, cabeça
