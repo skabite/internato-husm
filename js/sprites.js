@@ -38,7 +38,7 @@ const SPRITES = (() => {
       hair: 'messy', hairC: '#8a8478', hairD: '#5a564e',
       glasses: null, beard: 'stubble', beardC: '#6a645a',
       coat: '#4f9a86', coatD: '#3a7666', shirt: '#4f9a86', shirtD: '#3a7666', tie: null,
-      faceRx: 12, faceRy: 13.5, brows: '#4a463e', mouth: 'smile',
+      faceRx: 12, faceRy: 13.5, brows: '#4a463e', mouth: 'smile', sax: true,
     },
     chefao: {
       nome: 'PROFESSOR SCHWARZENEGGER', skin: '#dcaa86', skinD: '#b07e5e',
@@ -72,6 +72,12 @@ const SPRITES = (() => {
     // braço direito
     if (frame === 2) { p(s.coat, 24, 12, 4, 13); p(s.coatD, 27, 12, 1, 13); p(s.skin, 24, 8, 4, 4); p(s.skin, 23, 7, 1, 2); p(s.skin, 28, 6, 1, 3); }
     else { p(s.coat, 24, 23, 4, 18); p(s.coatD, 27, 23, 1, 18); p(s.skin, 24, 41, 4, 3); }
+    if (s.sax) {                                                    // sax tenor pendurado no pescoço
+      p('#2a2a2e', 15, 21, 1, 4);
+      for (let y = 25; y < 40; y++) { const x = 13 + Math.floor((y - 25) * 0.2); p('#d8a830', x, y, 2, 1); p('#a87818', x + 1, y, 1, 1); }
+      p('#d8a830', 15, 39, 4, 3); p('#d8a830', 18, 36, 2, 5); p('#f0d070', 18, 36, 2, 1); p('#a87818', 15, 41, 4, 1);
+      for (const y of [28, 31, 34]) p('#5a4010', 14 + Math.floor((y - 25) * 0.2), y, 1, 1);
+    }
     // pescoço e cabeça
     p(s.skin, 14, 18, 4, 4);
     p(s.skin, 11, 6, 10, 13); p(s.skinD, 11, 17, 10, 2); p(s.skinD, 10, 10, 1, 4); p(s.skinD, 21, 10, 1, 4);

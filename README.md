@@ -43,7 +43,9 @@ O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages
   você está de plantão. Não tem luz, não tem ninguém internado... mas tem o PS.
 - A escada caracol do hall agora desce pro PS (subsolo, layout provisório): Acolhimento/Classificação de risco, Sala Verde,
   Sala Vermelha, Sala Amarela e a Chefia do PS.
-- Professor Falastrão (chefe do PS, provisório até chegar a foto) só fecha o PS se isso der manchete pra ele.
+- Professor Falastrão (chefe do PS; visual provisório até chegar a foto): abraça quebrando costela, esmaga a mão, toca sax,
+  entuba todo mundo e só fecha o PS se isso der manchete pra ele. A conversa só começa perto da mesa dele — antes dá pra
+  fuçar a sala: o slide 1 de 214, o Guyton corrigido, o kit de via aérea de caneta BIC, os coletes, a vassoura...
 - Música: Prelúdio (Bach) no Liberato, Tocata e Fuga (Bach) no Falastrão.
 
 ## Auras
@@ -105,10 +107,12 @@ Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (c
 
 ## Capítulo 2 — A infecção no ar
 - A sala do Javali só abre com a Ala C sem javalis (contador no objetivo).
-- Professor De Barros: medidor "APROVAÇÃO DO DE BARROS" (quase não sobe). Minijogo do nó cirúrgico por arrasto: aparece uma seta e você
-  arrasta naquela direção (dedo no celular; no computador, segurando o botão do mouse — ou setas/WASD). 8 laçadas por mão,
-  ~1,4 s por seta (demorou, o fio afrouxa e conta erro); a mão direita tem diagonais (Q E Z C no teclado).
-  No celular, cada mão usa a sua metade da tela (a metade da vez fica acesa); arrastar no lado errado conta erro.
+- Professor De Barros: medidor "APROVAÇÃO DO DE BARROS" (quase não sobe). Minijogo do nó cirúrgico:
+  - **Computador** (nó clássico): digite a sequência — WASD na mão esquerda, setas na direita. 7 teclas e 6 s por mão;
+    perfeito = sem erro e até 3,5 s por mão.
+  - **Celular** (arrasto): aparece uma seta e você arrasta o dedo naquela direção. 8 laçadas por mão, ~1,4 s por seta
+    (demorou, o fio afrouxa e conta erro); a mão direita tem diagonais. Cada mão usa a sua metade da tela
+    (a metade da vez fica acesa); arrastar no lado errado conta erro.
   Cada acerto toca uma nota de Eine kleine Nachtmusik. Sem errar nas duas mãos = conquista rara "elogio do De Barros".
 - **Aprovação máxima** (elogiar a sala, perguntar dos cavalos, nó perfeito e responder "Perfeitamente, professor"): ele te dá a
   **CARABINA DE IPÊ** — 8 tiros, dano 3, recarga mais lenta. Tecla [3].

@@ -576,7 +576,7 @@
     if (G.prof3Done && !G.clovisStarted && inZone(L2.zoneClovis)) startClovis();
     if (G.clovisDone && !G.bossStarted && !G.bossDone && inZone(L2.zoneArena)) startBoss();
     if (G.bossDone && !G.plantaoStarted && Math.hypot(P.pos.x - dudu.mesh.position.x, P.pos.z - dudu.mesh.position.z) < 3.2) startPlantao();
-    if (G.plantaoDone && !G.psStarted && inZone(L3.zoneChefia)) startFalastrao();
+    if (G.plantaoDone && !G.psStarted && Math.hypot(P.pos.x - L3.falastraoPos.x, P.pos.z - L3.falastraoPos.z) < L3.chefiaR) startFalastrao();
     // Ala C: a porta do Javali só abre sem nenhum javali vivo
     if (G.hasGun || G.duduDone) {
       const n = wardLeft();
