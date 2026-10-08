@@ -34,7 +34,7 @@
   // ---------- MUNDO ----------
   const W = WORLD.build(scene);
   W.colliders.push({ x1: -200, x2: 200, z1: 75, z2: 200 }, { x1: -200, x2: -85, z1: -200, z2: 200 }, { x1: 85, x2: 200, z1: -200, z2: 200 });
-  const L = LEVEL1.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGun: where => onGun(where), onMarmita: () => onMarmita() });
+  const L = LEVEL1.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGun: where => onGun(where), onMarmita: () => onMarmita(), onCT: () => onCT() });
   const L2 = LEVEL2.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, cafe: (x, z) => L.makeCafe(x, z), onGel: g => onGel(g) });
   const L3 = LEVEL3.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onUp: () => climbStairs() });
   const allCafes = () => L.cafes.concat(L2.cafes, W.pickups);   // só acrescentar no fim (o save guarda índices)
@@ -69,14 +69,17 @@
   const clovis = makeNPC('prof4', L2.clovisPos, 0.92, 1.9);      // alto
   const belgica = makeNPC('chefao', L2.bossPos, 0.9, 1.8);
   const falastrao = makeNPC('prof5', L3.falastraoPos, 0.95, 1.85);   // chefe do PS (Capítulo 3)
+  const muriel = makeNPC('muriel', L.murielPos, 0.7, 1.4);           // Leito 12: sentada na maca (a maca é que colide)
+  muriel.mesh.position.y = 1.18; muriel.h = 1.87; muriel.mesh.visible = false;
+  muriel.mat.color.setScalar(0.62); muriel.mat.emissive.setHex(0x2e2824);   // paleta clara: não estourar na lanterna
   W.colliders.push(dudu.col, prof3.col, clovis.col, falastrao.col);
-  const npcs = [dudu, prof3, clovis, belgica, falastrao];
+  const npcs = [dudu, prof3, clovis, belgica, falastrao, muriel];
 
   // ---------- ESTADO ----------
   const G = {
     state: 'boot', paused: false, met: false, objective: false, scare: 0, ended: false,
     profTarget: null, mutterT: 3, time: 0,
-    duduDone: false, hasGun: false, kills: 0, prof3Done: false, clovisDone: false, bossStarted: false, bossDone: false, plantaoStarted: false, plantaoDone: false, psStarted: false, psyT: 0, flashT: 0, achievement: false, musicMode: 'explore', convoTarget: null, wardGruntT: 3,
+    duduDone: false, hasGun: false, kills: 0, prof3Done: false, clovisDone: false, bossStarted: false, bossDone: false, plantaoStarted: false, plantaoDone: false, psStarted: false, muriel: 0, rxPerfect: false, psyT: 0, flashT: 0, achievement: false, musicMode: 'explore', convoTarget: null, wardGruntT: 3,
   };
   const P = { pos: W.spawn.clone(), yaw: 0, pitch: 0, bob: 0, stepAcc: 0, moving: false };
 
@@ -130,6 +133,7 @@
   for (const c of allCafes()) AURA.add({ at: c.cup.getWorldPosition(new THREE.Vector3()).setY(c.cup.position.y + 0.1), color: 0x5cff8a, w: 1.1, opacity: 0.9, ring: 0.45, visible: () => !c.taken });
   [[profNPC, 0xffd27a], [dudu, 0x8ac8ff], [prof3, 0xffa060], [clovis, 0xc8a8ff], [belgica, 0xb050ff], [falastrao, 0xff8a5a]].forEach(([n, color]) =>
     AURA.add({ follow: () => n.mesh.position, color, w: 1.8, h: 2.7, opacity: 0.6, ring: 0.65, behind: 0.08, visible: () => n.mesh.visible }));
+  AURA.add({ follow: () => muriel.mesh.position, color: 0xff9ac0, w: 1.3, h: 1.7, opacity: 0.55, behind: 0.08, visible: () => muriel.mesh.visible });
   for (const m of W.interactables) {
     const verb = m.userData.verb;
     if (!m.userData.onUse || verb === 'abrir') continue;          // portas não brilham (seriam muitas)
@@ -181,7 +185,7 @@
       pos: [P.pos.x, P.pos.z], yaw: P.yaw, met: G.objective, scare: G.scare > 0,
       duduDone: G.duduDone, hasGun: G.hasGun, following: CONVO.following,
       prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita, carabina: COMBAT.P.has.carabina,
-      bossDone: G.bossDone, plantaoDone: G.plantaoDone,
+      bossDone: G.bossDone, plantaoDone: G.plantaoDone, muriel: Math.floor(G.muriel), rxPerfect: G.rxPerfect,
       hp: COMBAT.P.hp, maxHp: COMBAT.P.maxHp, kills: G.kills,
       dead: COMBAT.boars.map((b, i) => (b.state === 'dead' && i < L.boars.length ? i : -1)).filter(i => i >= 0),
       cafes: allCafes().map((c, i) => (c.taken ? i : -1)).filter(i => i >= 0),
@@ -193,6 +197,10 @@
   function wardLeft() { return COMBAT.boars.filter((b, i) => i < L.boars.length && b.state !== 'dead').length; }
   function objectiveText() {
     if (G.plantaoDone) return 'OBJETIVO: Descer a ESCADA CARACOL (hall da recepção) até o PS\n• Convencer o PROFESSOR FALASTRÃO (Chefia do PS) a fechar o PS';
+    if (G.muriel >= 4) return 'OBJETIVO: Voltar ao PROFESSOR LIBERATO (corredor da Endoscopia)';
+    if (G.muriel >= 3) return 'OBJETIVO: Prescrever pra PROFESSORA MURIEL (Leito 12, Ala C)';
+    if (G.muriel >= 2) return 'OBJETIVO: Ver a TC no NEGATOSCÓPIO (parede da direita da Ala C)';
+    if (G.muriel >= 1) return 'OBJETIVO: Avaliar a paciente do LEITO 12 (Ala C, atrás da cortina)';
     if (G.bossDone) return 'OBJETIVO: Ir embora pra casa (saída pela recepção)';
     if (G.clovisDone) return 'OBJETIVO: Resolver a CCIH com o SCHWARZENEGGER — 3 assinaturas ou na bala\n• Fuja do olhar (pilares) · atire nele e nas seringas · telefone tocou: [E]';
     if (G.prof3Done) return 'OBJETIVO: Falar com o PROFESSOR DE BARROS (porta dos fundos do Javali)';
@@ -225,7 +233,9 @@
     if (s.hasGun) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
     if (s.prof3Done) { G.prof3Started = G.prof3Done = true; L.doors.prof3.locked = false; L.doors.prof3back.locked = false; moveProf3Aside(); }
     if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false; }
+    G.rxPerfect = !!s.rxPerfect;
     if (s.bossDone) setupChapter3();
+    if (s.muriel && !s.plantaoDone) setupLeito(s.muriel);
     if (s.plantaoDone) setupPlantao();
     G.achievement = !!s.achievement; G.marmita = !!s.marmita;
     if (s.carabina) COMBAT.give('carabina');
@@ -256,7 +266,7 @@
     show('boot', false); show('title');
     const s = readSave();
     show('title-save', !!s); show('title-new', !s);
-    if (s) $('save-info').textContent = `salvo em ${new Date(s.date).toLocaleString('pt-BR')} · ${s.plantaoDone ? 'de plantão (PS)' : s.bossDone ? 'depois do Schwarzenegger' : s.clovisDone ? 'a caminho da CCIH' : s.prof3Done ? 'depois do Javali' : s.hasGun ? 'com revólver' : s.duduDone ? 'depois do Liberato' : 'depois do saguão'}`;
+    if (s) $('save-info').textContent = `salvo em ${new Date(s.date).toLocaleString('pt-BR')} · ${s.plantaoDone ? 'de plantão (PS)' : s.muriel ? 'de plantão (Leito 12)' : s.bossDone ? 'depois do Schwarzenegger' : s.clovisDone ? 'a caminho da CCIH' : s.prof3Done ? 'depois do Javali' : s.hasGun ? 'com revólver' : s.duduDone ? 'depois do Liberato' : 'depois do saguão'}`;
     G.state = 'title';
   };
   $('title').onclick = () => { if (!readSave()) startNew(); };
@@ -292,7 +302,7 @@
   // ---------- EXAMINAR ----------
   const ray = new THREE.Raycaster(); ray.far = 2.6;
   let lookTarget = null, rayFrame = 0;
-  const skipRay = new Set([prof, dudu.mesh, prof3.mesh, clovis.mesh, belgica.mesh, falastrao.mesh]);
+  const skipRay = new Set([prof, dudu.mesh, prof3.mesh, clovis.mesh, belgica.mesh, falastrao.mesh, muriel.mesh]);
   function updateLook() {
     if (++rayFrame % 4) return;
     ray.setFromCamera({ x: 0, y: 0 }, camera);
@@ -458,13 +468,58 @@
     G.plantaoStarted = true;
     AUDIO.play('prelude', { fade: 1 });
     await runConvo(c => STORY3.liberato(c), { target: dudu });
+    setupLeito(1);
+    AUDIO.play('moonlight', { fade: 3 });
+    save();
+  }
+  // Leito 12 (G.muriel): 1 avaliar · 2 ver a TC · 3 prescrever · 4 voltar no Liberato · 5 liberado pro PS
+  function setupLeito(stage) {
+    G.plantaoStarted = true; G.muriel = Math.max(G.muriel, stage);
     dudu.mesh.position.x = -1.7; Object.assign(dudu.col, { x1: -2, x2: -1.4 });   // libera o corredor
+    muriel.mesh.visible = true; L.ctFilm.visible = true;
+    if (G.muriel >= 4) L.murielBetter();
+    setObjective(objectiveText());
+  }
+  async function startMuriel1() {
+    G.muriel = 1.5;                                             // em andamento (não dispara de novo)
+    await runConvo(c => STORY3.muriel1(c), { target: muriel });
+    G.muriel = 2; setObjective(objectiveText()); save();
+  }
+  async function onCT() {
+    if (!G.bossDone || G.muriel < 1) { toast('Negatoscópio. Ligado no nobreak, iluminando... nada. Ninguém pendurou exame nenhum.', 4); return; }
+    if (G.muriel < 2) { toast('Negatoscópio: uma TC de abdome. Etiqueta: "LEITO 12 — M.". Melhor ver a paciente primeiro.', 4); return; }
+    if (G.muriel >= 3) { toast('A TC do Leito 12: pancreatite edematosa intersticial. Sem necrose, sem coleção, sem gás. Sem infecção local.', 5); return; }
+    if (G.muriel !== 2) return;
+    G.muriel = 2.5;
+    await runConvo(c => STORY3.tc(c));
+    G.muriel = 3; setObjective(objectiveText()); save();
+  }
+  async function startMuriel2() {
+    G.muriel = 3.5;
+    const flash = on => document.body.classList.toggle('flashback', on);
+    try {
+      await runConvo(c => STORY3.muriel2(c, {
+        flash,
+        better: () => { L.murielBetter(); AUDIO.sfx('pickup'); },
+        perfect: () => {
+          G.rxPerfect = true; AUDIO.sfx('achievement');
+          notify('Prescrição perfeita: sem antibiótico, sem jejum, sem medo. A CCIH aprovaria.', '🏆 PRESCRIÇÃO PERFEITA');
+        },
+      }), { target: muriel, meter: true });
+    } finally { flash(false); }
+    G.muriel = 4; setObjective(objectiveText()); save();
+  }
+  async function startLiberato2() {
+    G.muriel = 4.5;
+    AUDIO.play('prelude', { fade: 1 });
+    await runConvo(c => STORY3.liberato2(c, { perfect: G.rxPerfect }), { target: dudu });
     setupPlantao();
     AUDIO.play('moonlight', { fade: 3 });
     save();
   }
   // a escada caracol do hall passa a descer pro PS
   function setupPlantao() {
+    setupLeito(5);
     G.plantaoStarted = G.plantaoDone = true;
     W.stairHit.userData.verb = 'descer pro PS';
     W.stairHit.userData.onUse = () => stairTravel('Você desce a escada caracol.\nUm andar. Dois.\nO cheiro de álcool 70% aumenta.', L3.arrive, L3.arriveYaw);
@@ -547,7 +602,7 @@
     show('hud', false); show('pause', false);
     $('end').innerHTML =
       `<div class="title-sub2">FIM DO CAPÍTULO ${n}</div>` +
-      `<div>${n >= 3 ? 'PS FECHADO. Por decisão dele. Anotado: decisão DELE.\nPlantão encerrado... por enquanto.' : 'CEFALEXINA LIBERADA. Registrado em ata.'}\nJavalis abatidos: ${G.kills}${COMBAT.P.has.carabina ? '\n🪵 Carabina de ipê na mochila. Encerada.' : ''}\nLiberato ${CONVO.following ? 'ainda te segue' : 'não te segue mais'} no Instagram.\n${G.achievement ? '🏆 Você recebeu um elogio do De Barros.' : 'O De Barros não te elogiou. Quase ninguém recebe.'}\n\n${n >= 3 ? 'O Falastrão está dando entrevista na rádio...' : 'A infecção continua no ar...'}\nCONTINUA</div>` +
+      `<div>${n >= 3 ? 'PS FECHADO. Por decisão dele. Anotado: decisão DELE.\nPlantão encerrado... por enquanto.' : 'CEFALEXINA LIBERADA. Registrado em ata.'}${n >= 3 ? '\n' + (G.rxPerfect ? '💊 Prescrição perfeita pra Professora Muriel. A CCIH aprovaria.' : '💊 A Professora Muriel melhorou. O Máscara ainda acha que era caso de meropenem.') : ''}\nJavalis abatidos: ${G.kills}${COMBAT.P.has.carabina ? '\n🪵 Carabina de ipê na mochila. Encerada.' : ''}\nLiberato ${CONVO.following ? 'ainda te segue' : 'não te segue mais'} no Instagram.\n${G.achievement ? '🏆 Você recebeu um elogio do De Barros.' : 'O De Barros não te elogiou. Quase ninguém recebe.'}\n\n${n >= 3 ? 'O Falastrão está dando entrevista na rádio...' : 'A infecção continua no ar...'}\nCONTINUA</div>` +
       '<div class="small">clique para recomeçar</div>';
     show('end');
   }
@@ -575,7 +630,12 @@
     if (G.duduDone && !G.prof3Started && inZone(L.zoneProf3)) startProf3();
     if (G.prof3Done && !G.clovisStarted && inZone(L2.zoneClovis)) startClovis();
     if (G.clovisDone && !G.bossStarted && !G.bossDone && inZone(L2.zoneArena)) startBoss();
-    if (G.bossDone && !G.plantaoStarted && Math.hypot(P.pos.x - dudu.mesh.position.x, P.pos.z - dudu.mesh.position.z) < 3.2) startPlantao();
+    const dLib = Math.hypot(P.pos.x - dudu.mesh.position.x, P.pos.z - dudu.mesh.position.z);
+    const atBed = inZone(L.zoneLeito);
+    if (G.bossDone && !G.plantaoStarted && dLib < 3.2) startPlantao();
+    if (G.muriel === 1 && atBed) startMuriel1();
+    if (G.muriel === 3 && atBed) startMuriel2();
+    if (G.muriel === 4 && dLib < 4) startLiberato2();            // ele está encostado na parede: pega o corredor inteiro
     if (G.plantaoDone && !G.psStarted && Math.hypot(P.pos.x - L3.falastraoPos.x, P.pos.z - L3.falastraoPos.z) < L3.chefiaR) startFalastrao();
     // Ala C: a porta do Javali só abre sem nenhum javali vivo
     if (G.hasGun || G.duduDone) {
@@ -665,7 +725,7 @@
     for (const n of npcs) {
       n.face();
       if (n === belgica && BOSS.active) continue;
-      const speaking = CONVO.talking && CONVO.speakerChar === n.id;
+      const speaking = CONVO.talking && !!CONVO.speakerChar && CONVO.speakerChar.startsWith(n.id);   // muriel2 = muriel chorando
       n.setFrame(speaking ? Math.floor(tt * 7) % 2 : 0);
     }
   }
@@ -771,7 +831,8 @@
   // modo de desenvolvimento: index.html#dev=x,z,yaw[,pPITCH][,estágio] pula as telas (sem áudio)
   //   talk = abre a conversa do saguão · met = depois do saguão · dudu = depois do Liberato (bisturi) · gun = com revólver
   //   prof3 = depois do Javali (Ala C limpa) · clovis = depois do De Barros (CCIH liberada)
-  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met|,dudu|,gun|,prof3|,clovis|,ch3|,ps)?/);
+  //   ch3 = depois do Schwarzenegger · leito = Liberato já mandou ver o Leito 12 · rx = falta só prescrever · ps = liberado pro PS
+  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met|,dudu|,gun|,prof3|,clovis|,ch3|,leito|,rx|,ps)?/);
   if (dev) {
     G.dev = true;
     window.__game = { P, G, BOSS, COMBAT, CONVO, bossMesh: belgica.mesh };   // só no modo dev, para testes automáticos
@@ -782,7 +843,8 @@
     const stage = dev[5];
     if (stage === ',talk') startTalk();
     if (stage && stage !== ',talk') { G.met = G.objective = true; G.profTarget = W.profIdle.clone(); }
-    const later = [',prof3', ',clovis', ',ch3', ',ps'].includes(stage);
+    const ch3 = [',ch3', ',leito', ',rx', ',ps'].includes(stage);
+    const later = [',prof3', ',clovis'].includes(stage) || ch3;
     if (stage === ',dudu' || stage === ',gun' || later) {
       G.duduStarted = G.duduDone = true; COMBAT.give('scalpel');
       for (const k in L.doors) L.doors[k].locked = false;
@@ -792,8 +854,10 @@
       G.prof3Started = G.prof3Done = true; moveProf3Aside();
       COMBAT.boars.forEach((b, i) => COMBAT.killSilently(i));
     }
-    if ([',clovis', ',ch3', ',ps'].includes(stage)) { G.clovisStarted = G.clovisDone = true; for (const k in L2.doors) L2.doors[k].locked = false; }
-    if (stage === ',ch3' || stage === ',ps') setupChapter3();
+    if (stage === ',clovis' || ch3) { G.clovisStarted = G.clovisDone = true; for (const k in L2.doors) L2.doors[k].locked = false; }
+    if (ch3) setupChapter3();
+    if (stage === ',leito') setupLeito(1);
+    if (stage === ',rx') setupLeito(3);
     if (stage === ',ps') setupPlantao();
   }
   requestAnimationFrame(frame);

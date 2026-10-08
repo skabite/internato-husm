@@ -40,6 +40,22 @@ const SPRITES = (() => {
       coat: '#4f9a86', coatD: '#3a7666', shirt: '#4f9a86', shirtD: '#3a7666', tie: null,
       faceRx: 12, faceRy: 13.5, brows: '#4a463e', mouth: 'smile', sax: true,
     },
+    // internada no Leito 12 (Capítulo 3): sentada na maca, de camisola, óculos na cabeça
+    muriel: {
+      nome: 'PROFESSORA MURIEL', skin: '#ecc0a6', skinD: '#c49880', patient: true,
+      hair: 'pixie', hairC: '#dcd8d0', hairD: '#a8a49a',
+      glasses: 'onhead', glassC: '#6a5e54', beard: null,
+      coat: '#9fbcd4', coatD: '#7a98b2', shirt: '#ecc0a6', shirtD: '#c49880', tie: null, noSteth: true,
+      faceRx: 11.5, faceRy: 13, brows: '#a8a49a', mouth: 'pain', cheek: '#e0907c', earrings: '#d8d8dc',
+    },
+    // o Professor Máscara só aparece em lembrança: camisa listrada, óculos de aro fino, barba por fazer, máscara no queixo
+    prof6: {
+      nome: 'PROFESSOR MÁSCARA', skin: '#e6b89a', skinD: '#bc8e72',
+      hair: 'spiky', hairC: '#3a2a1e', hairD: '#22170f',
+      glasses: 'thin', glassC: '#a8acb2', beard: 'stubble', beardC: '#5a4a3e',
+      coat: '#bccde6', coatD: '#8fa4c6', shirt: '#bccde6', shirtD: '#8fa4c6', tie: null, noSteth: true, stripes: '#98aed2',
+      faceRx: 11.5, faceRy: 14, brows: '#2a1e16', mouth: 'frown', mask: '#9cc8e0',
+    },
     chefao: {
       nome: 'PROFESSOR SCHWARZENEGGER', skin: '#dcaa86', skinD: '#b07e5e',
       hair: 'messy', hairC: '#4a3426', hairD: '#8a8078',
@@ -48,12 +64,14 @@ const SPRITES = (() => {
       faceRx: 11, faceRy: 13.5, brows: '#2e2018', mouth: 'smile',
     },
   };
+  CHARS.muriel2 = Object.assign({}, CHARS.muriel, { mouth: 'smile', tears: true });   // depois do tratamento: chorando de emoção
 
   // ======================= CORPO (32x64) =======================
   function body(s, frame) { // frame: 0 parado, 1 boca aberta, 2 gesticulando
     const c = document.createElement('canvas'); c.width = 32; c.height = 64;
     const g = c.getContext('2d');
     const p = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    if (s.patient) { patientBody(p, s); head(g, p, s, frame); return c; }
 
     p('#3a3c44', 10, 46, 5, 14); p('#3a3c44', 17, 46, 5, 14);   // calça
     p('#1b1b1d', 9, 60, 6, 3); p('#1b1b1d', 17, 60, 6, 3);       // sapatos
@@ -65,7 +83,7 @@ const SPRITES = (() => {
     if (s.coat === '#b88a3e') p('#3a3c44', 7, 44, 18, 3);        // blazer é mais curto
     p(s.coatD, 9, 30, 4, 4); p('#2a4ac0', 10, 28, 1, 3); p('#c02a2a', 11, 28, 1, 3);
     if (s.lanyard) { p(s.lanyard, 13, 21, 1, 9); p(s.lanyard, 18, 21, 1, 9); p('#eee', 14, 30, 4, 4); }
-    else { p('#2a2a2e', 12, 21, 1, 6); p('#2a2a2e', 19, 21, 1, 6); p('#9aa', 19, 27, 2, 2); } // estetoscópio
+    else if (!s.noSteth) { p('#2a2a2e', 12, 21, 1, 6); p('#2a2a2e', 19, 21, 1, 6); p('#9aa', 19, 27, 2, 2); } // estetoscópio
     // braço esquerdo
     p(s.coat, 4, 23, 4, 18); p(s.coatD, 4, 23, 1, 18); p(s.skin, 4, 41, 4, 3);
     if (s.lantern) { p('#7a5a20', 3, 44, 6, 1); p('#ffcf5a', 3, 45, 6, 5); p('#7a5a20', 3, 50, 6, 1); p('#fff6c0', 5, 46, 2, 3); }
@@ -78,6 +96,26 @@ const SPRITES = (() => {
       p('#d8a830', 15, 39, 4, 3); p('#d8a830', 18, 36, 2, 5); p('#f0d070', 18, 36, 2, 1); p('#a87818', 15, 41, 4, 1);
       for (const y of [28, 31, 34]) p('#5a4010', 14 + Math.floor((y - 25) * 0.2), y, 1, 1);
     }
+    head(g, p, s, frame);
+    return c;
+  }
+
+  // paciente sentada na maca: travesseiro atrás, camisola, braços em cima do lençol, soro no braço
+  // (a parte de baixo do quadro fica transparente: o colchão cobre)
+  function patientBody(p, s) {
+    p('#e6e6ea', 6, 12, 20, 18); p('#c4c4ca', 6, 29, 20, 1);                       // travesseiro
+    p(s.coat, 8, 21, 16, 19); p(s.coatD, 8, 21, 1, 19); p(s.coatD, 23, 21, 1, 19);   // camisola
+    for (let y = 24; y < 39; y += 3) for (let x = 10 + (y % 2) * 1; x < 23; x += 3) p(s.coatD, x, y);
+    p(s.skin, 14, 21, 4, 2); p(s.skin, 15, 23, 2, 1);                               // decote em V
+    p(s.coat, 5, 23, 4, 13); p(s.coatD, 5, 23, 1, 13); p(s.skin, 6, 36, 6, 2);     // braços
+    p(s.coat, 23, 23, 4, 13); p(s.coatD, 26, 23, 1, 13); p(s.skin, 20, 36, 6, 2);
+    p('#f4f4f4', 7, 35, 3, 1);                                                      // pulseira de identificação
+    p('#f0f0f0', 10, 36, 2, 1); for (let i = 0; i < 9; i++) p('#cfe6f2', 9 - i, 35 - i * 2, 1, 2);   // acesso venoso → soro
+    p('#ecebe6', 2, 38, 28, 8); p('#c8c7c0', 2, 38, 28, 1);                         // lençol
+    p('#d2d1ca', 9, 41, 1, 5); p('#d2d1ca', 21, 40, 1, 6); p('#6a8ab0', 2, 43, 28, 1);
+  }
+
+  function head(g, p, s, frame) {
     // pescoço e cabeça
     p(s.skin, 14, 18, 4, 4);
     p(s.skin, 11, 6, 10, 13); p(s.skinD, 11, 17, 10, 2); p(s.skinD, 10, 10, 1, 4); p(s.skinD, 21, 10, 1, 4);
@@ -98,6 +136,12 @@ const SPRITES = (() => {
         p(s.hairC, 10, 3, 12, 4); p(s.hairC, 10, 7, 2, 4); p(s.hairC, 20, 7, 2, 4);
         [[10, 2], [13, 1], [16, 2], [19, 1]].forEach(([x, y]) => p(s.hairC, x, y, 2, 1));
         p(s.hairD, 10, 9, 1, 2); p(s.hairD, 21, 9, 1, 2); break;
+      case 'pixie':                                                // curtinho, cheio, franja de lado
+        p(s.hairC, 10, 3, 12, 5); p(s.hairC, 9, 5, 2, 7); p(s.hairC, 21, 5, 2, 7); p(s.hairC, 11, 8, 5, 1);
+        p(s.hairD, 12, 4, 1, 1); p(s.hairD, 17, 3, 1, 2); p(s.hairD, 9, 9, 1, 2); p(s.hairD, 22, 9, 1, 2); break;
+      case 'spiky':                                                // entradas fundas, espetado em cima
+        p(s.hairC, 12, 3, 8, 2); p(s.hairC, 10, 5, 2, 5); p(s.hairC, 20, 5, 2, 5); p(s.hairC, 15, 5, 2, 1);
+        [[12, 2], [14, 1], [17, 2], [19, 1]].forEach(([x, y]) => p(s.hairC, x, y, 1, 1)); break;
     }
     if (s.beard) { g.globalAlpha = 0.75; p(s.beardC, 12, 15, 8, 3); p(s.beardC, 11, 13, 1, 3); p(s.beardC, 20, 13, 1, 3); g.globalAlpha = 1; }
     // olhos e óculos
@@ -105,11 +149,14 @@ const SPRITES = (() => {
     if (s.glasses === 'thick') { p(s.glassC, 11, 10, 10, 1); p(s.glassC, 11, 10, 4, 1); p(s.glassC, 11, 13, 4, 1); p(s.glassC, 17, 13, 4, 1); p(s.glassC, 11, 10, 1, 4); p(s.glassC, 14, 10, 1, 4); p(s.glassC, 17, 10, 1, 4); p(s.glassC, 20, 10, 1, 4); }
     if (s.glasses === 'thin') { p(s.glassC, 11, 10, 4, 1); p(s.glassC, 17, 10, 4, 1); p(s.glassC, 15, 11, 2, 1); p(s.glassC, 11, 13, 4, 1); p(s.glassC, 17, 13, 4, 1); }
     if (s.glasses === 'rimless') { p(s.glassC, 11, 13, 4, 1); p(s.glassC, 17, 13, 4, 1); p(s.glassC, 15, 11, 2, 1); }
+    if (s.glasses === 'onhead') { p(s.glassC, 11, 4, 4, 1); p(s.glassC, 17, 4, 4, 1); p(s.glassC, 15, 4, 2, 1); p('#bcd8ff', 12, 5, 2, 1); p('#bcd8ff', 18, 5, 2, 1); }
     p(s.brows, 11, 9, 4, 1); p(s.brows, 17, 9, 4, 1);
+    if (s.earrings) { p(s.earrings, 10, 15, 1, 2); p(s.earrings, 21, 15, 1, 2); }
+    if (s.cheek) { g.globalAlpha = 0.6; p(s.cheek, 12, 14, 2, 1); p(s.cheek, 18, 14, 2, 1); g.globalAlpha = 1; }
+    if (s.mask) { p(s.mask, 12, 17, 8, 3); p('#7aa6be', 12, 18, 8, 1); p('#e8f0f4', 11, 15, 1, 2); p('#e8f0f4', 20, 15, 1, 2); }   // máscara no queixo
     // boca
     if (frame === 0) p('#6a2a2a', 14, 16, 4, 1);
     else { p('#5a1e1e', 13, 15, 6, 2); p('#eee', 14, 15, 4, 1); }
-    return c;
   }
 
   // ======================= RETRATO (48x48) =======================
@@ -117,6 +164,7 @@ const SPRITES = (() => {
     const N = 48, c = document.createElement('canvas'); c.width = N; c.height = N;
     const g = c.getContext('2d');
     const p = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    const lensTop = (x, y, col) => { p(col, x, y, 6, 1); p(col, x, y + 3, 6, 1); p(col, x, y, 1, 4); p(col, x + 5, y, 1, 4); g.globalAlpha = 0.3; p('#bcd8ff', x + 1, y + 1, 4, 2); g.globalAlpha = 1; };
     const cx = 24, cy = 21, rx = s.faceRx, ry = s.faceRy;
     const inEll = (x, y, ax, ay, ox = cx, oy = cy) => ((x + 0.5 - ox) / ax) ** 2 + ((y + 0.5 - oy) / ay) ** 2 <= 1;
 
@@ -127,8 +175,10 @@ const SPRITES = (() => {
     for (let y = 36; y < N; y++) { const w = Math.max(1, 7 - (y - 36) * 0.6); p(s.shirt, Math.round(cx - w), y, Math.round(w * 2), 1); }
     p(s.shirtD, cx - 7, 36, 4, 2); p(s.shirtD, cx + 3, 36, 4, 2);               // gola
     for (let y = 38; y < N; y++) { const w = Math.max(0, 7 - (y - 36) * 0.6); p(s.coatD, Math.round(cx - w) - 1, y, 1, 1); p(s.coatD, Math.round(cx + w), y, 1, 1); }
+    if (s.stripes) for (let y = 36; y < N; y++) { const w = 14 + (y - 36) * 1.6; for (let x = Math.round(cx - w); x < cx + w; x++) if (x % 3 === 0 && Math.abs(x - cx) > 2) p(s.stripes, x, y); }
+    if (s.patient) for (let y = 39; y < N; y += 3) for (let x = 6 + (y % 2); x < 42; x += 3) if (Math.abs(x - cx) > 5) p(s.coatD, x, y);   // bolinhas da camisola
     if (s.lanyard) for (let y = 37; y < N; y++) { p(s.lanyard, cx - 5 + ((y - 37) * 0.3 | 0), y); p(s.lanyard, cx + 4 - ((y - 37) * 0.3 | 0), y); }
-    else if (s.coat !== '#b88a3e') { p('#2a2a2e', cx - 9, 37, 1, 8); p('#2a2a2e', cx + 9, 37, 1, 8); } // estetoscópio
+    else if (s.coat !== '#b88a3e' && !s.noSteth) { p('#2a2a2e', cx - 9, 37, 1, 8); p('#2a2a2e', cx + 9, 37, 1, 8); } // estetoscópio
     // pescoço
     p(s.skinD, cx - 5, 31, 10, 6); p(s.skin, cx - 4, 31, 8, 4);
     // orelhas
@@ -200,12 +250,39 @@ const SPRITES = (() => {
           return null;
         });
         break;
+      case 'pixie':                                    // curtinho e cheio, franja varrida pro lado, cobre o alto das orelhas
+        hairPix((x, y) => {
+          const dx = x + 0.5 - cx;
+          const tuft = y >= cy - ry - 3 && y < cy - ry + 1 && Math.abs(dx) < rx - 1 && ((x * 11 + 3) % 6 < 4);
+          if (!(inEll(x, y, rx + 3, ry + 3) || tuft)) return null;
+          const line = cy - 8 + (dx < -1 ? 2 : 0) - (dx > 5 ? 1 : 0) + (dx < -5 ? 1 : 0);   // franja caindo pra esquerda
+          if (y < line || (Math.abs(dx) > rx - 1 && y < cy + 2)) return (x * 3 + y * 7) % 5 ? s.hairC : s.hairD;
+          return null;
+        });
+        break;
+      case 'spiky':                                    // entradas fundas (testão), espetado em cima
+        hairPix((x, y) => {
+          const dx = x + 0.5 - cx, ax = Math.abs(dx);
+          const tuft = y >= cy - ry - 4 && y < cy - ry + 1 && ax < rx - 2 && ((x * 7) % 5 < 2 || (y === cy - ry && (x % 2)));
+          if (!(inEll(x, y, rx + 2, ry + 2.5) || tuft)) return null;
+          const line = cy - 11 - (ax > 3 && ax < 8 ? 2 : 0);
+          if (y < line || (ax > rx - 1.5 && y < cy - 1 && y > cy - 9)) return (x * 5 + y * 3) % 7 ? s.hairC : s.hairD;
+          return null;
+        });
+        break;
+    }
+    if (s.glasses === 'onhead') {                    // óculos de grau em cima da cabeça
+      lensTop(cx - 8, cy - 13, s.glassC); lensTop(cx + 2, cy - 13, s.glassC); p(s.glassC, cx - 1, cy - 12, 3, 1);
     }
     // sobrancelhas
     p(s.brows, cx - 8, cy - 4, 5, 1); p(s.brows, cx + 3, cy - 4, 5, 1);
     if (s === CHARS.prof1) { p(s.brows, cx - 8, cy - 5, 2, 1); p(s.brows, cx + 6, cy - 5, 2, 1); } // sempre levantadas
     // olhos
     for (const ex of [cx - 6, cx + 4]) { p('#f4f0ea', ex, cy - 2, 3, 2); p('#3a2a20', ex + 1, cy - 2, 1, 2); p('#000', ex + 1, cy - 2, 1, 1); }
+    if (s.mouth === 'pain') { p(s.brows, cx - 4, cy - 5, 2, 1); p(s.brows, cx + 3, cy - 5, 2, 1); }   // testa franzida de dor
+    if (s.cheek) { g.globalAlpha = 0.45; p(s.cheek, cx - 9, cy + 2, 4, 2); p(s.cheek, cx + 6, cy + 2, 4, 2); g.globalAlpha = 1; }
+    if (s.tears) { p('#8ac8ff', cx - 6, cy + 1, 1, 3); p('#8ac8ff', cx + 5, cy + 1, 1, 4); p('#d8f0ff', cx + 5, cy + 1, 1, 1); }
+    if (s.earrings) for (const ex of [Math.round(cx - rx) - 1, Math.round(cx + rx)]) { p(s.earrings, ex, cy + 4, 2, 2); p('#fff', ex, cy + 4, 1, 1); }
     // óculos
     const lens = (x, y, col, thick) => {
       p(col, x, y, 7, thick); p(col, x, y + 4, 7, 1); p(col, x, y, 1, 5); p(col, x + 6, y, 1, 5);
@@ -229,8 +306,15 @@ const SPRITES = (() => {
     const my = cy + 7;
     if (frame === 1) { p('#4a1414', cx - 3, my - 1, 7, 3); p('#f0ece4', cx - 2, my - 1, 5, 1); }
     else if (s.mouth === 'smile') { p('#8a3e34', cx - 3, my, 7, 1); p('#8a3e34', cx - 4, my - 1, 1, 1); p('#8a3e34', cx + 4, my - 1, 1, 1); }
+    else if (s.mouth === 'frown') { p('#8a3e34', cx - 3, my, 7, 1); p('#8a3e34', cx - 4, my + 1, 1, 1); p('#8a3e34', cx + 4, my + 1, 1, 1); }
+    else if (s.mouth === 'pain') { p('#8a3e34', cx - 3, my, 2, 1); p('#8a3e34', cx - 1, my - 1, 3, 1); p('#8a3e34', cx + 2, my, 2, 1); }
     else p('#8a3e34', cx - 2, my, 5, 1);
     if (s.beard) { g.globalAlpha = 0.8; p(s.beardC, cx - 3, my - 2, 7, 1); g.globalAlpha = 1; } // bigode ralo
+    if (s.mask) {                                     // máscara cirúrgica puxada pro queixo
+      const top = cy + ry - 4;
+      p(s.mask, cx - 8, top, 17, 5); p('#7aa6be', cx - 8, top + 1, 17, 1); p('#7aa6be', cx - 8, top + 3, 17, 1); p('#c8e2f0', cx - 8, top, 17, 1);
+      for (let k = 0; k < 6; k++) { p('#e8f0f4', cx - 9 - (k * 0.4 | 0), top - k); p('#e8f0f4', cx + 9 + (k * 0.4 | 0), top - k); }
+    }
     // mão gesticulando
     if (frame === 2) { p(s.skin, 38, 26, 6, 7); p(s.skin, 38, 23, 1, 3); p(s.skin, 40, 22, 1, 4); p(s.skin, 42, 22, 1, 4); p(s.coat, 38, 33, 7, 15); }
     return c;
