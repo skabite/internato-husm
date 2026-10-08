@@ -48,7 +48,7 @@ const STORY2 = {
 
     await c.say('clovis', 'Antes de eu te mandar resolver isso, me mostra uma coisa. Dá um nó cirúrgico.');
     await c.say('clovis', 'Com a mão ESQUERDA primeiro. Eu sou ambidestro. Espero que você seja pelo menos destro.');
-    await c.say('narr', '*Siga as setas: arraste o fio na direção certa, uma laçada de cada vez. Se demorar, o fio afrouxa. Mão esquerda do lado esquerdo, mão direita do lado direito, que vem com diagonais. O De Barros cantarola junto, meio tom acima.*');
+    if (TOUCH.on) await c.say('narr', '*Siga as setas: arraste o fio na direção certa, uma laçada de cada vez. Se demorar, o fio afrouxa. Mão esquerda do lado esquerdo, mão direita do lado direito, que vem com diagonais. O De Barros cantarola junto, meio tom acima.*');
     const e = await c.knot('esquerda');
     if (e.timeout) await c.say('clovis', 'Demorou. O fio... soltou. Interessante. Os pacientes também soltam, sabia? Da gente. Pela confiança.');
     else if (e.errors === 0) { up(0.4); await c.say('clovis', 'Hm.'); }

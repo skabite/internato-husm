@@ -140,7 +140,37 @@ const CONVO = (() => {
   const SECTOR = ['R', 'DR', 'D', 'DL', 'L', 'UL', 'U', 'UR'];       // ângulo da tela (y pra baixo), de 45 em 45°
   const KNOT_N = 8, KNOT_LIMIT = 15, KNOT_FAST = 8, KNOT_STEP = 1.4;
   let kcan = null, kctx = null, kside = null, mel = 0;
+
+  // No computador fica o nó clássico: digitar a sequência (mão esquerda = WASD, direita = setas) antes do tempo acabar.
+  const KEYSETS = {
+    esquerda: { codes: ['KeyW', 'KeyA', 'KeyS', 'KeyD'], label: { KeyW: 'W', KeyA: 'A', KeyS: 'S', KeyD: 'D' } },
+    direita: { codes: ['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'], label: { ArrowUp: '↑', ArrowLeft: '←', ArrowDown: '↓', ArrowRight: '→' } },
+  };
+  const CLASSIC_N = 7, CLASSIC_LIMIT = 6, CLASSIC_FAST = 3.5;
+  function knotClassicStart(hand) {
+    const ks = KEYSETS[hand];
+    knot = { classic: true, hand, ks, seq: Array.from({ length: CLASSIC_N }, () => U.pick(ks.codes)), i: 0, errors: 0, t: 0 };
+    mode = 'knot'; knotClassicRender();
+    el.silence.style.display = '';
+    return new Promise(res => { resolver = res; });
+  }
+  function knotClassicRender() {
+    const k = knot;
+    el.options.innerHTML = '<div class="knot classic">' + k.seq.map((c, i) =>
+      '<span class="' + (i < k.i ? 'ok' : i === k.i ? 'cur' : '') + '">' + k.ks.label[c] + '</span>').join('') +
+      '</div><div class="knot-help">MÃO ' + k.hand.toUpperCase() + ' · ' + (k.hand === 'esquerda' ? 'W A S D' : 'setas') + ' · erros: ' + k.errors + '</div>';
+  }
+  function knotClassicKey(code) {
+    const k = knot;
+    if (!k.ks.codes.includes(code)) return;
+    if (code === k.seq[k.i]) { k.i++; AUDIO.sfx('note', MELODY[mel++ % MELODY.length], 0.16); }
+    else { k.errors++; AUDIO.sfx('bad'); }
+    knotClassicRender();
+    if (k.i >= k.seq.length) knotEnd();
+  }
+
   function knotStart(hand) {
+    if (!TOUCH.on) return knotClassicStart(hand);
     const diag = hand === 'direita', pool = diag ? DIRS.concat(DIAG, DIAG) : DIRS;
     const seq = [];
     while (seq.length < KNOT_N) { const d = U.pick(pool); if (d !== seq[seq.length - 1]) seq.push(d); }
@@ -174,6 +204,7 @@ const CONVO = (() => {
     } else { k.errors++; k.shake = 0.25; knotFb('ERROU', '#f77'); AUDIO.sfx('bad'); }
   }
   function knotKey(code) {
+    if (knot.classic) return knotClassicKey(code);
     const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'U', ArrowUp: 'U', KeyS: 'D', ArrowDown: 'D',
       KeyQ: 'UL', KeyE: 'UR', KeyZ: 'DL', KeyC: 'DR' };
     if (m[code]) knotGesture(m[code]);
@@ -226,9 +257,12 @@ const CONVO = (() => {
   }
   function knotEnd(timeout = false) {
     const k = knot; mode = 'idle'; knot = null;
-    kcan.style.display = 'none'; if (kside) kside.style.display = 'none';
-    for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.removeEventListener(ev, knotPointer);
-    const res = { errors: k.errors, time: k.t, timeout, perfect: !timeout && k.errors === 0 && k.t <= KNOT_FAST };
+    if (k.classic) { el.silence.style.display = 'none'; el.silenceFill.style.width = '0'; }
+    else {
+      kcan.style.display = 'none'; if (kside) kside.style.display = 'none';
+      for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.removeEventListener(ev, knotPointer);
+    }
+    const res = { errors: k.errors, time: k.t, timeout, perfect: !timeout && k.errors === 0 && k.t <= (k.classic ? CLASSIC_FAST : KNOT_FAST) };
     const r = resolver; resolver = null;
     setTimeout(() => r(res), 350);
   }
@@ -276,7 +310,11 @@ const CONVO = (() => {
     update(dt, time) {
       if (!active) return;
       talk = false;
-      if (mode === 'knot') {
+      if (mode === 'knot' && knot.classic) {
+        knot.t += dt;
+        el.silenceFill.style.width = Math.min(100, 100 * knot.t / CLASSIC_LIMIT) + '%';
+        if (knot.t >= CLASSIC_LIMIT) knotEnd(true);
+      } else if (mode === 'knot') {
         const k = knot;
         knotNow(); k.fbT -= dt; k.shake -= dt;
         if (k.t - k.step0 > KNOT_STEP) { k.errors++; k.step0 = k.t; k.shake = 0.25; knotFb('FROUXO', '#f77'); AUDIO.sfx('bad'); }

@@ -82,6 +82,7 @@ body.talking #weapon { display: none !important; }
 #title-save .menu:hover { color: #ffcf5a; }
 #btn-new { font-size: 24px; color: #fff9; }
 .knot { grid-column: 1 / -1; font-family: 'Press Start 2P', monospace; font-size: 16px; letter-spacing: 2px; color: #ffd84a; }
+.knot.classic { font-size: 26px; letter-spacing: 14px; color: #666; }
 .knot .ok { color: #8f8; } .knot .cur { color: #ffd84a; text-decoration: underline; }
 .knot-help { grid-column: 1 / -1; font-size: 20px; color: #bfe3ff; margin-top: 6px; }
 
