@@ -157,7 +157,7 @@ const LEVEL1 = (() => {
     sign('COPA', -25, 2.5, -61.01, 1.2, 0.3, 'z-', { w: 64, h: 16, size: 11, fg: '#222', bg: '#ddd' });
     sign('PRESCRIÇÃO', 24, 2.5, -61.01, 1.6, 0.3, 'z-', { w: 96, h: 18, size: 12, fg: '#222', bg: '#ddd' });
     sign('ALA C', 0, 2.72, -64.98, 1.6, 0.4, 'z+', { w: 64, h: 18, size: 14, fg: '#fff', bg: '#8a1a1a', border: true });
-    sign('NÃO ALIMENTE OS ANIMAIS', 0, 1.6, -64.97, 1.6, 0.25, 'z+', { w: 192, h: 20, size: 12, fg: '#111', bg: '#f0e060' });
+    sign('NÃO ALIMENTE OS ANIMAIS', 0, 1.6, -64.97, 1.6, 0.25, 'z+', { w: 192, h: 20, size: 12, fg: '#111', bg: '#f0e060' }).raycast = () => {};   // colada na porta: não pode roubar o [E]
     sign('JAVALI', 0, 2.62, -96.98, 1.6, 0.3, 'z+', { w: 96, h: 18, size: 12, fg: '#222', bg: '#ddd' });
 
     // ---------- ENDOSCOPIA (Liberato) ----------
@@ -224,7 +224,7 @@ const LEVEL1 = (() => {
     }
 
     // ---------- ALA C ----------
-    for (let x = -24; x <= 24; x += 4.5) hooks.stretcher(x, -69.6, 0);
+    for (let x = -24; x <= 20; x += 4.5) hooks.stretcher(x, -69.6, 0);
     for (const x of [-18, -13, 13, 18]) hooks.stretcher(x, -79.2, 0);
     for (const x of [-22, -6, 6, 20]) hooks.stretcher(x, -90.2, x > 0 ? 0.25 : -0.25);
     for (const [x, z] of [[-20, -70], [20, -94], [0, -94]]) {
@@ -233,6 +233,48 @@ const LEVEL1 = (() => {
       b.position.copy(l.position); scene.add(b); l.userData.bulb = b; out.lights.push(l);
     }
     out.zoneWard = { x1: -26, x2: 26, z1: -97, z2: -65 };
+
+    // ---------- LEITO 12 (Capítulo 3): a Professora Muriel, internada por pancreatite ----------
+    // a maca fica de cabeceira na parede; o negatoscópio (no nobreak) fica na parede da direita, com a TC
+    hooks.stretcher(21.2, -69.5, Math.PI);
+    out.murielPos = new THREE.Vector3(21.2, 0, -69.15);
+    out.zoneLeito = { x1: 19.46, x2: 24.2, z1: -72.6, z2: -68 };      // na frente da maca, do lado de dentro da cortina
+    sign('LEITO 12', 21.2, 2.35, -68.03, 0.9, 0.24, 'z-', { w: 96, h: 24, size: 14, fg: '#222', bg: '#ddd', border: true });
+    box(19.4, 0.15, -71.0, 19.46, 2.1, -68, new THREE.MeshPhongMaterial({ color: 0x8ab8a0, emissive: 0x0a120e }), { collide: true,
+      msg: 'Cortina do Leito 12. Fechada. Por isso ninguém viu ela. Nem você, quando passou correndo atrás de javali.' });
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 2.0, 5), M.metal); pole.position.set(20.3, 1.0, -68.6); scene.add(pole);
+    box(20.18, 1.62, -68.66, 20.42, 1.92, -68.54, new THREE.MeshPhongMaterial({ color: 0xdfeef6, emissive: 0x223038 }), {
+      msg: 'Suporte de soro. Uma bolsa de Ringer lactato pendurada, ainda fechada. Alguém deixou pronto. Ninguém prescreveu.' });
+    const monOn = new THREE.MeshBasicMaterial({ map: TEX.text('♥ 112  SAT 95', { w: 128, h: 32, size: 17, fg: '#6f6', bg: '#031a08' }) });
+    const monOk = new THREE.MeshBasicMaterial({ map: TEX.text('♥ 88  SAT 97', { w: 128, h: 32, size: 17, fg: '#6f6', bg: '#031a08' }) });
+    box(21.85, 1.4, -68.25, 22.95, 1.95, -68, M.dark);
+    const mon = panel(22.4, 1.67, -68.26, 0.95, 0.4, 'z-', monOn, { msg: 'Monitor do Leito 12, no nobreak. Taquicárdica. Pressão no limite.' });
+    const monL = new THREE.PointLight(0x60ff80, 0.5, 4, 2); monL.position.set(22.3, 1.7, -68.8); scene.add(monL);
+    out.murielBetter = () => { mon.material = monOk; mon.userData.msg = 'Monitor do Leito 12. Frequência caindo. Pressão subindo. Do jeito certo.'; };
+    // negatoscópio: a única coisa bem iluminada da Ala C
+    const ct = document.createElement('canvas'); ct.width = 96; ct.height = 64;
+    { const g = ct.getContext('2d'), p = (c, x, y, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+      const ell = (x0, y0, rx, ry, c) => { for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++) if ((x / rx) ** 2 + (y / ry) ** 2 <= 1) p(c, x0 + x, y0 + y); };
+      p('#dfe8ee', 0, 0, 96, 64);
+      for (const ox of [3, 50]) {                                         // dois cortes axiais
+        p('#0c0e10', ox, 4, 43, 52);
+        ell(ox + 21, 31, 19, 15, '#5a5c5e'); ell(ox + 21, 31, 17, 13, '#7a7c7e');   // pele / gordura / parede
+        ell(ox + 13, 26, 8, 8, '#a8aaaa');                                 // fígado (à esquerda da imagem)
+        ell(ox + 29, 24, 5, 4, '#2a2c2e');                                 // estômago com ar
+        ell(ox + 21, 40, 3, 3, '#f0f0f0');                                 // vértebra
+        ell(ox + 23, 35, 2, 2, '#ffffff');                                 // aorta (contraste)
+        ell(ox + 12, 36, 3, 4, '#e8e8e8'); ell(ox + 31, 36, 3, 4, '#e8e8e8');   // rins
+        ell(ox + 22, 30, 7, 3, '#9a9c9c');                                 // densificação da gordura peripancreática
+        ell(ox + 22, 30, 6, 2, '#c4c6c6');                                 // pâncreas aumentado, realce homogêneo
+      }
+      g.fillStyle = '#123'; g.font = 'bold 6px monospace'; g.fillText('TC ABDOME · LEITO 12', 22, 62); }
+    const ctTex = new THREE.CanvasTexture(ct); ctTex.magFilter = THREE.NearestFilter; ctTex.minFilter = THREE.NearestFilter; ctTex.generateMipmaps = false;
+    box(25.9, 1.05, -74.25, 26, 2.0, -72.75, M.dark);
+    out.negatoscopio = panel(25.89, 1.52, -73.5, 1.3, 0.85, 'x-', new THREE.MeshBasicMaterial({ color: 0xe8f2ff }));
+    out.negatoscopio.userData.verb = 'ver a TC'; out.negatoscopio.userData.onUse = () => hooks.onCT();
+    out.ctFilm = panel(25.87, 1.5, -73.5, 1.2, 0.8, 'x-', new THREE.MeshBasicMaterial({ map: ctTex }));
+    out.ctFilm.visible = false; out.ctFilm.raycast = () => {};
+    const negL = new THREE.PointLight(0xdfe8ff, 0.9, 6, 2); negL.position.set(25.2, 1.6, -73.5); scene.add(negL);
     out.checkpoint = new THREE.Vector3(0, 0, -63.2);
 
     // ---------- SALA DO JAVALI ----------

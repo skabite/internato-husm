@@ -73,6 +73,7 @@ body.talking #weapon { display: none !important; }
 #notify b { color: #c13584; }
 #ig { font-size: 20px; color: #ddd; text-shadow: 2px 2px #000; display: none; }
 #ig .ok { color: #8f8; } #ig .no { color: #f77; }
+#ig .rx { display: inline-block; background: #0b0d10e0; border: 1px solid #5a6a7a; padding: 6px 10px; font-size: 0.8em; line-height: 1.35; }
 .opt.done { color: #6a8a6a; }
 .opt.next { color: #fff8; text-align: right; grid-column: 1 / -1; animation: blink 1s steps(2) infinite; }
 #dead { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -88,6 +89,9 @@ body.talking #weapon { display: none !important; }
 
 /* ---------- CAPÍTULO 2: chefe ---------- */
 #infect { position: fixed; inset: 0; background: radial-gradient(transparent 35%, #2a8a10 130%); opacity: 0; pointer-events: none; }
+/* lembrança (Professor Máscara): a cena fica em sépia */
+body.flashback #game { filter: sepia(0.9) contrast(1.15) brightness(0.8) blur(0.6px); transition: filter 0.4s; }
+#game { transition: filter 0.4s; }
 #psy { position: fixed; inset: 0; background: radial-gradient(#a040ff22 20%, #6a10c0cc 110%); opacity: 0; pointer-events: none; mix-blend-mode: screen; }
 #flash { position: fixed; inset: 0; background: #a040ff; opacity: 0; pointer-events: none; }
 #bossbar { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); text-align: center; text-shadow: 2px 2px #000; }

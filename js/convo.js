@@ -7,6 +7,9 @@ const CONVO = (() => {
     clovis: { char: 'prof4', name: 'PROFESSOR DE BARROS', cps: 33, blip: [150, 30] },
     belgica: { char: 'chefao', name: 'PROFESSOR SCHWARZENEGGER', cps: 52, blip: [140, 80] },
     falastrao: { char: 'prof5', name: 'PROFESSOR FALASTRÃO', cps: 46, blip: [115, 70] },   // provisório (falta foto)
+    muriel: { char: 'muriel', name: 'PROFESSORA MURIEL · LEITO 12', cps: 34, blip: [215, 50] },
+    muriel2: { char: 'muriel2', name: 'PROFESSORA MURIEL · LEITO 12', cps: 34, blip: [230, 50] },
+    mascara: { char: 'prof6', name: 'PROFESSOR MÁSCARA (lembrança)', cps: 38, blip: [92, 22] },
     eu: { char: null, name: 'VOCÊ (pensando)', cps: 48, blip: null, italic: true },
     narr: { char: null, name: '', cps: 60, blip: null, italic: true },
   };

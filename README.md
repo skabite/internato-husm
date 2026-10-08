@@ -39,8 +39,17 @@ Settings → Pages → *Deploy from a branch* → `main` / `(root)` → Save. Em
 O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages exige repositório público.
 
 ## Capítulo 3 — Plantão
-- Depois de vencer o Schwarzenegger, a arena reabre. Na volta, o Professor Liberato te barra no corredor da Endoscopia:
-  você está de plantão. Não tem luz, não tem ninguém internado... mas tem o PS.
+- Depois de vencer o Schwarzenegger, a arena reabre. Na volta, o Professor Liberato te barra no corredor da Endoscopia,
+  pergunta das colonoscopias e avisa: você está de plantão. Não tem luz, não tem ninguém internado... na verdade, tem.
+- **Leito 12 (Ala C, atrás da cortina): Professora Muriel, internada por pancreatite.** Você conversa (dor em faixa,
+  pedrinhas na vesícula), examina, lê o prontuário (lipase 1.840) e responde a "pergunta de prova" do diagnóstico.
+  A TC está no negatoscópio da parede direita da Ala C: pancreatite edematosa intersticial, sem necrose, sem gás,
+  sem infecção local.
+- Na prescrição, a voz do **Professor Máscara** (lembrança em sépia, máscara no queixo): "E se fosse a sua mãe, você não
+  daria antibiótico?". Você prescreve certo — Ringer guiado por meta, analgesia de verdade, dieta oral precoce, SEM
+  antibiótico, colecistectomia na mesma internação — e ela melhora (e chora de emoção). Errar tem explicação e você tenta de
+  novo; sem nenhum erro = conquista "PRESCRIÇÃO PERFEITA".
+- Só depois o Liberato manda você ao PS: "O PS ainda está aberto."
 - A escada caracol do hall agora desce pro PS (subsolo, layout provisório): Acolhimento/Classificação de risco, Sala Verde,
   Sala Vermelha, Sala Amarela e a Chefia do PS.
 - Professor Falastrão (chefe do PS; visual provisório até chegar a foto): abraça quebrando costela, esmaga a mão, toca sax,
@@ -70,7 +79,7 @@ js/level2.js         Capítulo 2: Vascular (De Barros) e CCIH (arena do chefe), 
 js/boss.js           o chefe: Professor Schwarzenegger
 js/story2.js         roteiros do Capítulo 2
 js/level3.js         Capítulo 3: o PS no subsolo (layout provisório em ASCII)
-js/story3.js         roteiros do Capítulo 3 (Liberato e Professor Falastrão)
+js/story3.js         roteiros do Capítulo 3 (Liberato, Professora Muriel/Professor Máscara e Professor Falastrão)
 js/combat.js         armas, javalis, café, HUD de combate
 js/convo.js          motor de conversas roteirizadas (Liberato, Javali, pensamentos)
 js/touch.js          controles de toque (celular): joystick, arrastar pra olhar, botões
@@ -83,7 +92,8 @@ js/main.js           loop, controles, estados, gatilhos
 
 ## Modo dev
 `index.html#dev=x,z,yaw` pula as telas iniciais e posiciona o jogador.
-Opcional `,pPITCH` (olhar pra cima/baixo). Estágios: `,talk` abre a conversa do saguão · `,met` depois do saguão · `,dudu` depois do Liberato (com bisturi) · `,gun` com revólver · `,prof3` depois do Javali · `,clovis` depois do De Barros (CCIH liberada) · `,ch3` depois do Schwarzenegger (Capítulo 3) · `,ps` depois do Liberato (escada caracol desce pro PS).
+Opcional `,pPITCH` (olhar pra cima/baixo). Estágios: `,talk` abre a conversa do saguão · `,met` depois do saguão · `,dudu` depois do Liberato (com bisturi) · `,gun` com revólver · `,prof3` depois do Javali · `,clovis` depois do De Barros (CCIH liberada) · `,ch3` depois do Schwarzenegger (Capítulo 3) · `,leito` Liberato já mandou ver o Leito 12 · `,rx` falta só prescrever pra Professora Muriel · `,ps` liberado pro PS (escada caracol desce).
+Ex. do Leito 12: `index.html#dev=21.2,-72,3.14,rx`.
 No modo dev o jogo não pausa sem o mouse travado e expõe `window.__game` para testes automáticos.
 Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
 Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (catracas) · `#dev=-2,-12,-1.08,met` (escada helicoidal) · `#dev=-2.2,-30.3,1.57,met` (banheiro masculino).

@@ -1,4 +1,5 @@
-// Roteiros do Capítulo 3: o plantão — Liberato não deixa você ir embora; Professor Falastrão (chefe do PS).
+// Roteiros do Capítulo 3: o plantão — Liberato não deixa você ir embora; a Professora Muriel no Leito 12
+// (pancreatite, com a voz do Professor Máscara na cabeça); Professor Falastrão (chefe do PS).
 // (o visual do Falastrão e o layout do PS ainda são provisórios: faltam as fotos)
 const STORY3 = {
   // ---------------- LIBERATO TE BARRA NO CORREDOR ----------------
@@ -9,26 +10,198 @@ const STORY3 = {
     if (i === 0) await c.say('dudu', 'Pra casa. Às 23h14. Interessante.');
     if (i === 1) await c.say('dudu', 'Parabéns. Anotado. Isso não muda nada.');
     if (i === 2) await c.say('narr', '*Ele dá um passo pro lado. Exatamente o mesmo lado. Ao mesmo tempo. Ele treinou isso.*');
-    await c.say('dudu', 'Você não pode sair. Você está de plantão.');
+    await c.say('dudu', 'Antes. E as colonoscopias? Os laudos que eu te dei.');
+    i = await c.choose(['Entreguei tudo pro Javali.', 'O Javali... grunhiu pra eles.', 'Tinha um javali em cada leito, professor.']);
+    if (i === 0) await c.say('dudu', 'Em ordem crescente de prontuário? ...Não responde. Eu já sei.');
+    if (i === 1) await c.say('dudu', 'Grunhiu. Em que tom? ...Esquece. Eu anoto como "recebido".');
+    if (i === 2) await c.say('dudu', 'Javalis são pacientes difíceis. Mas pontuais.');
+    await c.say('dudu', 'Enfim. Você não pode sair. Você está de plantão.');
 
-    const ditas = [];
-    const linhas = ['Professor, nem tem luz.', 'Mas não tem ninguém internado nos leitos.'];
-    while (ditas.length < 2) {
-      const resto = linhas.filter(l => !ditas.includes(l));
+    let resto = ['Professor, nem tem luz.', 'Mas não tem ninguém internado nos leitos.'];
+    while (true) {
       i = await c.choose(resto);
-      const l = resto[i]; ditas.push(l);
-      if (l === linhas[0]) await c.say('dudu', 'Luz é um detalhe. Eu já fiz trinta endoscopias com a lanterna do celular. Em ordem.');
-      else await c.say('dudu', 'Os leitos estão vazios. Eu conferi. Leito por leito. Em ordem crescente de número.');
+      if (resto[i].startsWith('Professor')) {
+        await c.say('dudu', 'Luz é um detalhe. Eu já fiz trinta endoscopias com a lanterna do celular. Em ordem.');
+        resto = resto.filter(l => !l.startsWith('Professor'));
+        continue;
+      }
+      break;
     }
-    await c.say('dudu', 'Não importa.');
-    await c.say('dudu', 'Tem o PS.');
+    await c.say('dudu', 'Não tem ninguém internado.');
+    await c.say('dudu', '...');
+    await c.say('dudu', 'Na verdade, tem.');
+    await c.say('dudu', 'Leito 12. Ala C. Atrás da cortina. Você passou do lado dela correndo atrás de javali.');
+    await c.say('dudu', 'Pancreatite. Internou ontem à noite. Ninguém prescreveu nada: o sistema caiu às 18h47. Junto com a luz.');
+    i = await c.choose(['Quem é a paciente?', 'Por que o senhor não prescreveu?']);
+    if (i === 1) await c.say('dudu', 'Eu sou o professor. Você é o interno. Isso se chama ensino. ...E eu estava realinhando os colonoscópios.');
+    await c.say('dudu', 'É a Professora Muriel. Ela dá aula pra vocês. Ela vai te reconhecer. Ela reconhece todo mundo.');
+    await c.say('dudu', 'Conversa. Examina. Lê o prontuário. Depois prescreve. Nessa ordem.');
+    await c.say('dudu', 'E volta aqui pra me contar. Eu vou estar aqui. Exatamente aqui.');
+    await c.say('narr', '*Ele dá dois passos pro lado. Exatos. O corredor está livre. De volta pra Ala C.*');
+  },
+
+  // ---------------- LEITO 12: A PROFESSORA MURIEL (avaliação) ----------------
+  async muriel1(c) {
+    await c.say('narr', '*Leito 12. Atrás da cortina, só a luz verde do monitor. Uma senhora de cabelo branco curtinho, óculos na cabeça, encolhida de dor.*');
+    await c.say('muriel', 'Ai... finalmente alguém. Você é o interno? Eu te conheço. Você senta no fundo da sala. ...Ai.');
+    let i = await c.choose(['Boa noite, professora. O que a senhora tá sentindo?', 'A senhora dá aula pra gente!', 'Eu sento no meio, professora.']);
+    if (i === 1) await c.say('muriel', 'Dou. E vocês me amam. ...Ai. Depois a gente fala disso.');
+    if (i === 2) await c.say('muriel', 'No meio do fundo. Ai.');
+
+    const itens = ['Perguntar sobre a dor', 'Examinar o abdome', 'Ler o prontuário'], feito = [];
+    while (feito.length < itens.length) {
+      const resto = itens.filter(x => !feito.includes(x));
+      const k = resto[await c.choose(resto)]; feito.push(k);
+      if (k === itens[0]) {
+        await c.say('muriel', 'Começou ontem de noite, depois de uma janta... caprichada. Aqui em cima, no meio. E vai pras costas, assim, como uma faixa.');
+        await c.say('muriel', 'Vomitei três vezes. Não passa com nada. Dor em faixa: anota aí. Cai na prova.');
+        i = await c.choose(['A senhora já teve pedra na vesícula?', 'A senhora bebe?', 'Tomou algum remédio novo?']);
+        if (i === 0) await c.say('muriel', 'Um médico falou de umas pedrinhas, uns anos atrás. Eu ia operar. Eu IA.');
+        if (i === 1) await c.say('muriel', 'Socialmente. Socialmente MESMO: uma taça no Natal. Agora, as pedrinhas na vesícula... dessas ninguém me pergunta.');
+        if (i === 2) await c.say('muriel', 'Nada novo. Só as pedrinhas na vesícula que eu ia operar e não operei.');
+      }
+      if (k === itens[1]) {
+        await c.say('narr', '*Abdome distendido, doloroso no epigástrio. Sem defesa, sem sinais de peritonite. Ruídos diminuídos. Sem icterícia. Mucosas secas.*');
+        await c.say('narr', '*Monitor: FC 112, PA 104/66, SatO2 95%, Tax 37,9 °C. Taquicárdica e desidratada.*');
+        await c.say('muriel', 'Pode apertar. ...NÃO TANTO.');
+      }
+      if (k === itens[2]) {
+        await c.say('narr', '*Prontuário do Leito 12, preso na grade da maca. A letra do Liberato, perfeitamente alinhada.*');
+        await c.say('narr', '*Lipase 1.840 U/L (referência: até 60). Leucócitos 14.200. PCR 48. Hematócrito 47%. Ureia 46, creatinina 1,0.*');
+        await c.say('narr', '*Triglicerídeos 160. Cálcio normal. Bilirrubinas e enzimas hepáticas normais.*');
+        await c.say('narr', '*Ecografia de abdome (ontem): vesícula com vários cálculos, sem sinais de colecistite. Pâncreas mal visto (gás).*');
+        await c.say('narr', '*E uma anotação sublinhada duas vezes: "TC de abdome com contraste feita hoje. Imagens no NEGATOSCÓPIO, parede da Ala C. — L."*');
+      }
+    }
+    await c.say('muriel', 'E então? Diagnóstico. Pergunta de prova.');
+    while (true) {
+      i = await c.choose(['Pancreatite aguda: dor típica e lipase mais de 3 vezes o normal.', 'Ainda não dá pra saber: falta a TC.', 'Colecistite aguda.']);
+      if (i === 0) break;
+      if (i === 1) await c.say('muriel', 'Errado. Dor típica e lipase acima de três vezes o normal: dois critérios. Dois de três já fecha. A TC é pra ver complicação. De novo.');
+      if (i === 2) await c.say('muriel', 'Colecistite? Cadê o Murphy? Cadê a vesícula inflamada na eco? A pedra é a CAUSA, não o diagnóstico. De novo.');
+    }
+    await c.say('muriel', 'Isso. Dois de três critérios de Atlanta. Nota dez. ...Nove. Você demorou.');
+    await c.say('eu', 'Pancreatite aguda, provavelmente biliar. Agora eu quero ver essa TC: se tem necrose, coleção... ou infecção.');
+    await c.say('muriel', 'Vai. Eu espero. Não é como se eu tivesse outro compromisso. ...Ai.');
+  },
+
+  // ---------------- O NEGATOSCÓPIO: A TC ----------------
+  async tc(c) {
+    await c.say('narr', '*O negatoscópio, ligado no nobreak, é a coisa mais iluminada da Ala C. TC de abdome com contraste. Etiqueta: "LEITO 12 — M."*');
+    await c.say('narr', '*Pâncreas aumentado. A gordura em volta, borrada, densificada. O pâncreas realça por inteiro, por igual. Nenhuma área escura sem realce. Nenhuma coleção. Nenhuma bolha de gás.*');
+    while (true) {
+      const i = await c.choose(['Pancreatite edematosa intersticial: sem necrose, sem coleção, sem gás. Sem infecção local.', 'Necrose infectada: tem que começar antibiótico agora.', 'Massa na cabeça do pâncreas.']);
+      if (i === 0) break;
+      if (i === 1) await c.say('eu', 'Não... necrose seria uma área que não realça. Infecção, bolhas de gás dentro dela. Aqui o pâncreas realça inteiro e não tem gás. Olha de novo.');
+      if (i === 2) await c.say('eu', 'Não tem massa nenhuma. É um pâncreas inchado e inflamado, por igual. Olha de novo.');
+    }
+    await c.say('eu', 'Pancreatite aguda biliar, edematosa intersticial. Sem infecção local.');
+    await c.say('eu', 'Sem falência de órgão: leve, por enquanto. Mas tem SIRS. Vigiar de perto.');
+    await c.say('narr', '*(Cá entre nós: com o diagnóstico já fechado, essa TC nas primeiras 72 horas nem era obrigatória. Mas já que fizeram...)*');
+    await c.say('eu', 'Agora é prescrever.');
+  },
+
+  // ---------------- A PRESCRIÇÃO (e a voz do Professor Máscara) ----------------
+  // o: { flash(on), better(), perfect() } — devolve o número de erros
+  async muriel2(c, o) {
+    const rx = [];
+    const sheet = () => c.meter('<div class="rx"><b>📋 PRESCRIÇÃO — LEITO 12</b><br>' + (rx.length ? rx.map((r, k) => `${k + 1}. ${r}`).join('<br>') : '<i>(em branco)</i>') + '</div>');
+    sheet();
+    await c.say('narr', '*Você volta pro Leito 12 e puxa a folha de prescrição. Caneta na mão.*');
+    await c.say('muriel', 'E aí? O que você vai me dar? Pensa bem. Eu vou corrigir.');
+    await c.say('narr', '*E então, lá do fundo da memória, uma voz...*');
+    o.flash(true);
+    await c.say('mascara', 'E se fosse a sua mãe? Você não daria antibiótico?');
+    await c.say('narr', '*O Professor Máscara. Óculos de aro fino, barba por fazer. A máscara no queixo, como sempre. Nunca no rosto.*');
+    await c.say('mascara', 'Febre. Leucocitose. PCR alta. Tá na cara, interno. Meropenem. E se fosse a sua MÃE?');
+    o.flash(false);
+    await c.say('narr', '*Você pisca. A Ala C volta. A caneta continua na sua mão.*');
+
+    let errors = 0;
+    const step = async (titulo, opts, ok, wrong, curto) => {
+      await c.say('eu', titulo);
+      while (true) {
+        const i = await c.choose(opts);
+        if (i === ok) { rx.push(curto); sheet(); return; }
+        errors++;
+        for (const [who, text] of wrong[i]) {
+          if (who === 'mascara') o.flash(true);
+          await c.say(who, text);
+          if (who === 'mascara') o.flash(false);
+        }
+      }
+    };
+    await step('1) Hidratação.', ['Ringer lactato, moderado e guiado por meta: FC, diurese, ureia.', 'Seis litros de soro em bolus. De uma vez.', 'Restringir líquido pra não inchar o pâncreas.'], 0, {
+      1: [['muriel', 'Seis litros?! Eu sou professora, não piscina. Hidratação agressiva demais só dá sobrecarga, sem melhorar nada. Moderado e guiado por meta.']],
+      2: [['muriel', 'Eu tô taquicárdica e seca que nem pão de ontem. Eu preciso de volume, interno.']],
+    }, 'Ringer lactato, guiado por meta (FC, diurese, ureia)');
+    await c.say('muriel', 'Ringer. Gosto. Nem tanto, nem tão pouco.');
+    await step('2) Dor.', ['Analgesia de verdade: dipirona, e opioide se precisar.', 'Opioide não: mascara o abdome.', 'Ela aguenta. É professora.'], 0, {
+      1: [['muriel', 'Mito! Analgesia adequada, com opioide se precisar, é segura. Não esconde nada que importe. Ai.']],
+      2: [['muriel', 'EU OUVI ISSO.']],
+    }, 'Dipirona + opioide se dor');
+    await c.say('muriel', 'Ai, graças a Deus.');
+    await step('3) Dieta.', ['Dieta oral precoce, assim que a dor e o vômito deixarem.', 'Jejum até a lipase normalizar.', 'Nutrição parenteral total.'], 0, {
+      1: [['muriel', 'Lipase não guia dieta. Jejum prolongado só piora o intestino. Comer cedo, conforme tolerar.']],
+      2: [['muriel', 'Parenteral? Eu tenho intestino, interno. Se eu não conseguir comer, é sonda: enteral. Parenteral é exceção.']],
+    }, 'Dieta oral precoce, conforme tolerância');
+    await c.say('muriel', 'Comida. Finalmente alguém fala a minha língua.');
+    o.flash(true);
+    await c.say('mascara', 'E SE FOSSE A SUA MÃE?');
+    o.flash(false);
+    await step('4) Antibiótico.', ['Meropenem. Por via das dúvidas.', 'Ceftriaxona. Só por causa da febre.', 'Sem antibiótico: não tem infecção.'], 2, {
+      0: [['mascara', 'ISSO! Meropenem! Eu sabia que você tinha potencial.'],
+        ['muriel', 'Meropenem pra quê? Cadê a infecção? A TC não tem necrose nem gás. Antibiótico profilático na pancreatite não reduz infecção nem mortalidade. Só traz resistência, C. difficile e fungo.'],
+        ['narr', '*(Em algum lugar do hospital, o Schwarzenegger sente uma perturbação na CCIH.)*']],
+      1: [['mascara', 'Pelo menos uma ceftriaxona, né? Pela febre.'],
+        ['muriel', 'Essa febre das primeiras horas é inflamação, interno. SIRS. Não é infecção. Sem foco, sem antibiótico.']],
+    }, 'SEM antibiótico (sem infecção)');
+    await c.say('eu', 'Se fosse a minha mãe, eu ia querer que tratassem o que ela TEM. Não o medo de quem prescreve.');
+    o.flash(true);
+    await c.say('mascara', '...');
+    await c.say('mascara', 'Hm.');
+    await c.say('narr', '*Na sua lembrança, a máscara escorrega do queixo dele. Ele não pega.*');
+    o.flash(false);
+    await step('5) E a vesícula?', ['Colecistectomia nesta internação, quando ela melhorar.', 'CPRE de urgência agora.', 'Alta, e a vesícula a gente vê outro dia.'], 0, {
+      1: [['muriel', 'CPRE de urgência é pra colangite ou obstrução que não cede. Minhas bilirrubinas estão normais. Pode guardar o duodenoscópio.']],
+      2: [['muriel', '"Outro dia" foi como eu vim parar aqui. Pancreatite biliar leve: tira a vesícula na mesma internação, senão volta.']],
+    }, 'Colecistectomia nesta internação');
+    await c.say('muriel', 'Nesta internação. Tá bom. Mas quem opera é alguém com luz.');
+
+    await c.say('narr', '*Você assina. Pendura o Ringer. A dipirona corre. Você puxa o banquinho e senta do lado do leito.*');
+    await c.say('narr', '*Duas horas depois.*');
+    o.better();
+    await c.say('muriel2', 'Melhorou... melhorou muito. Ai, desculpa. Eu choro fácil.');
+    await c.say('muriel2', 'É que... vocês me amam, né? Os alunos. Eu sei que amam.');
+    const i = await c.choose(['Amamos, professora.', 'É a dipirona falando, professora.', '[Passar um lenço]']);
+    if (i === 0) await c.say('muriel2', 'Eu sabia. Eu SEMPRE soube.');
+    if (i === 1) await c.say('muriel2', 'É a dipirona E o amor. As duas coisas. Respeita.');
+    if (i === 2) {
+      await c.say('narr', '*Ela pega o lenço e assoa o nariz. Ruidosamente. Duas vezes. Você desvia o olhar, por educação.*');
+      await c.say('muriel2', 'Obrigada. Você vai ser um ótimo médico. Senta mais pra frente na aula.');
+    }
+    if (errors === 0) o.perfect();
+    await c.say('muriel2', 'Agora vai. Avisa o Liberato que eu tô bem. Ele vai querer anotar o horário.');
+    return errors;
+  },
+
+  // ---------------- LIBERATO DE NOVO: O PS AINDA ESTÁ ABERTO ----------------
+  async liberato2(c, o) {
+    await c.say('dudu', 'E a paciente do 12?');
+    const i = await c.choose(['Melhorou. Ringer, analgesia, dieta precoce. Sem antibiótico.', 'Tá ótima. Chorou um pouco.', 'Quase dei meropenem. Culpa do Máscara.']);
+    if (i === 0) await c.say('dudu', 'Sem antibiótico. Anotado. O Schwarzenegger vai gostar. Ele não vai dizer. Mas vai gostar.');
+    if (i === 1) await c.say('dudu', 'Ela sempre chora. De emoção. Anotado também. Horário: 23h41.');
+    if (i === 2) await c.say('dudu', 'O Máscara. Claro. A máscara dele está no queixo desde 2020. Anotado.');
+    if (!o.perfect) await c.say('dudu', 'E você errou na prescrição antes de acertar. Eu sei. Eu sempre sei.');
+    await c.say('eu', 'Então... agora eu posso ir?');
+    await c.say('dudu', 'Não.');
+    await c.say('dudu', 'O PS ainda está aberto.');
     await c.say('dudu', 'O pronto-socorro não fecha. Nunca fechou. Enquanto o PS estiver aberto, o plantão está aberto. E você está de plantão.');
-    i = await c.choose(['E como eu fecho o PS?', 'Quem manda no PS?']);
-    await c.say('dudu', i === 0 ? 'Você não fecha nada. Quem fecha é o chefe do PS.' : 'O chefe do PS. Só ele.');
+    const j = await c.choose(['E como eu fecho o PS?', 'Quem manda no PS?']);
+    await c.say('dudu', j === 0 ? 'Você não fecha nada. Quem fecha é o chefe do PS.' : 'O chefe do PS. Só ele.');
     await c.say('dudu', 'O Professor Falastrão. Desce a escada caracol do hall. O PS fica lá embaixo.');
     await c.say('dudu', 'Ele vai te explicar. Ele vai te explicar muitas coisas. Durante muito tempo.');
     await c.say('dudu', 'E arruma esse jaleco. Tá torto. Dois graus.');
-    await c.say('narr', '*Ele se afasta. Dois passos exatos. O corredor está livre.*');
   },
 
   // ---------------- PROFESSOR FALASTRÃO (CHEFE DO PS) ----------------
