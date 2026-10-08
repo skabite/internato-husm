@@ -1,0 +1,34 @@
+# Lista de permissão do jogo: SÓ estes arquivos vão pro servidor.
+#
+# Lida pelo publicar.sh do repositório `servidor` (servidor de casa). É lista
+# de permissão de propósito: esquecer um arquivo aqui faz o jogo quebrar na
+# hora (dá pra ver), enquanto uma lista de proibição deixaria passar em
+# silêncio o que não devia — o README, a galeria de personagens de dev, os
+# testes, e, se um dia alguém esquecer o .gitignore, foto de gente de verdade.
+#
+# Conferido contra o que o index.html carrega (<link> e <script>). Se
+# acrescentar um script ou arquivo ao jogo, acrescente aqui também.
+# Fica de fora: personagens.html (galeria de dev), README.md.
+
+index.html
+style.css
+fonts/fontes.css
+lib/three.min.js
+js/util.js
+js/audio.js
+js/textures.js
+js/sprites.js
+js/world.js
+js/level1.js
+js/level2.js
+js/level3.js
+js/combat.js
+js/boss.js
+js/dialogue.js
+js/convo.js
+js/touch.js
+js/aura.js
+js/story1.js
+js/story2.js
+js/story3.js
+js/main.js

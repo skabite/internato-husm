@@ -69,6 +69,8 @@ Na tela de título: CONTINUAR ou NOVO JOGO. O save fica no navegador usado (Chro
 ```
 index.html, style.css
 lib/three.min.js     Three.js r128 (local)
+fonts/fontes.css     as duas fontes (VT323, Press Start 2P) embutidas, licença OFL — sem Google Fonts
+implantacao/publicos.txt  lista de permissão: o que vai pro servidor de casa (repo `servidor`)
 js/util.js           utilidades
 js/audio.js          sequenciador chiptune + efeitos (Bach, Beethoven, Grieg)
 js/textures.js       texturas pixeladas geradas por código
