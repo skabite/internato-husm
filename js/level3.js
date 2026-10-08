@@ -142,8 +142,54 @@ const LEVEL3 = (() => {
     for (let x = 9.4; x < 20.4; x += 0.7) box(x, 1.8, -344.85, x + 0.3, 2.2 + (x * 7 % 3) * 0.1, -344.6, col(0xd8b030));
     panel(14.5, 2.5, -344.49, 4, 0.35, 'z+', M.board, { msg: 'Troféus "MELHOR PLANTONISTA" de 2003 a 2026. Todos assinados por ele mesmo. O de 2027 já está pronto.' });
     panel(20.99, 1.6, -339, 1.6, 1.1, 'x-', M.board, { msg: 'Recortes de jornal emoldurados. Em todos ele aparece. Em um deles, só o cotovelo. Emoldurado igual.' });
+    // a sala conta a vida dele (dá pra fuçar antes de chegar perto da mesa)
+    const ink = { fg: '#1a1a1a', bg: '#efe8d4', border: true };
+    const rod = (x, z, len, tilt, m, msg) => {
+      const r = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, len, 5), m);
+      r.position.set(x, len / 2 * Math.cos(tilt), z); r.rotation.z = tilt; scene.add(r);
+      if (msg) { r.userData.msg = msg; WORLD.interactables.push(r); }
+      return r;
+    };
+    // parede oeste: o slide eterno, diplomas, mergulho, vassoura
+    box(8, 2.4, -338.8, 8.1, 2.5, -336.2, M.dark);
+    sign('SUPORTE BÁSICO · 1/214', 8.03, 1.75, -337.5, 2.4, 1.3, 'x+', { w: 224, h: 120, size: 14, fg: '#1a2a5a', bg: '#f4f4f0', border: true,
+      msg: 'Projetor travado no slide 1 de 214: "SUPORTE BÁSICO — POR QUE SÓ EU POSSO ENSINAR". Ninguém nunca viu o slide 2. Nem ele.' });
+    sign('USP · RIBEIRÃO PRETO', 8.03, 1.9, -340.6, 1.3, 0.8, 'x+', { w: 128, h: 80, size: 11, ...ink,
+      msg: 'Diplomas: mestrado e doutorado em Ribeirão Preto. Professor, doutor, endoscopista, CIRURGIÃO (assim, em caixa alta), plantonista e pesquisador. Há 42 anos.' });
+    box(8, 1.25, -343.1, 8.12, 1.55, -342.5, col(0x1a1a1e), { msg: 'Máscara de mergulho e nadadeiras. Plaquinha: "15 km de natação por dia. Antes do plantão. É aquecimento."' });
+    box(8, 0.3, -343.0, 8.08, 1.1, -342.85, col(0xd8c020)); box(8, 0.3, -342.75, 8.08, 1.1, -342.6, col(0xd8c020));
+    rod(8.35, -344.6, 1.4, 0.12, col(0x8a6a3a), 'Uma vassoura. Ele mesmo varre a sala, "porque interno preguiçoso não varre". Ela parece estar te julgando.');
+    box(8.2, 0, -344.75, 8.55, 0.25, -344.45, col(0xc8a040));
+    // parede norte (da porta): pôster de congresso e certificado
+    sign('CÉLULAS-TRONCO', 10.5, 1.8, -334.03, 1.6, 1.1, 'z-', { w: 160, h: 110, size: 15, fg: '#fff', bg: '#2a5a8a',
+      msg: 'Pôster de congresso: "CÉLULAS-TRONCO NA EMERGÊNCIA — resultados preliminares". Preliminares desde 1998. Ele diz que os resultados "falam por si". Ele fala por eles.' });
+    sign('ABCDE · 25.000', 19.2, 1.8, -334.03, 1.4, 0.9, 'z-', { w: 144, h: 90, size: 15, ...ink,
+      msg: 'Certificado: "PRIMEIRO CURSO DE ABCDE DO BRASIL". Embaixo, à caneta: "25.000 alunos. Nenhum faz direito."' });
+    // canto da porta: coletes e o kit de pesca/camping
+    box(19.3, 0, -335.9, 20.8, 0.9, -334.6, col(0xe86a10), { collide: true,
+      msg: 'Uma pilha de coletes salva-vidas. Etiqueta: "PRA DOAR NAS PRAIAS SELVAGENS". Ele doa. Depois conta. Muitas vezes.' });
+    box(8.4, 0, -335.9, 9.3, 0.55, -335.1, col(0xe8e8f0), { collide: true,
+      msg: 'Um isopor com adesivo "CAMPING BEVERLY HILLS". Dentro: iscas e um laringoscópio. "Nunca se sabe."' });
+    rod(8.6, -334.6, 2.4, -0.18, col(0x3a3a40), 'Vara de pesca. "Pesquei um dourado de 20 kg. Sozinho. Com uma mão. A outra fazendo massagem cardíaca num pescador."');
+    // parede leste: Nobel, Mediterrâneo, a pelada de domingo
+    sign('MEDITERRÂNEO', 20.98, 1.75, -336.6, 1.6, 1.0, 'x-', { w: 160, h: 100, size: 15, fg: '#fff', bg: '#2a6ab0',
+      msg: 'Mapa do Mediterrâneo cheio de rotas à caneta. "Conheço cada ilha. Mergulhei em todas. Em algumas, duas vezes."' });
+    panel(20.98, 1.8, -341.3, 0.8, 0.6, 'x-', M.board, {
+      msg: 'Foto dele com um ganhador do Nobel. O ganhador do Nobel está cortado pela metade. Ele, inteiro e no centro.' });
+    sign('COSTELAS: 40', 20.98, 1.6, -343.6, 1.2, 0.6, 'x-', { w: 128, h: 64, size: 16, fg: '#fff', bg: '#2a7a3a', border: true,
+      msg: 'Luvas de goleiro e um placar: "COSTELAS QUEBRADAS NA PELADA DE DOMINGO: 40". Três por domingo. Todas dele. Ele chama isso de "defesa".' });
+    // chão: estante de partitura e o pote do pastor-alemão
+    rod(10.2, -339.4, 1.1, 0, col(0x2a2a2e));
+    box(9.85, 1.05, -339.5, 10.55, 1.5, -339.4, col(0xf0ece0), { msg: 'Estante de partitura: "CONCERTO PARA SAX E DESFIBRILADOR" — composição dele. "Ritmo chocável é jazz, interno."' });
+    const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.14, 10), col(0x8a1a1a)); bowl.position.set(19.6, 0.07, -340.2); scene.add(bowl);
+    bowl.userData.msg = 'Um pote de ração enorme escrito "REX VII". Ele cria pastor-alemão. "Os cachorros fazem o ABCDE melhor que vocês."'; WORLD.interactables.push(bowl);
+    // em cima da mesa
+    box(12.3, 0.8, -343.0, 12.9, 0.92, -342.6, col(0xa01818), { msg: 'Um Guyton todo rabiscado de vermelho. Na margem do capítulo de choque: "ERRADO. Puxou toda a brasa pro seu assado." Assinado: F.' });
+    const pens = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.18, 8), col(0x2a4ab0)); pens.position.set(16.4, 0.89, -342.75); scene.add(pens);
+    pens.userData.msg = 'Um pote cheio de canetas BIC. Etiqueta: "VIA AÉREA CIRÚRGICA — KIT DE ESTRADA". Nenhuma tem tampa.'; WORLD.interactables.push(pens);
+    box(13.4, 0.8, -343.1, 14.1, 0.88, -342.7, col(0xd8cca0), { msg: 'Uma pasta grossa: "AVALIAÇÕES PSICOLÓGICAS — POLÍTICOS (CONFIDENCIAL)". Ele não pode comentar. Ele já comentou três.' });
     out.falastraoPos = new THREE.Vector3(14.5, 0, -341.2);
-    out.zoneChefia = { x1: 8, x2: 21, z1: -345, z2: -335.6 };
+    out.chefiaR = 2.4;                        // a conversa só começa perto dele: dá pra fuçar a sala antes
     const lamp = new THREE.PointLight(0xffc070, 1.2, 8, 2); lamp.position.set(16, 1.3, -342.7); scene.add(lamp);
 
     out.update = dt => {                                        // chiado da TV
