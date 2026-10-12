@@ -67,13 +67,13 @@ const LEVEL1 = (() => {
   ];
   const X0 = -30, Z0 = -46, WALL_H = 3;
 
-  function build(scene, hooks) {
-    const M = hooks.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
+  function build(scene, ctx) {
+    const M = ctx.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
     const colliders = WORLD.colliders;
     const out = { boars: [], cafes: [], searchables: [] };
 
     // ---------- PAREDES, PISO E FORRO ----------
-    const { xw } = BUILD.walls(MAP, { x0: X0, z0: Z0, wallH: WALL_H, floor: M.vinyl, ceiling: M.ceiling, top: hooks.TOP });
+    const { xw } = BUILD.walls(MAP, { x0: X0, z0: Z0, wallH: WALL_H, floor: M.vinyl, ceiling: M.ceiling, top: ctx.TOP });
     // ninguém sai do prédio pelos fundos
     colliders.push({ x1: -200, x2: X0, z1: -300, z2: Z0 }, { x1: X0 + xw, x2: 200, z1: -300, z2: Z0 });
 
@@ -94,10 +94,10 @@ const LEVEL1 = (() => {
     BUILD.pair(BUILD.door('alaC', -2, -65.15, 0, -65.05, [-2, 0, 0], { su: 2, locked: true,
       lockedMsg: 'ALA C. Trancada. Do outro lado... grunhidos? Não. Não pode ser.' }),
     BUILD.door('alaC2', 0, -65.15, 2, -65.05, [2, 0, 0], { su: 2, locked: true }));
-    BUILD.door('prof3', -1, -97.15, 1, -97.05, [-2, 0, 0], { su: 2, locked: true,
+    BUILD.door('javali', -1, -97.15, 1, -97.05, [-2, 0, 0], { su: 2, locked: true,
       lockedMsg: 'Uma voz lá de dentro: "SÓ ABRO QUANDO ESSES BICHOS PARAREM DE GRUNHIR!"' });
     box(-1, 2.4, -105.55, 1, WALL_H, -105.45, M.wallLow);
-    BUILD.door('prof3back', -1, -105.55, 1, -105.45, [-2, 0, 0], { su: 2, locked: true, lockedMsg: 'Porta dos fundos. Trancada. O Javali está com a chave... e te observando.' });
+    BUILD.door('javaliFundos', -1, -105.55, 1, -105.45, [-2, 0, 0], { su: 2, locked: true, lockedMsg: 'Porta dos fundos. Trancada. O Javali está com a chave... e te observando.' });
     sign('VASCULAR · CCIH ↓', 0, 2.62, -105.44, 1.8, 0.3, 'z+', { w: 128, h: 20, size: 12, fg: '#fff', bg: '#2a5a3a' });
 
     // ---------- PLACAS ----------
@@ -113,11 +113,11 @@ const LEVEL1 = (() => {
     box(-14, 0, -49.2, -13, 1.6, -48.4, M.dark, { collide: true, msg: 'Torre de vídeo da endoscopia. Ligada no nobreak. A tela mostra... você prefere não saber.' });
     panel(-13.5, 1.25, -49.21, 0.7, 0.5, 'z+', new THREE.MeshBasicMaterial({ color: 0xd87a8a }));
     const scrLight = new THREE.PointLight(0xff9aaa, 0.9, 7, 2); scrLight.position.set(-13.5, 1.4, -50); scene.add(scrLight);
-    hooks.stretcher(-8, -50.5, Math.PI / 2);
+    ctx.stretcher(-8, -50.5, Math.PI / 2);
     box(-18.9, 0, -58.9, -16, 0.9, -57.4, M.metal, { collide: true, msg: 'Pia de lavagem dos endoscópios. Impecável. Tem uma etiqueta: "LIMPO 19h02 — L."' });
     box(-6, 0, -58.9, -3.2, 1.9, -58.3, M.wood, { collide: true, msg: 'Armário de aparelhos. Cada colonoscópio pendurado à mesma distância exata do outro. Você mede com o dedo. 15 cm. Todos.' });
     WORLD.sign('SILÊNCIO — EXAME EM ANDAMENTO', -11, 2.3, -58.98, 2.4, 0.3, 'z+', { w: 256, h: 24, size: 13, fg: '#fff', bg: '#5a2a4a' });
-    out.duduPos = new THREE.Vector3(-11.5, 0, -51.8);
+    out.liberatoPos = new THREE.Vector3(-11.5, 0, -51.8);
     out.zoneEndo = { x1: -19, x2: -3, z1: -59, z2: -48 };
 
     // ---------- CIRURGIA TORÁCICA (o revólver) ----------
@@ -150,9 +150,10 @@ const LEVEL1 = (() => {
       if (f === 'z-') box(hx - hw / 2, y - hh / 2, hz - 0.02, hx + hw / 2, y + hh / 2, hz + 0.02, M.metal);
       else box(hx - 0.02, y - hh / 2, hz - (gaveta ? hw : 0.04) / 2 + (gaveta ? 0 : 0.25), hx + 0.02, y + hh / 2, hz + (gaveta ? hw : 0.04) / 2 + (gaveta ? 0 : 0.25), M.metal);
       m.userData.verb = 'revistar';
+      m.userData.auraVisible = () => !out.gunTaken;                  // o brilho some quando o revólver já foi achado
       m.userData.onUse = () => {
-        if (i === gunAt && !out.gunTaken) { out.gunTaken = true; hooks.onGun(sp.name); return; }
-        hooks.toast(sp.name + ': ' + sp.msg + (out.gunTaken ? '' : '\n' + HINT[gunAt]), 6);
+        if (i === gunAt && !out.gunTaken) { out.gunTaken = true; ctx.emit('gun', sp.name); return; }
+        ctx.toast(sp.name + ': ' + sp.msg + (out.gunTaken ? '' : '\n' + HINT[gunAt]), 6);
       };
       out.searchables.push(m);
     });
@@ -162,7 +163,8 @@ const LEVEL1 = (() => {
     box(-27, 0, -55, -25.5, 0.75, -53.5, M.wood, { collide: true, msg: 'Mesa da copa. Tem um bolo pela metade com a vela "6". Ninguém sabe de quem é.' });
     const fridge = box(-27.95, 0, -50.5, -27.3, 1.8, -49.5, M.metal, { collide: true, msg: 'Geladeira.' });
     fridge.userData.verb = 'abrir a geladeira';
-    fridge.userData.onUse = () => hooks.onMarmita();   // a marmita do Liberato: cura muito, mas ele vai saber
+    fridge.userData.onUse = () => ctx.emit('marmita');   // a marmita do Liberato: cura muito, mas ele vai saber (js/capitulos/cap1.js)
+    fridge.userData.auraVisible = () => !GAME.G.marmita;
     box(-23.6, 0.9, -48.6, -23, 1.2, -48.1, M.dark, { msg: 'O micro-ondas. Cheiro de peixe. Ninguém assume.' });
     box(-24, 0, -48.6, -22.4, 0.9, -48.05, M.wood, { collide: true });
 
@@ -173,15 +175,15 @@ const LEVEL1 = (() => {
     }
 
     // ---------- ALA C ----------
-    for (let x = -24; x <= 20; x += 4.5) hooks.stretcher(x, -69.6, 0);
-    for (const x of [-18, -13, 13, 18]) hooks.stretcher(x, -79.2, 0);
-    for (const x of [-22, -6, 6, 20]) hooks.stretcher(x, -90.2, x > 0 ? 0.25 : -0.25);
+    for (let x = -24; x <= 20; x += 4.5) ctx.stretcher(x, -69.6, 0);
+    for (const x of [-18, -13, 13, 18]) ctx.stretcher(x, -79.2, 0);
+    for (const x of [-22, -6, 6, 20]) ctx.stretcher(x, -90.2, x > 0 ? 0.25 : -0.25);
     for (const [x, z] of [[-20, -70], [20, -94], [0, -94]]) BUILD.light(x, 2.7, z, { dist: 11 });
     out.zoneWard = { x1: -26, x2: 26, z1: -97, z2: -65 };
 
     // ---------- LEITO 12 (Capítulo 3): a Professora Muriel, internada por pancreatite ----------
     // a maca fica de cabeceira na parede; o negatoscópio (no nobreak) fica na parede da direita, com a TC
-    hooks.stretcher(21.2, -69.5, Math.PI);
+    ctx.stretcher(21.2, -69.5, Math.PI);
     out.murielPos = new THREE.Vector3(21.2, 0, -69.15);
     out.zoneLeito = { x1: 19.46, x2: 24.2, z1: -72.6, z2: -68 };      // na frente da maca, do lado de dentro da cortina
     sign('LEITO 12', 21.2, 2.35, -68.03, 0.9, 0.24, 'z-', { w: 96, h: 24, size: 14, fg: '#222', bg: '#ddd', border: true });
@@ -216,7 +218,7 @@ const LEVEL1 = (() => {
     const ctTex = new THREE.CanvasTexture(ct); ctTex.magFilter = THREE.NearestFilter; ctTex.minFilter = THREE.NearestFilter; ctTex.generateMipmaps = false;
     box(25.9, 1.05, -74.25, 26, 2.0, -72.75, M.dark);
     out.negatoscopio = panel(25.89, 1.52, -73.5, 1.3, 0.85, 'x-', new THREE.MeshBasicMaterial({ color: 0xe8f2ff }));
-    out.negatoscopio.userData.verb = 'ver a TC'; out.negatoscopio.userData.onUse = () => hooks.onCT();
+    out.negatoscopio.userData.verb = 'ver a TC'; out.negatoscopio.userData.onUse = () => ctx.emit('ct');
     out.ctFilm = panel(25.87, 1.5, -73.5, 1.2, 0.8, 'x-', new THREE.MeshBasicMaterial({ map: ctTex }));
     out.ctFilm.visible = false; out.ctFilm.raycast = () => {};
     const negL = new THREE.PointLight(0xdfe8ff, 0.9, 6, 2); negL.position.set(25.2, 1.6, -73.5); scene.add(negL);
@@ -227,11 +229,12 @@ const LEVEL1 = (() => {
     const lamp = new THREE.PointLight(0xffc070, 1.6, 9, 2); lamp.position.set(1.4, 1.3, -103); scene.add(lamp);
     box(1.2, 0.78, -103.2, 1.6, 1.15, -102.9, M.metal);
     sign('MELHOR PROFESSOR 2019', -5, 1.7, -104.98, 1.6, 0.6, 'z+', { w: 128, h: 48, size: 12, fg: '#5a4a10', bg: '#d8c060', border: true });
-    out.prof3Pos = new THREE.Vector3(0, 0, -104.2);
-    out.zoneProf3 = { x1: -8, x2: 8, z1: -105, z2: -99.3 };
+    out.javaliPos = new THREE.Vector3(0, 0, -104.2);
+    out.zoneJavali = { x1: -8, x2: 8, z1: -105, z2: -99.3 };
 
     return out;
   }
 
   return { build, MAP };
 })();
+GAME.area('L1', LEVEL1.build);

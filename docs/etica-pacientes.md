@@ -87,14 +87,14 @@ Já existe paciente no jogo, e há algumas piadas que encostam em paciente:
    ("Plantão não é lugar de arma"), e o Capítulo 3 é sem combate. Se um dia voltar a ter combate num capítulo com
    paciente, aí vale uma zona perto do leito onde a arma é guardada e o clique não atira. Também evita o constrangimento de ter um revólver em
    primeira pessoa apontado pro leito durante a conversa.
-2. **Consentimento como mecânica:** um passo "pedir licença" nos roteiros de exame (`story3.js` e futuros).
+2. **Consentimento como mecânica:** um passo "pedir licença" nos roteiros de exame (`js/roteiros/story3.js` e futuros).
 3. **Aviso na tela de título** (curto, uma linha): "Obra de ficção e humor. Personagens, casos e situações
    são inventados. Nenhum paciente real foi usado." Se quiser ir além: "Não é material oficial do HUSM/UFSM."
 4. **Aviso antes do Centro Obstétrico:** uma linha antes de entrar ("Esta parte se passa num centro
    obstétrico. Ninguém se machuca."). Quem já passou por perda gestacional agradece, e não custa nada.
 5. **Acessibilidade:** minijogo que depende de som (o CTG) precisa de legenda e de sinal visual. Muita gente
    joga no celular sem som.
-6. **Revisão clínica:** um campo "revisado por" no topo dos roteiros com conteúdo clínico (`story3.js`, o
+6. **Revisão clínica:** um campo "revisado por" no topo dos roteiros com conteúdo clínico (`js/roteiros/story3.js`, o
    futuro `story4.js`).
 
 ## Checklist antes de pôr um paciente novo

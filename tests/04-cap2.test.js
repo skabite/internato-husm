@@ -31,7 +31,7 @@ module.exports = [
       opts = await g.talk(); await g.pick('Perfeitamente');
       await g.talkThrough();
       assert(g.lines.some(l => l.includes('andou treinando')), 'De Barros não reparou no treino');
-      assert(await g.eval(() => COMBAT.P.has.carabina && __game.G.achievement), 'sem carabina/elogio');
+      assert(await g.eval(() => COMBAT.P.has.carabina && __game.G.elogioDeBarros), 'sem carabina/elogio');
       // chefe: entra na arena, derruba na força
       await g.goTo(0, -131);
       await g.until(() => CONVO.active, null, { what: 'Schwarzenegger' });

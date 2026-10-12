@@ -69,40 +69,42 @@ e o objeto que você está olhando pulsa (dá pra examinar com [E] / USAR).
 
 ## Save
 Salva sozinho (no navegador) depois do saguão, depois do Liberato, ao pegar o revólver, ao tomar café e a cada 20 s fora de combate.
+Saves de versões antigas do jogo continuam funcionando (são convertidos ao carregar).
 Na tela de título: CONTINUAR ou NOVO JOGO. O save fica no navegador usado (Chrome e Edge têm saves separados).
 
 ## Estrutura
+O mapa completo do código (o que fica onde, como acrescentar capítulo, personagem, minijogo ou sala) está no **CLAUDE.md**.
 ```
-index.html, style.css
-lib/three.min.js     Three.js r128 (local)
-js/util.js           utilidades
-js/audio.js          sequenciador chiptune + efeitos (Bach, Beethoven, Grieg)
-js/textures.js       texturas pixeladas geradas por código
-js/sprites.js        sprite do professor (pixel art em código)
-js/world.js          entrada do Bloco D (fachada, praça, recepção, escada, corredor, banheiro, Consultório 4) — 1 unidade = 1 metro
-js/level1.js         Capítulo 1: ala de trás em MAPA ASCII (1 caractere = 1 m)
-js/level2.js         Capítulo 2: Vascular (De Barros) e CCIH (arena do chefe), também em ASCII
-js/boss.js           o chefe: Professor Schwarzenegger
-js/story2.js         roteiros do Capítulo 2
-js/level3.js         Capítulo 3: o PS no subsolo (layout provisório em ASCII)
-js/story3.js         roteiros do Capítulo 3 (Liberato, Professora Muriel/Professor Máscara e Professor Falastrão)
-js/combat.js         armas, javalis, café, HUD de combate
-js/convo.js          motor de conversas roteirizadas (Liberato, Javali, pensamentos)
-js/touch.js          controles de toque (celular): joystick, arrastar pra olhar, botões
-js/aura.js           brilho dos itens de cura, personagens e objetos de usar
-js/story1.js         roteiros do Capítulo 1
-personagens.html     galeria dos personagens (dev)
-js/dialogue.js       sistema e textos da conversa com o professor
-js/main.js           loop, controles, estados, gatilhos
-docs/minijogo-cardiotocografia.md   plano do minijogo do CTG (Centro Obstétrico)
-docs/etica-pacientes.md             revisão ética: pacientes no jogo, interações e cuidados
+index.html, style.css      a página (a ordem dos <script> importa)
+lib/three.min.js           Three.js r128 (local)
+js/motor/                  o motor: não sabe nada da história
+  game.js                  o "hub": capítulos se registram aqui (GAME.chapter) e usam os serviços comuns
+  save.js                  save no navegador, com versão (e conversão de saves antigos)
+  build.js                 caixa de ferramentas do mapa: paredes do mapa em texto, portas, luzes, itens de cura
+  convo.js                 conversas roteirizadas (e a API de minijogos)
+  sprites.js · textures.js · audio.js · combat.js · aura.js · touch.js · util.js
+js/dados/personagens.js    a ficha de cada personagem: como fala e como aparece
+js/mapa/                   as áreas: world.js (entrada, saguão, corredor, Consultório 4), level1 (ala de trás),
+                           level2 (Vascular e CCIH), level3 (PS no subsolo) — 1 unidade = 1 metro
+js/mecanicas/              dialogue.js (Monteiro: interromper), laudos.js, no.js (nó cirúrgico), boss.js (Schwarzenegger)
+js/roteiros/               as falas: story1 (prólogo, Cap. 1, Consultório 4), story2, story3
+js/capitulos/              o que acontece e quando: prologo, cap1, cap2, cap3, consultorio4
+js/main.js                 laço, controles, câmera, telas
+tests/                     testes automáticos que jogam o jogo inteiro (npm test)
+personagens.html           galeria dos personagens (dev)
+docs/                      planos e revisões (minijogo do CTG, ética de pacientes)
 ```
+
+## Testes automáticos
+`npm install` uma vez e depois `npm test` (ou `node tests/run.js cap2` pra rodar só uma parte). Eles abrem o jogo num
+navegador escondido e jogam sozinhos: todos os estágios, o prólogo, os 3 capítulos até a tela de fim, o Consultório 4, o nó
+no celular, a porta do CO, cafés, telas e saves (inclusive saves antigos). Leva uns 5 minutos.
 
 ## Modo dev
 `index.html#dev=x,z,yaw` pula as telas iniciais e posiciona o jogador.
-Opcional `,pPITCH` (olhar pra cima/baixo). Estágios: `,talk` abre a conversa do saguão · `,met` depois do saguão · `,dudu` depois do Liberato (com bisturi) · `,gun` com revólver · `,prof3` depois do Javali · `,clovis` depois do De Barros (CCIH liberada) · `,ch3` depois do Schwarzenegger (Capítulo 3) · `,leito` Liberato já mandou ver o Leito 12 · `,rx` falta só prescrever pra Professora Muriel · `,ps` liberado pro PS (escada caracol desce).
-Ex. do Leito 12: `index.html#dev=21.2,-72,3.14,rx`.
-No modo dev o jogo não pausa sem o mouse travado e expõe `window.__game` para testes automáticos.
+Opcional `,pPITCH` (olhar pra cima/baixo). Estágios (cada um inclui os anteriores): `,talk` abre a conversa do saguão · `,met` depois do saguão · `,liberato` depois do Liberato (com bisturi) · `,gun` com revólver · `,javali` depois do Javali (Ala C limpa) · `,debarros` depois do De Barros (CCIH liberada) · `,ch3` depois do Schwarzenegger (Capítulo 3) · `,leito` Liberato já mandou ver o Leito 12 · `,rx` falta só prescrever pra Professora Muriel · `,ps` liberado pro PS (escada caracol desce). Cada capítulo declara os seus em `dev:` (js/capitulos/).
+Ex. do Leito 12: `index.html#dev=21.2,-72,3.14,rx`. Acrescente `,touch` pra testar os controles de celular.
+No modo dev o jogo não pausa sem o mouse travado, não liga o som e expõe `window.__game` para os testes automáticos.
 Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
 Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (catracas) · `#dev=-2,-12,-1.08,met` (escada helicoidal) · `#dev=-2.2,-30.3,1.57,met` (banheiro masculino) · `#dev=4.6,-34.6,-1.57,met` (Consultório 4, de frente pro MAAA) · `#dev=4.9,-32.6,3.14,met` (de frente pro ADC).
 

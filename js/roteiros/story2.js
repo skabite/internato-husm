@@ -1,7 +1,8 @@
-// Roteiros do Capítulo 2: Javali → Professor De Barros → Professor Schwarzenegger (CCIH).
+// Roteiros do Capítulo 2: Javali → cutscene pensando no De Barros → Professor De Barros → Professor Schwarzenegger (CCIH).
+// Quem chama cada roteiro (e quando): js/capitulos/cap2.js.
 const STORY2 = {
   // ---------------- JAVALI (O JAVALI) ----------------
-  async prof3(c, game) {
+  async javali(c, game) {
     await c.say('javali', '...');
     await c.say('javali', 'Ah. Os laudos do Liberato.');
     await c.say('narr', '*Ele folheia. Devagar. Muito devagar.*');
@@ -21,7 +22,7 @@ const STORY2 = {
 
   // ---------------- CUTSCENE: O INTERNO PENSA NO DE BARROS (e pode treinar o nó) ----------------
   // Apresenta o minijogo do nó antes de valer nota. Devolve true se treinou (o De Barros repara).
-  async deBarros(c) {
+  async pensandoNoDeBarros(c) {
     await c.say('eu', 'De Barros. Cirurgia Vascular. Logo depois da porta dos fundos.');
     await c.say('eu', 'Ambidestro. Escreve duas evoluções ao mesmo tempo, uma com cada mão. Os veteranos juram que é verdade.');
     await c.say('eu', 'E ele não conversa com interno nenhum antes de ver as mãos do interno.');
@@ -55,7 +56,7 @@ const STORY2 = {
   },
 
   // ---------------- PROFESSOR DE BARROS ----------------
-  async clovis(c, game) {
+  async deBarros(c, game) {
     let ap = 0.2;
     const best = { sala: false, cavalos: false, no: false, perfeitamente: false };   // aprovação máxima = tudo certo
     const meter = () => c.meter(`🏛️ <b>APROVAÇÃO DO DE BARROS</b> · ${ap.toFixed(1).replace('.', ',')}%`);
@@ -135,7 +136,7 @@ const STORY2 = {
   },
 
   // ---------------- O CHEFE ----------------
-  async belgicaIntro(c) {
+  async chefeIntro(c) {
     await c.say('schwarzenegger', 'Interno. Eu tenho exatamente dois minutos. Tenho uma entrevista. Na verdade tenho três.');
     await c.say('schwarzenegger', 'Cefalexina? Não. A CCIH não autoriza cefalexina sem PARECER, sem JUSTIFICATIVA e sem TERMO DE RESPONSABILIDADE.');
     const i = await c.choose(['Eu trouxe os três, professor. Só falta assinar.', 'O De Barros mandou eu resolver isso.', 'O senhor é parente do Arnold?']);
@@ -146,7 +147,7 @@ const STORY2 = {
     await c.say('narr', '*Os olhos dele começam a brilhar. Roxo. Isso não é normal. Nada aqui é normal.*');
   },
 
-  async belgicaDefeat(c) {
+  async chefeDerrota(c) {
     await c.say('schwarzenegger', '...Está bem. ESTÁ BEM.');
     await c.say('schwarzenegger', 'CEFALEXINA LIBERADA.');
     await c.say('schwarzenegger', 'Mas que fique registrado em ata. E que ninguém saiba que eu fui convencido por um interno. Com uma Montblanc do De Barros.');

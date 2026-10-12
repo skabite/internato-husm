@@ -19,7 +19,7 @@ module.exports = [
         }
         await g.pick(1);
       }
-      assert(await g.flag('duduDone'), 'Liberato não terminou');
+      assert(await g.flag('liberatoDone'), 'Liberato não terminou');
       assert(await g.eval(() => COMBAT.P.has.scalpel), 'sem bisturi');
       assert(g.lines.some(l => l.includes('Perfeito') || l.includes('aceitável')), 'laudos não saíram perfeitos');
       eq(await g.eval(() => __game.doors.alaC.locked), false, 'Ala C destrancada');
@@ -33,9 +33,9 @@ module.exports = [
       assert(await g.eval(() => COMBAT.P.has.revolver && __game.G.hasGun), 'sem revólver');
       const before = await g.eval(() => COMBAT.boars.length);
       await g.until(n => COMBAT.boars.length > n, before, { what: 'emboscada', timeout: 4000 });
-      eq(await g.eval(() => __game.doors.prof3.locked), true, 'porta do Javali trancada com javali vivo');
+      eq(await g.eval(() => __game.doors.javali.locked), true, 'porta do Javali trancada com javali vivo');
       await g.eval(() => COMBAT.boars.forEach((b, i) => COMBAT.killSilently(i)));
-      await g.until(() => !__game.doors.prof3.locked, null, { what: 'porta do Javali destrancar' });
+      await g.until(() => !__game.doors.javali.locked, null, { what: 'porta do Javali destrancar' });
       // marmita: cura 50, mas o Liberato deixa de seguir (e leva os +25)
       await g.eval(() => { COMBAT.P.maxHp = 125; COMBAT.P.hp = 40; CONVO.setFollowing(true); });
       await g.eval(() => __game.W.interactables.find(m => m.userData.verb === 'abrir a geladeira').userData.onUse());

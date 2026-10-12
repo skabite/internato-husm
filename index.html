@@ -81,32 +81,40 @@
 </div>
 
 <script src="lib/three.min.js"></script>
-<!-- A ordem importa (sem módulos, pra funcionar com dois cliques no index.html). Mapa do código: CLAUDE.md -->
+<!-- A ORDEM IMPORTA (sem módulos, pra funcionar com dois cliques no index.html). Mapa do código: CLAUDE.md -->
 <!-- motor: não sabe nada da história -->
 <script src="js/motor/util.js"></script>
 <script src="js/motor/audio.js"></script>
 <script src="js/motor/textures.js"></script>
-<!-- dados: a ficha de cada personagem -->
 <script src="js/dados/personagens.js"></script>
 <script src="js/motor/sprites.js"></script>
 <script src="js/motor/build.js"></script>
-<!-- mapa: as áreas do hospital -->
+<script src="js/motor/game.js"></script>
+<script src="js/motor/save.js"></script>
+<script src="js/motor/combat.js"></script>
+<script src="js/motor/aura.js"></script>
+<script src="js/motor/convo.js"></script>
+<script src="js/motor/touch.js"></script>
+<!-- mapa: as áreas do hospital (cada uma se registra com GAME.area) -->
 <script src="js/mapa/world.js"></script>
 <script src="js/mapa/level1.js"></script>
 <script src="js/mapa/level2.js"></script>
 <script src="js/mapa/level3.js"></script>
-<script src="js/motor/combat.js"></script>
-<script src="js/mecanicas/boss.js"></script>
+<!-- mecânicas: minijogos e a luta -->
 <script src="js/mecanicas/dialogue.js"></script>
-<script src="js/motor/convo.js"></script>
 <script src="js/mecanicas/laudos.js"></script>
 <script src="js/mecanicas/no.js"></script>
-<script src="js/motor/touch.js"></script>
-<script src="js/motor/aura.js"></script>
+<script src="js/mecanicas/boss.js"></script>
 <!-- roteiros: as falas -->
 <script src="js/roteiros/story1.js"></script>
 <script src="js/roteiros/story2.js"></script>
 <script src="js/roteiros/story3.js"></script>
+<!-- capítulos: o que acontece, quando e o que vai pro save (na ordem da história) -->
+<script src="js/capitulos/prologo.js"></script>
+<script src="js/capitulos/cap1.js"></script>
+<script src="js/capitulos/cap2.js"></script>
+<script src="js/capitulos/cap3.js"></script>
+<script src="js/capitulos/consultorio4.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

@@ -41,7 +41,7 @@ const COMBAT = (() => {
       transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, shininess: 0 });
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
     scene.add(mesh);
-    const b = { x, z, sx: x, sz: z, hp: 3, state: o.alert ? 'chase' : 'idle', mesh, mat, vx: 0, vz: 0,
+    const b = { id: o.id, x, z, sx: x, sz: z, hp: 3, state: o.alert ? 'chase' : 'idle', mesh, mat, vx: 0, vz: 0,
       wanderT: Math.random() * 2, atkCd: 0, chargeT: 0, chargeCd: 1, gruntT: 1 + Math.random() * 4, flashT: 0, dirX: 0, dirZ: 1, side: 0, sideT: 0 };
     boars.push(b);
     place(b);

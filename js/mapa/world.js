@@ -167,6 +167,8 @@ const WORLD = (() => {
     }
 
     const pickups = buildPickups(M);
+    // ninguém sai do campus: limites do mapa
+    colliders.push({ x1: -200, x2: 200, z1: 75, z2: 200 }, { x1: -200, x2: -85, z1: -200, z2: 200 }, { x1: 85, x2: 200, z1: -200, z2: 200 });
 
     return {
       colliders, interactables, update, pickups,
@@ -949,3 +951,4 @@ const WORLD = (() => {
   return { build, box, panel, sign, mat, stretcher: (x, z, rot) => stretcher(x, z, rot, MAT), FLOOR_H, UP_H, FLOORS,
     get colliders() { return colliders; }, get interactables() { return interactables; }, get scene() { return scene; }, get M() { return MAT; } };
 })();
+GAME.area('W', scene => WORLD.build(scene));

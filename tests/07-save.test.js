@@ -47,6 +47,9 @@ module.exports = [
       const st = await g.page.evaluate(() => ({ dead: COMBAT.boars.map(b => b.state === 'dead'), weapon: COMBAT.P.weapon, obj: document.getElementById('objective').textContent }));
       eq(st.dead.slice(0, 4), [true, true, true, false], 'javalis 0-2 mortos');
       eq(st.weapon, 'revolver', 'arma na mão');
+      // cafés: o v1 guardava a posição numa lista [cafés da fase 1, cafés da fase 2, itens do saguão]; agora são ids
+      const taken = await g.page.evaluate(() => BUILD.pickups.filter(p => p.taken).map(p => p.id));
+      eq(taken.sort(), ['L1:0', 'L2:1'], 'cafés pegos no save antigo');
       assert(st.obj.includes('javalis restantes'), 'objetivo: ' + st.obj);
     },
   },

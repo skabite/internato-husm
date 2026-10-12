@@ -1,4 +1,6 @@
-// Roteiros do Capítulo 1. Cada um é uma função async que recebe a api do CONVO (say, choose, ig, laudos, wait).
+// Roteiros do prólogo (Monteiro), do Capítulo 1 (Liberato, revólver) e do Consultório 4 (MAAA e ADC).
+// Cada um é uma função async que recebe a api do CONVO: c.say(quem, texto), c.choose([...]), c.ig(±n), c.laudos(), c.wait(s).
+// Quem chama cada roteiro (e quando): js/capitulos/.
 const STORY1 = {
   // ---------------- CUTSCENE ANTES DO MONTEIRO ----------------
   // Os testers não entendiam que ele fala demais e que o jogo é interromper. Aqui o jogo avisa antes.
@@ -31,7 +33,7 @@ const STORY1 = {
   },
 
   // ---------------- PROFESSOR LIBERATO ----------------
-  async dudu(c, game) {
+  async liberato(c, game) {
     await c.say('liberato', 'Você chegou atrasado.');
     await c.say('liberato', 'Dezenove horas e quatro minutos. O internato começa às dezenove horas. Não às dezenove e quatro. Às dezenove.');
 
@@ -180,22 +182,5 @@ const STORY1 = {
     await c.say('narr', `*${where}: embaixo de um Sabiston de 2004, um revólver .38. Carregado. Tem um bilhete preso com esparadrapo:*`);
     await c.say('narr', '"PARA JAVALIS. E RESIDENTES QUE MEXEM NA MINHA GAVETA."');
     await c.say('eu', 'Ok. Ok. Agora é só atravessar a Ala C.');
-  },
-
-  // ---------------- JAVALI ----------------
-  async prof3(c, game) {
-    await c.say('javali', '...');
-    await c.say('javali', 'Ah. Os laudos do Liberato.');
-    await c.say('narr', '*Ele folheia. Devagar. Muito devagar.*');
-    await c.say('javali', 'Em ordem crescente de prontuário. Claro que estão.');
-    await c.say('javali', `Você atravessou a Ala C? Com esse barulho todo? ${game.kills > 0 ? `E esses ${game.kills} javalis aí atrás de você no chão?` : ''}`);
-    await c.say('javali', 'Eu não ouvi nada.');
-    await c.say('narr', '*Ele funga. Um grunhido baixo escapa de algum lugar da sala. Talvez dele.*');
-    const i = await c.choose(['Professor... o senhor ouviu isso?', 'Por que chamam o senhor de "O Javali"?', '[Deixar os laudos e sair de costas]']);
-    if (i === 0) await c.say('javali', 'Ouvi o quê?');
-    if (i === 1) await c.say('javali', 'Quem chama?  ...Quem te contou isso?');
-    if (i === 2) await c.say('javali', 'Fecha a porta quando sair. Eles ficam agitados com a luz.');
-    await c.say('javali', 'Pode deixar os laudos aí. E, interno...');
-    await c.say('javali', 'A noite está só começando.');
   },
 };

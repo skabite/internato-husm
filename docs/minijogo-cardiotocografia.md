@@ -2,7 +2,7 @@
 
 Status: **planejado**. Por enquanto só a porta existe: fica no fundo leste do corredor do PS (subsolo),
 trancada, com o aparelho tocando batimentos com mau contato que descambam pra rádio AM, internet discada e
-canto de baleia (`js/level3.js`, efeito `ctg` em `js/audio.js`).
+canto de baleia (`js/mapa/level3.js`, efeito `ctg` em `js/motor/audio.js`).
 
 ## A ideia em uma frase
 Um cardiotocógrafo (CTG) velhíssimo, com mau contato e "consertado com peça de rádio", capta tudo
@@ -93,12 +93,14 @@ Cada faixa do dial tem uma "estação". Todas têm **legenda na tela**, pra quem
 ## Implementação (quando for a hora)
 | Arquivo | O que muda |
 |---|---|
-| `js/level3.js` | Abrir a parede leste (coluna 43, linhas 10–11), alargar o `MAP` com a sala do CO (leito PPP, o CTG no carrinho, Pinard na parede, bola de parto) e trocar a porta falsa por uma porta de verdade (`out.doors.co`, trancada até o capítulo começar) |
-| `js/story4.js` (novo) | Roteiros: professor(a) da Obstetrícia, gestante, acompanhante, enfermeira |
-| `js/convo.js` | Nova API `c.ctg(opts)`, no molde de `knotStart`: canvas próprio, entrada por mouse/teclado/toque, devolve o resultado |
-| `js/audio.js` | Motor contínuo (não um efeito solto): `AUDIO.ctgStart()`, `AUDIO.ctgSet({ sinal, estacao, bpm, materna })`, `AUDIO.ctgStop()`. O batimento é agendado no `tick` que já existe; as estações reaproveitam os pedaços do efeito `ctg` |
-| `js/touch.js` | Botões BATER/FIXAR e o dial deslizante |
-| `js/main.js` | Flags (`G.co`), campos de save, gatilho perto do leito, estágio dev `,co`, texto de objetivo, música (sugestão: Canção de Ninar de Brahms em 8 bits, desafinando com o sinal) |
+| `js/mapa/level3.js` | Abrir a parede leste (coluna 43, linhas 10–11), alargar o `MAP` com a sala do CO (leito PPP, o CTG no carrinho, Pinard na parede, bola de parto) e trocar a porta falsa por `BUILD.door('co', ...)`, trancada até o capítulo começar |
+| `js/dados/personagens.js` | Fichas novas: professor(a) da Obstetrícia, gestante, acompanhante, enfermeira obstetra (fala + visual) |
+| `js/roteiros/story4.js` (novo) | As falas |
+| `js/mecanicas/ctg.js` (novo) | O minijogo: `CONVO.minigame('ctg', { start, key, update })` com canvas próprio (como o `no.js`), entrada por mouse/teclado/toque. No roteiro: `const r = await c.ctg(opções)` |
+| `js/motor/audio.js` | Motor contínuo (não um efeito solto): `AUDIO.ctgStart()`, `AUDIO.ctgSet({ sinal, estacao, bpm, materna })`, `AUDIO.ctgStop()`. O batimento é agendado no `tick` que já existe; as estações reaproveitam os pedaços do efeito `ctg` |
+| `js/motor/touch.js` | Botões BATER/FIXAR e o dial deslizante |
+| `js/capitulos/cap4.js` (novo) | Personagens no mapa, gatilho perto do leito, campos de save, objetivo, estágio dev `,co`, música (sugestão: Canção de Ninar de Brahms em 8 bits, desafinando com o sinal). Começa ouvindo `on: { psFechado() }`: o `cap3.js` passa a fazer `GAME.emit('psFechado')` no fim do Falastrão em vez de `GAME.end(3, ...)` |
+| `tests/10-cap4.test.js` (novo) | Jogar o capítulo inteiro, armadilhas e falha (Pinard) |
 | `README.md` | Seção do capítulo e controles |
 
 ### Modelo do sinal (pra calibrar)

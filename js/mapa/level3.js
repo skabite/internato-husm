@@ -35,8 +35,8 @@ const LEVEL3 = (() => {
   ];
   const X0 = -22, Z0 = -320, WALL_H = 3;
 
-  function build(scene, hooks) {
-    const M = hooks.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
+  function build(scene, ctx) {
+    const M = ctx.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
     const colliders = WORLD.colliders;
     const out = {};
 
@@ -62,7 +62,7 @@ const LEVEL3 = (() => {
     colliders.push({ x1: SX - 2.2, x2: SX + 2.2, z1: SZ - 2.2, z2: SZ + 2.2 });
     const hit = new THREE.Mesh(new THREE.CylinderGeometry(2.45, 2.45, 2.8, 8), new THREE.MeshBasicMaterial({ visible: false }));
     hit.position.set(SX, 1.4, SZ); scene.add(hit);
-    hit.userData.verb = 'subir pro hall'; hit.userData.onUse = () => hooks.onUp();
+    hit.userData.verb = 'subir pro hall'; hit.userData.onUse = () => ctx.emit('stairsUp');
     WORLD.interactables.push(hit);
     sign('PS · SUBSOLO', -16.5, 2.45, -320.98, 2.2, 0.35, 'z+', { w: 128, h: 20, size: 13, fg: '#fff', bg: '#7a1a1a' });
     out.arrive = new THREE.Vector3(-16.5, 0, -327.0); out.arriveYaw = 0;
@@ -98,7 +98,7 @@ const LEVEL3 = (() => {
     for (const z of [CO.z - 1, CO.z]) {
       const leaf = box(20.86, 0, z, 20.96, 2.4, z + 1, M.door, { collide: true, su: 1, sv: 2.1 });
       leaf.userData.verb = 'abrir';
-      leaf.userData.onUse = () => { hooks.toast(coMsgs[coK++ % coMsgs.length], 5); AUDIO.sfx('dry'); ctgT = 0.4; };
+      leaf.userData.onUse = () => { ctx.toast(coMsgs[coK++ % coMsgs.length], 5); AUDIO.sfx('dry'); ctgT = 0.4; };
       panel(20.855, 1.54, z + 0.5, 0.44, 0.46, 'x-', winMat).raycast = () => {};   // o visor da porta (textura): a luz do monitor do CTG (não rouba o [E])
     }
 
@@ -123,7 +123,7 @@ const LEVEL3 = (() => {
 
     // ---------- D: sala vermelha ----------
     for (const x of [-18, -14, -10]) {
-      hooks.stretcher(x, -341, 0);
+      ctx.stretcher(x, -341, 0);
       box(x - 0.3, 1.3, -343.4, x + 0.3, 1.7, -343.3, M.dark);
       panel(x, 1.5, -343.29, 0.5, 0.3, 'z+', glow(0x2a8a3a), { msg: 'Monitor multiparamétrico. Linha reta. Mas é porque não tem ninguém ligado nele. Né?' });
     }
@@ -135,8 +135,8 @@ const LEVEL3 = (() => {
       box(x - 0.45, 0, -339.5, x + 0.45, 0.5, -338.6, col(0x6a8aa8), { collide: true, msg: 'Poltrona da observação. Ainda afundada no formato de alguém. Alguém grande.' });
       box(x - 0.45, 0.5, -339.6, x + 0.45, 1.1, -339.4, col(0x6a8aa8));
     }
-    hooks.stretcher(-3, -343.5, Math.PI / 2);
-    hooks.stretcher(3, -343.5, Math.PI / 2);
+    ctx.stretcher(-3, -343.5, Math.PI / 2);
+    ctx.stretcher(3, -343.5, Math.PI / 2);
 
     // ---------- F: chefia do PS (Falastrão) ----------
     box(12, 0, -343.2, 17, 0.8, -342.2, M.wood, { collide: true, msg: 'A mesa do chefe do PS. Um megafone, três celulares e uma pilha de entrevistas impressas. Todas dele.' });
@@ -211,3 +211,4 @@ const LEVEL3 = (() => {
 
   return { build, MAP };
 })();
+GAME.area('L3', LEVEL3.build);

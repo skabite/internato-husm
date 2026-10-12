@@ -67,13 +67,13 @@ const LEVEL2 = (() => {
   const X0 = -30, Z0 = -106, WALL_H = 3;
   const cx = c => X0 + c + 0.5, cz = r => Z0 - r - 0.5;
 
-  function build(scene, hooks) {
-    const M = hooks.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
+  function build(scene, ctx) {
+    const M = ctx.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
     const colliders = WORLD.colliders;
     const out = { cafes: [], gels: [] };
 
     // ---------- PAREDES, PISO E FORRO ----------
-    const { zh } = BUILD.walls(MAP, { x0: X0, z0: Z0, wallH: WALL_H, floor: M.granilite, ceiling: M.ceiling, top: hooks.TOP });
+    const { zh } = BUILD.walls(MAP, { x0: X0, z0: Z0, wallH: WALL_H, floor: M.granilite, ceiling: M.ceiling, top: ctx.TOP });
     colliders.push({ x1: -200, x2: 200, z1: -300, z2: Z0 - zh });
     BUILD.scan(MAP, { x0: X0, z0: Z0 }, { c: (x, z) => out.cafes.push(BUILD.cafe('L2', x, z)) });
 
@@ -97,12 +97,12 @@ const LEVEL2 = (() => {
     box(-4.2, 0, -110, -3.2, 1.0, -109.2, M.metal, { collide: true, msg: 'Dois tacos de golfe: um canhoto, um destro. Ambidestro até no golfe.' });
     box(-20.9, 0, -119.8, -17, 1.9, -119.2, M.wood, { collide: true, msg: 'Estante. Livros de vascular, um guia de vinhos de Bordeaux e um extrato bancário emoldurado.' });
     sign('"A EXCELÊNCIA NÃO É UM ATO, É UM PATRIMÔNIO." — D.B.', -12, 2.4, -119.97, 3.2, 0.3, 'z+', { w: 384, h: 24, size: 12, fg: '#d8c060', bg: '#2a1a10' });
-    out.clovisPos = new THREE.Vector3(-12, 0, -109.9);
-    out.zoneClovis = { x1: -21, x2: -3, z1: -120, z2: -109 };
+    out.deBarrosPos = new THREE.Vector3(-12, 0, -109.9);
+    out.zoneDeBarros = { x1: -21, x2: -3, z1: -120, z2: -109 };
 
     // ---------- ECODOPPLER ----------
     box(8, 0, -111, 9.2, 1.5, -110, M.dark, { collide: true, msg: 'Aparelho de ecodoppler. Desligado. Na tela, um adesivo: "PROPRIEDADE DO DE BARROS. SIM, ESSE TAMBÉM."' });
-    hooks.stretcher(12, -113, Math.PI / 2);
+    ctx.stretcher(12, -113, Math.PI / 2);
 
     // ---------- CCIH (arena) ----------
     // mesa do chefe e o armário da cefalexina
@@ -116,7 +116,7 @@ const LEVEL2 = (() => {
       const m = box(x - 0.15, 1.1, z - 0.01, x + 0.15, 1.5, z + 0.12, new THREE.MeshPhongMaterial({ color: 0xe8f4ec, emissive: 0x204030 }));
       const g = { mesh: m, used: false };
       m.userData.verb = 'usar álcool gel';
-      m.userData.onUse = () => hooks.onGel(g);
+      m.userData.onUse = () => ctx.emit('gel', g);
       out.gels.push(g);
     }
     for (const [x, z] of [[-18, -135], [18, -135], [-18, -155], [18, -155]])
@@ -134,3 +134,4 @@ const LEVEL2 = (() => {
 
   return { build, MAP };
 })();
+GAME.area('L2', LEVEL2.build);

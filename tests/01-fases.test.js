@@ -2,11 +2,11 @@
 const { assert, eq } = require('./lib');
 
 const STAGES = [
-  ['met', g => g.flag('objective')],
-  ['dudu', g => g.eval(() => COMBAT.P.has.scalpel && !COMBAT.P.has.revolver)],
+  ['met', g => g.flag('monteiroDone')],
+  ['liberato', g => g.eval(() => COMBAT.P.has.scalpel && !COMBAT.P.has.revolver)],
   ['gun', g => g.eval(() => COMBAT.P.has.revolver)],
-  ['prof3', g => g.eval(() => __game.G.prof3Done && COMBAT.boars.every(b => b.state === 'dead'))],
-  ['clovis', g => g.eval(() => __game.G.clovisDone && !__game.doors.ccih.locked)],
+  ['javali', g => g.eval(() => __game.G.javaliDone && COMBAT.boars.every(b => b.state === 'dead'))],
+  ['debarros', g => g.eval(() => __game.G.deBarrosDone && !__game.doors.ccih.locked)],
   ['ch3', g => g.eval(() => __game.G.bossDone && COMBAT.P.has.scalpel)],
   ['leito', g => g.eval(() => __game.G.muriel === 1 && !COMBAT.P.weapon && !COMBAT.P.has.revolver)],
   ['rx', g => g.eval(() => __game.G.muriel === 3)],

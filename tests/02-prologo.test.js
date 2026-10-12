@@ -6,7 +6,7 @@ module.exports = [
     name: 'cutscene do Monteiro e conversa até o fim',
     async run(g) {
       await g.open('0.5,1.5,0');
-      eq(await g.flag('met'), false, 'ainda não encontrou o Monteiro');
+      eq(!!(await g.flag('monteiroStarted')), false, 'ainda não encontrou o Monteiro');
       await g.goTo(0.5, -1.3);                                   // cruza a linha das catracas
       await g.until(() => CONVO.active, null, { what: 'cutscene começar' });
       let opts = await g.talk();
@@ -30,10 +30,10 @@ module.exports = [
         }
         await sleep(30);
       }
-      assert(await g.flag('objective'), 'conversa terminou sem objetivo');
+      assert(await g.flag('monteiroDone'), 'conversa terminou sem objetivo');
       assert((await g.eval(() => document.getElementById('objective').textContent)).includes('LIBERATO'), 'objetivo não manda pro Liberato');
       const save = await g.eval(() => JSON.parse(localStorage.getItem('internato-husm-save-v1') || localStorage.getItem('internato-husm-save')));
-      assert(save && save.met, 'não salvou depois do saguão');
+      assert(save && save.monteiroDone, 'não salvou depois do saguão');
     },
   },
   {
