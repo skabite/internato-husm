@@ -134,6 +134,8 @@ A única porta aberta do corredor. Dois internos de plantão (visual provisório
   metabolismo favorito**. **Uma chance só.** A resposta é **Lesch-Nyhan** (as pistas estão na mesa: post-it "HGPRT", caneca, pôster
   da via das purinas). Acertou: "Você se sente mais ágil" e ganha **20% de chance de esquivar** dos golpes dos javalis e das
   seringas do Schwarzenegger (o olhar dele não dá pra esquivar). Fica no save.
+- Música: entrou na sala, toca **Das Lied von der Erde** (Mahler), o final de "Der Abschied" ("ewig... ewig...") em 8 bits;
+  saiu, volta o que estava tocando.
 
 ## Capítulo 2 — A infecção no ar
 - A sala do Javali só abre com a Ala C sem javalis (contador no objetivo).

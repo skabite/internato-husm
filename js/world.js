@@ -700,6 +700,7 @@ const WORLD = (() => {
     const glow = new THREE.PointLight(0x8ac8ff, 0.9, 5, 2); glow.position.set(4.9, 1.2, Z2 - 0.9); scene.add(glow);
     anim.amb = {
       maaaPos: new THREE.Vector3(6.32, 0, -34.6), adcPos: new THREE.Vector3(4.9, 0, -31.05),
+      zone: { x1: X1 + 0.2, x2: X2, z1: Z1, z2: Z2 },                  // dentro da sala (toca o Mahler)
       screens, scans, glow, t: 0, k: 0,
     };
   }

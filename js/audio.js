@@ -181,6 +181,26 @@ const AUDIO = (() => {
     };
   })();
 
+  // G. Mahler — Das Lied von der Erde, "Der Abschied" (o final: "ewig... ewig...") — Consultório 4 (MAAA e ADC)
+  // Arranjo de memória: a celesta arpejando Dó com sexta (C-E-G-A), o pedal grave em Dó e o "ewig"
+  // da voz (Mi → Ré) que nunca resolve no Dó. A flauta responde em pentatônica.
+  (() => {
+    const e8 = s => s.split(' ').map(n => n + ':0.5').join(' ');
+    const celesta = rep([e8('C5 E5 G5 A5 C6 A5 G5 E5'), e8('E5 G5 A5 C6 E6 C6 A5 G5'),
+      e8('C5 E5 G5 A5 C6 A5 G5 E5'), e8('D5 G5 A5 C6 D6 C6 A5 G5')].join(' '), 2);
+    const ewig = 'R:2 E5:2 D5:4 R:2 E5:2 D5:4 R:2 E5:2 D5:4 R:2 E5:3 D5:3';
+    const flauta = 'R:4 G5:1 A5:1 G5:1 E5:1 R:4 A5:1 C6:1 A5:1 G5:1 R:4 G5:1 A5:1 G5:1 E5:1 R:5 D5:1 E5:2';
+    SONGS.erde = {
+      bpm: 54,
+      tracks: [
+        { wave: 'triangle', vol: 0.13, ev: parse(celesta), stacc: 0.5 },
+        { wave: 'square', vol: 0.06, ev: parse(ewig), stacc: 0.97 },
+        { wave: 'square', vol: 0.03, ev: parse(flauta), stacc: 0.8 },
+        { wave: 'triangle', vol: 0.22, ev: parse('C2:8 C2:8 C2:8 C2:8'), stacc: 0.97 },
+      ],
+    };
+  })();
+
   for (const k in SONGS) {
     const s = SONGS[k];
     s.len = Math.max(...s.tracks.map(t => t.ev.reduce((a, e) => a + e.beats, 0)));

@@ -724,6 +724,15 @@
     }
   }
 
+  // Consultório 4: Das Lied von der Erde enquanto você estiver na sala com os internos (na saída, volta o que tocava)
+  function updateRoomMusic() {
+    const inside = inZone(W.amb.zone);
+    if (inside === !!G.inC4) return;
+    G.inC4 = inside;
+    if (inside) { G.musicBefore = AUDIO.playing; AUDIO.play('erde', { fade: 2.5 }); }
+    else if (AUDIO.playing === 'erde') AUDIO.play(G.musicBefore && G.musicBefore !== 'erde' ? G.musicBefore : 'moonlight', { fade: 2.5 });
+  }
+
   function updateMusic() {
     if (G.state !== 'play' || !G.duduDone || BOSS.active || G.bossDone) return;
     if (COMBAT.alerted && G.musicMode !== 'combat') { G.musicMode = 'combat'; AUDIO.play('summer', { fade: 0.3 }); }
@@ -828,6 +837,7 @@
       updateScare(dt);
       updateChapter(dt);
       updateMusic();
+      updateRoomMusic();
       updateLook();
       if ((G.saveT = (G.saveT || 20) - dt) <= 0) { G.saveT = 20; if (!COMBAT.alerted && !BOSS.active) save(true); }
     }
