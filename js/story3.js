@@ -3,7 +3,8 @@
 // (o visual do Falastrão e o layout do PS ainda são provisórios: faltam as fotos)
 const STORY3 = {
   // ---------------- LIBERATO TE BARRA NO CORREDOR ----------------
-  async liberato(c) {
+  // o: { armas() → armas que você ainda tem, devolver(arma) }
+  async liberato(c, o) {
     await c.say('narr', '*O Liberato está parado no meio do corredor. Braços cruzados. Ele estava te esperando. Há 4 minutos e 12 segundos.*');
     await c.say('dudu', 'Aonde você pensa que vai?');
     let i = await c.choose(['Pra casa, professor. Acabou.', 'Resolvi a CCIH! Cefalexina liberada.', '[Tentar passar pelo lado]']);
@@ -15,6 +16,32 @@ const STORY3 = {
     if (i === 0) await c.say('dudu', 'Em ordem crescente de prontuário? ...Não responde. Eu já sei.');
     if (i === 1) await c.say('dudu', 'Grunhiu. Em que tom? ...Esquece. Eu anoto como "recebido".');
     if (i === 2) await c.say('dudu', 'Javalis são pacientes difíceis. Mas pontuais.');
+
+    // ele quer o bisturi de volta... e leva tudo
+    await c.say('dudu', 'Outra coisa. O bisturi.');
+    await c.say('dudu', 'Nº 22. Etiquetado com data, hora e a inicial "D.". Eu emprestei. Emprestar pressupõe devolver.');
+    const NOME = { scalpel: 'o bisturi', revolver: 'o revólver', carabina: 'a carabina de ipê' };
+    let escondeu = false;
+    while (o.armas().length) {
+      const tem = o.armas();
+      const ops = tem.map(w => `[Entregar ${NOME[w]}]`);
+      if (tem.includes('revolver') && !escondeu) ops.push('[Esconder o revólver no jaleco]');
+      const k = await c.choose(ops);
+      if (k === tem.length) {
+        escondeu = true;
+        await c.say('dudu', 'Volume no bolso direito do jaleco. O jaleco está torto dois graus por causa dele. Eu vejo. Eu sempre vejo.');
+        continue;
+      }
+      const w = tem[k], pediu = w === 'scalpel';
+      o.devolver(w);
+      if (w === 'revolver') await c.say('dudu', 'Um .38. Do torácico. Com o bilhete: "PARA JAVALIS E RESIDENTES QUE MEXEM NA MINHA GAVETA". Você mexeu na gaveta dele. Eu devolvo. Com um bilhete meu.');
+      if (w === 'carabina') await c.say('dudu', 'Uma carabina de ipê. Do De Barros. Ele vai conferir o verniz. Eu já conferi: tem uma digital sua aqui. Eu limpo.');
+      if (w === 'scalpel') await c.say('dudu', 'O bisturi. Usado. Em javalis. Vai pra esterilização. Em ordem crescente de sujeira.');
+      if (!pediu && o.armas().includes('scalpel')) await c.say('dudu', 'Isso eu não pedi. Fica comigo também. E o bisturi?');
+    }
+    await c.say('narr', '*Ele empilha tudo nos braços, em ordem de tamanho. O bisturi em cima.*');
+    await c.say('dudu', 'Plantão não é lugar de arma. Nunca se sabe quem está atrás de uma cortina.');
+
     await c.say('dudu', 'Enfim. Você não pode sair. Você está de plantão.');
 
     let resto = ['Professor, nem tem luz.', 'Mas não tem ninguém internado nos leitos.'];

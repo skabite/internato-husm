@@ -83,9 +83,9 @@ Já existe paciente no jogo, e há algumas piadas que encostam em paciente:
 | **Crianças, saúde mental, violência** | Só com muito cuidado | Alto | Melhor deixar de fora. Se entrar, com revisão de quem trabalha na área |
 
 ## Implicações práticas pro código
-1. **Área de cuidado:** perto de paciente (leito da Muriel, o leito do CO), a arma abaixa sozinha e o clique
-   não atira. É simples: uma zona no `main.js` (como `L.zoneLeito`) onde a arma da mão é guardada (e devolvida na
-   saída) e o clique deixa de chamar `COMBAT.fire()`. Também evita o constrangimento de ter um revólver em
+1. **Arma longe de paciente:** ✅ resolvido pela história: antes do Leito 12, o Liberato recolhe todas as armas
+   ("Plantão não é lugar de arma"), e o Capítulo 3 é sem combate. Se um dia voltar a ter combate num capítulo com
+   paciente, aí vale uma zona perto do leito onde a arma é guardada e o clique não atira. Também evita o constrangimento de ter um revólver em
    primeira pessoa apontado pro leito durante a conversa.
 2. **Consentimento como mecânica:** um passo "pedir licença" nos roteiros de exame (`story3.js` e futuros).
 3. **Aviso na tela de título** (curto, uma linha): "Obra de ficção e humor. Personagens, casos e situações

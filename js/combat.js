@@ -7,7 +7,9 @@ const COMBAT = (() => {
   // armas de fogo: revólver do torácico e a carabina de ipê do De Barros
   const GUN = { revolver: { mag: 6, cd: 0.38, dmg: 2, reload: 1.6, tol: 0.55 }, carabina: { mag: 8, cd: 0.55, dmg: 3, reload: 2.1, tol: 0.65 } };
   const P = { hp: 100, maxHp: 100, weapon: null, has: { scalpel: false, revolver: false, carabina: false }, ammo: 6, ammoC: 8, reloadMax: 1.6, reloadW: null,
-    reload: 0, cd: 0, anim: 0, hurtT: 0, dead: false, infectT: 0 };
+    reload: 0, cd: 0, anim: 0, hurtT: 0, dead: false, infectT: 0,
+    hud: false,          // mostra SAÚDE (liga na primeira arma e fica, mesmo depois de devolver tudo pro Liberato)
+    dodge: 0 };          // chance de esquivar de um golpe (reflexos do ADC: 0,2)
   let muzzle, wcan, wctx, hudEl, hpEl, ammoEl, dmgEl, lastAlert = -99, time = 0;
 
   // ---------- RAIO 2D contra as caixas de colisão ----------
@@ -129,19 +131,21 @@ const COMBAT = (() => {
       if (d < 1.25 && b.atkCd <= 0) {
         const dmg = b.chargeT > 0 ? 18 : 11;
         b.atkCd = 1.0; b.chargeT = 0; b.atkFlash = 0.3;
-        hooks.push(dx / d * 0.7, dz / d * 0.7);
-        damagePlayer(dmg);
+        if (damagePlayer(dmg)) hooks.push(dx / d * 0.7, dz / d * 0.7);
       }
       lastAlert = time;
     }
     place(b);
   }
 
+  // devolve true se acertou (false = morto ou esquivou)
   function damagePlayer(n) {
-    if (P.dead) return;
+    if (P.dead) return false;
+    if (P.dodge && Math.random() < P.dodge) { AUDIO.sfx('swish'); hooks.onDodge && hooks.onDodge(); return false; }
     P.hp = Math.max(0, P.hp - n); P.hurtT = 0.35;
     AUDIO.sfx('hurt');
     if (P.hp <= 0) { P.dead = true; hooks.onDeath(); }
+    return true;
   }
 
   // ---------- ARMAS ----------
@@ -218,7 +222,7 @@ const COMBAT = (() => {
     wctx.drawImage(img, Math.round(ox), Math.round(oy));
   }
   function drawStats() {
-    hpEl.parentElement.style.display = P.has.scalpel ? 'block' : 'none';
+    hpEl.parentElement.style.display = P.hud ? 'block' : 'none';
     hpEl.textContent = `SAÚDE ${Math.ceil(P.hp)}`;
     hpEl.style.color = P.hp > 60 ? '#e8e2cc' : P.hp > 30 ? '#ffcf5a' : '#ff6a5a';
     ammoEl.textContent = (P.infectT > 0 ? 'INFECTADO! · ' : '') + (P.weapon === 'revolver' ? `BALAS ${P.ammo}/6${P.reload > 0 ? ' · recarregando' : ''}`
@@ -238,7 +242,11 @@ const COMBAT = (() => {
       hpEl = document.getElementById('hp'); ammoEl = document.getElementById('ammo'); dmgEl = document.getElementById('dmg');
     },
     spawn, fire, select, startReload, rayWall, los,
-    give(w) { P.has[w] = true; P.weapon = w; },
+    give(w) { P.has[w] = true; P.weapon = w; P.hud = true; },
+    take(w) {                                                   // devolveu: troca pra outra arma que ainda tiver (ou nenhuma)
+      P.has[w] = false;
+      if (P.weapon === w) { P.weapon = ['carabina', 'revolver', 'scalpel'].find(k => P.has[k]) || null; P.reload = 0; }
+    },
     heal(n) { P.hp = Math.min(P.maxHp, P.hp + n); },
     get alerted() { return boars.some(b => b.state !== 'idle' && b.state !== 'dead'); },
     get sinceAlert() { return time - lastAlert; },

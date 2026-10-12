@@ -41,6 +41,9 @@ O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages
 ## Capítulo 3 — Plantão
 - Depois de vencer o Schwarzenegger, a arena reabre. Na volta, o Professor Liberato te barra no corredor da Endoscopia,
   pergunta das colonoscopias e avisa: você está de plantão. Não tem luz, não tem ninguém internado... na verdade, tem.
+- Antes, ele pede o **bisturi** de volta. Dá pra entregar o revólver ou a carabina primeiro ("Isso eu não pedi. Fica comigo
+  também. E o bisturi?") ou tentar esconder o revólver no jaleco (ele vê). No fim ele leva todas as armas: o Capítulo 3 é sem
+  combate ("Plantão não é lugar de arma. Nunca se sabe quem está atrás de uma cortina.").
 - **Leito 12 (Ala C, atrás da cortina): Professora Muriel, internada por pancreatite.** Você conversa (dor em faixa,
   pedrinhas na vesícula), examina, lê o prontuário (lipase 1.840) e responde a "pergunta de prova" do diagnóstico.
   A TC está no negatoscópio da parede direita da Ala C: pancreatite edematosa intersticial, sem necrose, sem gás,
@@ -76,7 +79,7 @@ js/util.js           utilidades
 js/audio.js          sequenciador chiptune + efeitos (Bach, Beethoven, Grieg)
 js/textures.js       texturas pixeladas geradas por código
 js/sprites.js        sprite do professor (pixel art em código)
-js/world.js          entrada do Bloco D (fachada, praça, recepção, escada, corredor, banheiro) — 1 unidade = 1 metro
+js/world.js          entrada do Bloco D (fachada, praça, recepção, escada, corredor, banheiro, Consultório 4) — 1 unidade = 1 metro
 js/level1.js         Capítulo 1: ala de trás em MAPA ASCII (1 caractere = 1 m)
 js/level2.js         Capítulo 2: Vascular (De Barros) e CCIH (arena do chefe), também em ASCII
 js/boss.js           o chefe: Professor Schwarzenegger
@@ -101,7 +104,7 @@ Opcional `,pPITCH` (olhar pra cima/baixo). Estágios: `,talk` abre a conversa do
 Ex. do Leito 12: `index.html#dev=21.2,-72,3.14,rx`.
 No modo dev o jogo não pausa sem o mouse travado e expõe `window.__game` para testes automáticos.
 Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
-Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (catracas) · `#dev=-2,-12,-1.08,met` (escada helicoidal) · `#dev=-2.2,-30.3,1.57,met` (banheiro masculino).
+Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (catracas) · `#dev=-2,-12,-1.08,met` (escada helicoidal) · `#dev=-2.2,-30.3,1.57,met` (banheiro masculino) · `#dev=4.6,-34.6,-1.57,met` (Consultório 4, de frente pro MAAA) · `#dev=4.9,-32.6,3.14,met` (de frente pro ADC).
 
 ## Mecânica do diálogo
 - **Cutscene antes**: ele está gravando um áudio de WhatsApp de 14 minutos; o interno lembra o aviso dos veteranos no grupo
@@ -122,6 +125,15 @@ Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (c
 - Cura: café da copa (+30, cura infecção), bolacha Maria (+15), dipirona (+20), soro fisiológico (+25, cura infecção),
   chimarrão no galpãozinho (+40) e a marmita do Liberato na geladeira da copa (+50 — mas se ele te seguia, deixa de seguir e leva os +25).
 - Música: Prelúdio em Dó (Bach) no Liberato, Verão/Presto (Vivaldi) no combate.
+
+## Consultório 4 (corredor dos ambulatórios, lado direito) — opcional
+A única porta aberta do corredor. Dois internos de plantão (visual provisório até chegar foto). Fale com eles com [E] / USAR.
+- **MAAA**, interno veterano, sentado na maca lendo *As Portas da Percepção* (Huxley). Conta que nem gosta de medicina, mas
+  gosta de ajudar as pessoas. Dá uma dica sobre o aniversário do Liberato e manda você olhar a mesa do ADC antes de falar com ele.
+- **ADC**, no computador, passando tomografia e ressonância sem tirar o olho da tela. Pergunta qual é o seu **erro inato do
+  metabolismo favorito**. **Uma chance só.** A resposta é **Lesch-Nyhan** (as pistas estão na mesa: post-it "HGPRT", caneca, pôster
+  da via das purinas). Acertou: "Você se sente mais ágil" e ganha **20% de chance de esquivar** dos golpes dos javalis e das
+  seringas do Schwarzenegger (o olhar dele não dá pra esquivar). Fica no save.
 
 ## Capítulo 2 — A infecção no ar
 - A sala do Javali só abre com a Ala C sem javalis (contador no objetivo).

@@ -64,6 +64,21 @@ const SPRITES = (() => {
       faceRx: 11, faceRy: 13.5, brows: '#2e2018', mouth: 'smile',
     },
   };
+  // internos de plantão no Consultório 4 (visual provisório até chegar foto): pijama cirúrgico por baixo do jaleco
+  CHARS.maaa = {                                                  // veterano, sentado na maca lendo "As Portas da Percepção"
+    nome: 'MAAA', skin: '#c8946c', skinD: '#9c6c48', pose: 'reading',
+    hair: 'messy', hairC: '#2a1c14', hairD: '#1a120c',
+    glasses: 'thin', glassC: '#5a4a3a', beard: 'stubble', beardC: '#3a2a1e',
+    coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#5a7ab0', shirtD: '#41598a', tie: null,
+    faceRx: 11, faceRy: 13.5, brows: '#2a1c14', mouth: 'smile', book: true,
+  };
+  CHARS.adc = {                                                   // no computador, de perfil, de cara pra tela
+    nome: 'ADC', skin: '#e8bc98', skinD: '#bc9070', pose: 'desk',
+    hair: 'short', hairC: '#4a3020', hairD: '#2e1e14',
+    glasses: null, beard: null,
+    coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#3e8a6e', shirtD: '#2c6a52', tie: null,
+    faceRx: 11, faceRy: 13.5, brows: '#3a2618', mouth: 'neutral', screenGlow: '#8ac8ff',
+  };
   CHARS.muriel2 = Object.assign({}, CHARS.muriel, { mouth: 'smile', tears: true });   // depois do tratamento: chorando de emoção
 
   // ======================= CORPO (32x64) =======================
@@ -72,6 +87,8 @@ const SPRITES = (() => {
     const g = c.getContext('2d');
     const p = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
     if (s.patient) { patientBody(p, s); head(g, p, s, frame); return c; }
+    if (s.pose === 'reading') { readingBody(p, s, frame); head(g, p, s, frame === 1 ? 1 : 0); readingEyes(p, s, frame); return c; }
+    if (s.pose === 'desk') { deskBody(p, s, frame); return c; }
 
     p('#3a3c44', 10, 46, 5, 14); p('#3a3c44', 17, 46, 5, 14);   // calça
     p('#1b1b1d', 9, 60, 6, 3); p('#1b1b1d', 17, 60, 6, 3);       // sapatos
@@ -113,6 +130,62 @@ const SPRITES = (() => {
     p('#f0f0f0', 10, 36, 2, 1); for (let i = 0; i < 9; i++) p('#cfe6f2', 9 - i, 35 - i * 2, 1, 2);   // acesso venoso → soro
     p('#ecebe6', 2, 38, 28, 8); p('#c8c7c0', 2, 38, 28, 1);                         // lençol
     p('#d2d1ca', 9, 41, 1, 5); p('#d2d1ca', 21, 40, 1, 6); p('#6a8ab0', 2, 43, 28, 1);
+  }
+
+  // sentado na beirada da maca, de frente, segurando um livro aberto (a capa roxa virada pra você).
+  // Pernas penduradas; o quadro 2 balança uma perna. Os quadros vão do topo (cabeça) até os pés, sem o chão.
+  function readingBody(p, s, frame) {
+    p(s.shirtD, 9, 44, 14, 3); p(s.shirt, 9, 43, 14, 2);                            // coxas (vistas de frente)
+    p(s.shirt, 10, 47, 4, 10); p(s.shirtD, 10, 47, 1, 10);                          // canelas penduradas
+    const sw = frame === 2 ? 2 : 0;
+    p(s.shirt, 18 + sw, 47, 4, 10); p(s.shirtD, 18 + sw, 47, 1, 10);
+    p('#e8e8ec', 9, 57, 6, 3); p('#e8e8ec', 17 + sw, 57, 6, 3);                    // tênis branco
+    p('#9a9aa2', 9, 59, 6, 1); p('#9a9aa2', 17 + sw, 59, 6, 1);
+    p(s.coat, 7, 22, 18, 22); p(s.coatD, 7, 22, 1, 22); p(s.coatD, 24, 22, 1, 22);   // jaleco
+    p(s.coat, 6, 40, 4, 7); p(s.coat, 22, 40, 4, 7); p(s.coatD, 6, 46, 4, 1); p(s.coatD, 22, 46, 4, 1);   // abas sobre a maca
+    p(s.shirt, 13, 22, 6, 14); p(s.shirtD, 15, 22, 2, 2);                           // pijama cirúrgico (gola em V)
+    p('#2a2a2e', 12, 21, 1, 6); p('#2a2a2e', 19, 21, 1, 6);                         // estetoscópio no pescoço
+    p(s.coat, 4, 23, 4, 11); p(s.coatD, 4, 23, 1, 11); p(s.coat, 24, 23, 4, 11); p(s.coatD, 27, 23, 1, 11);   // braços
+    p(s.coat, 5, 33, 6, 4); p(s.coat, 21, 33, 6, 4);                                // antebraços pra frente
+    // o livro: capa roxa com um olho amarelo ("As Portas da Percepção")
+    p('#4a2266', 10, 29, 12, 10); p('#6a3a8a', 11, 30, 4, 8); p('#2e1440', 16, 29, 1, 10);
+    p('#f0c040', 18, 32, 3, 2); p('#4a2266', 19, 32, 1, 2); p('#f0c040', 18, 35, 3, 1);
+    p('#f2ead2', 10, 39, 12, 1);                                                    // páginas aparecendo embaixo
+    p(s.skin, 9, 33, 2, 4); p(s.skin, 21, 33, 2, 4);                                // mãos segurando
+  }
+  // quadro 0: lendo (pálpebras baixas, olhando o livro) · 1: falando · 2: olhando pra você (e balançando a perna)
+  function readingEyes(p, s, frame) {
+    if (frame !== 0) return;
+    p(s.skin, 12, 11, 2, 2); p(s.skin, 18, 11, 2, 2);
+    p('#2a1c14', 12, 12, 2, 1); p('#2a1c14', 18, 12, 2, 1);
+  }
+  // de perfil (virado pra direita), sentado na cadeira de escritório, mão no mouse, a tela iluminando o rosto.
+  // O main.js espelha o quadro quando você está do outro lado, pra ele continuar olhando pro monitor.
+  function deskBody(p, s, frame) {
+    // cadeira
+    p('#2a2c30', 6, 25, 4, 19); p('#3a3c42', 7, 26, 2, 17);                         // encosto
+    p('#2a2c30', 8, 44, 14, 3); p('#4a4c52', 13, 47, 2, 9);                         // assento e pistão
+    p('#2a2c30', 8, 56, 14, 2); for (const x of [8, 14, 20]) p('#111', x, 58, 2, 2); // base e rodinhas
+    // pernas: coxa na horizontal, canela pra baixo, tênis pra frente
+    p(s.shirt, 10, 41, 13, 4); p(s.shirtD, 10, 44, 13, 1);
+    p(s.shirt, 20, 45, 4, 12); p(s.shirtD, 20, 45, 1, 12);
+    p('#e8e8ec', 20, 57, 7, 2); p('#9a9aa2', 20, 59, 7, 1);
+    // tronco (jaleco) um pouco inclinado pra tela
+    p(s.coat, 10, 22, 9, 21); p(s.coatD, 10, 22, 1, 21); p(s.coatD, 10, 42, 9, 1);
+    p(s.shirt, 17, 22, 2, 8);                                                        // pijama aparecendo na frente
+    // braço até o mouse (o quadro 2 é o clique)
+    const cl = frame === 2 ? 1 : 0;
+    p(s.coat, 13, 23, 4, 11); p(s.coatD, 13, 33, 4, 1);
+    p(s.coat, 15, 31, 9, 3); p(s.skin, 24, 31 + cl, 3, 2); p('#d8d8dc', 26, 32 + cl, 2, 1);
+    // pescoço e cabeça de perfil
+    p(s.skin, 13, 18, 4, 4);
+    p(s.skin, 12, 6, 9, 13); p(s.skin, 21, 11, 1, 3); p(s.skinD, 12, 16, 9, 2);    // rosto + nariz
+    p(s.skinD, 14, 11, 2, 3);                                                         // orelha
+    p(s.hairC, 11, 3, 9, 4); p(s.hairC, 10, 6, 4, 8); p(s.hairD, 11, 5, 3, 1); p(s.hairC, 19, 4, 2, 2);
+    p('#fff', 18, 11, 2, 1); p('#000', 19, 11, 1, 1); p(s.brows, 17, 10, 3, 1);       // olho na tela
+    if (frame === 1) { p('#5a1e1e', 19, 15, 2, 2); } else p('#6a2a2a', 19, 15, 2, 1);
+    // luz azul do monitor na frente do rosto e do braço
+    p('#b9c2cb', 20, 8, 1, 8); p('#b9c2cb', 21, 12, 1, 1); p('#c8d8e8', 26, 31, 1, 1);
   }
 
   function head(g, p, s, frame) {
@@ -314,6 +387,15 @@ const SPRITES = (() => {
       const top = cy + ry - 4;
       p(s.mask, cx - 8, top, 17, 5); p('#7aa6be', cx - 8, top + 1, 17, 1); p('#7aa6be', cx - 8, top + 3, 17, 1); p('#c8e2f0', cx - 8, top, 17, 1);
       for (let k = 0; k < 6; k++) { p('#e8f0f4', cx - 9 - (k * 0.4 | 0), top - k); p('#e8f0f4', cx + 9 + (k * 0.4 | 0), top - k); }
+    }
+    if (s.book) {                                     // o livro na mão, entrando no quadro por baixo
+      p('#4a2266', 4, 37, 15, 11); p('#6a3a8a', 5, 38, 6, 10); p('#2e1440', 11, 37, 1, 11);
+      p('#f0c040', 13, 41, 4, 2); p('#4a2266', 14, 41, 2, 2); p('#f0c040', 13, 44, 4, 1); p(s.skin, 17, 40, 3, 5);
+    }
+    if (s.screenGlow) {                              // a luz da tela batendo no lado direito do rosto
+      g.globalAlpha = 0.5;
+      for (let y = 0; y < N; y++) for (let x = cx; x < N; x++) if (inEll(x, y, rx, ry) && !inEll(x + 2, y, rx, ry)) p(s.screenGlow, x, y);
+      g.globalAlpha = 1;
     }
     // mão gesticulando
     if (frame === 2) { p(s.skin, 38, 26, 6, 7); p(s.skin, 38, 23, 1, 3); p(s.skin, 40, 22, 1, 4); p(s.skin, 42, 22, 1, 4); p(s.coat, 38, 33, 7, 15); }

@@ -101,6 +101,73 @@ const STORY1 = {
     return game.following();
   },
 
+  // ---------------- CONSULTÓRIO 4: MAAA, o veterano, lendo na maca ----------------
+  async maaa(c) {
+    await c.say('narr', '*Um interno sentado na beirada da maca, pernas balançando, lendo um livro de capa roxa: "As Portas da Percepção", Aldous Huxley. Ele é a única pessoa sem pressa no hospital inteiro.*');
+    await c.say('maaa', 'Ô. Interno novo? Fica à vontade. A maca é minha, mas a sala é de todo mundo.');
+    let i = await c.choose(['Você não tá de plantão?', 'Que livro é esse?', 'Você não tem medo desse escuro?']);
+    if (i === 0) await c.say('maaa', 'Tô. O plantão é aqui. Se alguém precisar, me acha. Ninguém precisa de interno às sete da noite. Só às três da manhã.');
+    if (i === 1) {
+      await c.say('maaa', 'Huxley. Ele diz que o cérebro funciona como uma válvula: filtra quase tudo o que existe e deixa passar só o que serve pra gente sobreviver.');
+      await c.say('maaa', 'A faculdade também ensina a filtrar. A gente aprende a deixar passar a doença e filtrar a pessoa. Eu leio isso aqui pra abrir um pouco a válvula.');
+    }
+    if (i === 2) await c.say('maaa', 'Do escuro, não. Do Monteiro, um pouco. Ele te pegou no saguão? ...Pegou. Dá pra ver na sua cara.');
+    await c.say('maaa', 'Posso te contar uma coisa? Eu nem gosto de medicina.');
+    i = await c.choose(['Como assim?', 'Então por que você tá aqui?', '[Ficar quieto e escutar]']);
+    if (i === 0) await c.say('maaa', 'Não gosto da prova. Do jargão. Da hierarquia. De decorar via metabólica. Isso aí é com o ADC.');
+    if (i === 2) await c.say('narr', '*Ele fecha o livro com o dedo marcando a página. Parece que pouca gente escuta ele até o fim.*');
+    await c.say('maaa', 'Mas eu gosto de gente. De ajudar as pessoas. De ver alguém entrar mal e sair um pouco melhor por causa de alguma coisa que eu fiz. Nem que seja só ter escutado.');
+    await c.say('maaa', 'A medicina foi o jeito que eu achei de fazer isso todo dia. Ela é a ferramenta, não o motivo. Às vezes eu esqueço. Aí eu leio.');
+    i = await c.choose(['Faz sentido.', 'Acho que eu também sou assim.', 'Você devia falar isso pros professores.']);
+    if (i === 0) await c.say('maaa', 'Faz. Guarda isso pra madrugada. É quando mais faz falta.');
+    if (i === 1) await c.say('maaa', 'Então você vai ficar bem. Vai cansar, vai errar, vai chorar no banheiro do segundo andar. Mas vai ficar bem.');
+    if (i === 2) await c.say('maaa', 'Eles sabem. Lá no fundo, uns três sabem. O Liberato sabe, mas anota com outro nome.');
+    await c.say('maaa', 'Dica de veterano: se o Liberato te perguntar quando é o aniversário dele, NÃO chuta uma data.');
+    await c.say('maaa', 'E fala com o ADC ali no computador. Ele vai te fazer uma pergunta, e ele leva a sério. Dá uma olhada na mesa dele antes. Ele não é discreto.');
+    await c.say('narr', '*Ele volta pro livro. Vira a página como quem abre uma porta.*');
+  },
+  MAAA_DE_NOVO: [
+    '"Se as portas da percepção fossem limpas, tudo apareceria como é: infinito." Isso é do Blake. O Huxley pegou emprestado. Que nem eu com essa maca.',
+    'Ajudar dá trabalho. Mas é o único trabalho que eu não sinto como trabalho.',
+    'Se precisar de alguém pra escutar, eu tô aqui. A maca é minha, mas a escuta é de graça.',
+    'Vai lá. E se ficar difícil, lembra por que você entrou. Não o motivo da entrevista. O de verdade.',
+  ],
+
+  // ---------------- CONSULTÓRIO 4: ADC, no computador ----------------
+  // o: { ok() } — só tem uma chance; devolve 'ok' ou 'erro'
+  async adc(c, o) {
+    await c.say('narr', '*No computador do consultório, ligado no nobreak, um interno passa tomografias e ressonâncias. Rola, rola, rola. A tela é a única coisa acesa na sala.*');
+    await c.say('adc', 'Pera. ...Pera. Olha esse corte. Olha esse T2. Lindo.');
+    await c.say('adc', 'Você é o interno novo. Não precisa se apresentar, eu vi seu reflexo no monitor.');
+    await c.say('adc', 'Uma pergunta. Só uma. E eu levo isso muito a sério.');
+    await c.say('adc', 'Qual é o seu erro inato do metabolismo favorito?');
+    const OPS = ['Deficiência de G6PD', 'Fenilcetonúria', 'Síndrome de Lesch-Nyhan', 'Doença de Gaucher', 'Doença da urina do xarope de bordo'];
+    const i = await c.choose(OPS);
+    if (OPS[i] === 'Síndrome de Lesch-Nyhan') {
+      await c.say('narr', '*Ele tira os olhos da tela. Pela primeira vez na noite.*');
+      await c.say('adc', 'LESCH-NYHAN.');
+      await c.say('adc', 'Deficiência de HGPRT. A via de salvamento das purinas para, o ácido úrico vai lá em cima. Ligada ao X. Uma enzima a menos e muda tudo.');
+      await c.say('adc', 'Doença dura pra quem tem, hein. Favorita de estudar, não de ter. Mas ninguém responde isso. Todo mundo responde G6PD.');
+      await c.say('narr', '*Ele levanta a mão pra um "toca aqui". É tão rápido que você nem vê. Agora você vê. Tudo parece um pouco mais devagar.*');
+      o.ok();
+      await c.say('narr', '*Você se sente mais ágil.*');
+      await c.say('adc', 'Agora vai. E se um javali vier pra cima de você, desvia. Você consegue. Eu vi seu reflexo.');
+      return 'ok';
+    }
+    if (i === 0) await c.say('adc', 'G6PD. Fava, sulfa, primaquina, hemólise. Clássico. É o favorito de todo mundo. Por isso não é o meu.');
+    if (i === 1) await c.say('adc', 'Fenilcetonúria. Teste do pezinho, dieta sem fenilalanina. Respeito. Mas é famosa demais.');
+    if (i === 3) await c.say('adc', 'Gaucher. Você escolheu pelo nome, né? Gaúcho. Não vale.');
+    if (i === 4) await c.say('adc', 'Xarope de bordo. Cheiro de panqueca. Ótima escolha. Errada, mas ótima.');
+    await c.say('adc', 'Tudo bem. Não existe resposta errada pra favorito.');
+    await c.say('adc', '...Existe, sim. Mas tudo bem.');
+    await c.say('narr', '*Ele volta pra tela. A conversa acabou. Pra ele, acabou faz tempo.*');
+    return 'erro';
+  },
+  ADC_DE_NOVO: {
+    ok: ['HGPRT. Fala comigo quando quiser. Sobre purina. Só sobre purina.', 'Olha esse corte. ...Não, olha mesmo.', 'Tá desviando bem? Eu sabia.'],
+    erro: ['Eu ainda tô pensando na sua resposta. Não de um jeito bom.', 'Agora não. Tô no corte 23 de 40.', 'Lê a mesa. Sempre lê a mesa. Mas agora é tarde.'],
+  },
+
   // ---------------- PENSAMENTO DO INTERNO ----------------
   async thought(c) {
     await c.say('eu', 'Um bisturi. Contra javalis.');
