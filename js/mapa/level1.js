@@ -66,89 +66,38 @@ const LEVEL1 = (() => {
     '#############################..#############################',
   ];
   const X0 = -30, Z0 = -46, WALL_H = 3;
-  const cx = c => X0 + c + 0.5, cz = r => Z0 - r - 0.5;
 
   function build(scene, hooks) {
     const M = hooks.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
     const colliders = WORLD.colliders;
-    const out = { boars: [], cafes: [], doors: {}, searchables: [], lights: [] };
+    const out = { boars: [], cafes: [], searchables: [] };
 
-    // ---------- PAREDES (trechos horizontais, fundidos verticalmente) ----------
-    const runs = [];
-    MAP.forEach((row, r) => {
-      let c = 0;
-      while (c < row.length) {
-        if (row[c] !== '#') { c++; continue; }
-        let e = c; while (e + 1 < row.length && row[e + 1] === '#') e++;
-        const prev = runs.find(q => q.c1 === c && q.c2 === e && q.r2 === r - 1);
-        if (prev) prev.r2 = r; else runs.push({ c1: c, c2: e, r1: r, r2: r });
-        c = e + 1;
-      }
-    });
-    for (const q of runs) box(X0 + q.c1, 0, Z0 - q.r2 - 1, X0 + q.c2 + 1, WALL_H, Z0 - q.r1, M.wallLow, { collide: true });
-
-    // piso, forro e o volume do prédio acima
-    const xw = MAP[0].length, zh = MAP.length;
-    box(X0, -0.02, Z0 - zh, X0 + xw, 0.02, Z0, M.vinyl);
-    box(X0, WALL_H - 0.05, Z0 - zh, X0 + xw, WALL_H, Z0, M.ceiling);
-    box(X0, WALL_H, Z0 - zh, X0 + xw, hooks.TOP, Z0, M.concrete);
+    // ---------- PAREDES, PISO E FORRO ----------
+    const { xw } = BUILD.walls(MAP, { x0: X0, z0: Z0, wallH: WALL_H, floor: M.vinyl, ceiling: M.ceiling, top: hooks.TOP });
     // ninguém sai do prédio pelos fundos
     colliders.push({ x1: -200, x2: X0, z1: -300, z2: Z0 }, { x1: X0 + xw, x2: 200, z1: -300, z2: Z0 });
 
     // ---------- ENTIDADES DO MAPA ----------
-    MAP.forEach((row, r) => [...row].forEach((ch, c) => {
-      if (ch === 'J') out.boars.push({ x: cx(c), z: cz(r) });
-      if (ch === 'c') out.cafes.push(cafe(cx(c), cz(r)));
-    }));
-    function cafe(x, z) {
-      const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
-      const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.055, 0.14, 8), new THREE.MeshPhongMaterial({ color: 0xf2efe6, emissive: 0x333333 }));
-      cup.position.y = 0.8; g.add(cup);
-      const coffee = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.01, 8), new THREE.MeshBasicMaterial({ color: 0x3a2010 }));
-      coffee.position.y = 0.87; g.add(coffee);
-      const stool = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.72, 0.35), M.metal); stool.position.y = 0.36; g.add(stool);
-      return { x, z, group: g, cup, taken: false };
-    }
-
-    out.makeCafe = cafe;
+    BUILD.scan(MAP, { x0: X0, z0: Z0 }, {
+      J: (x, z) => out.boars.push({ x, z }),
+      c: (x, z) => out.cafes.push(BUILD.cafe('L1', x, z)),
+    });
 
     // ---------- PORTAS ----------
-    function door(name, x1, z1, x2, z2, slide, o = {}) {
-      const mesh = box(x1, 0, z1, x2, 2.4, z2, M.door, { su: o.su || 1, sv: 2.1 });
-      const col = { x1, x2, z1, z2 }; colliders.push(col);
-      const d = { name, mesh, col, locked: !!o.locked, lockedMsg: o.lockedMsg || 'Trancada.', open: false, t: 0,
-        slide: new THREE.Vector3(...slide), base: mesh.position.clone(), partner: null };
-      d.tryOpen = () => {
-        if (d.open) return;
-        if (d.locked) { hooks.toast(d.lockedMsg, 4); AUDIO.sfx('dry'); return; }
-        for (const k of [d, d.partner]) {
-          if (!k) continue;
-          k.open = true;
-          const i = colliders.indexOf(k.col); if (i >= 0) colliders.splice(i, 1);
-        }
-        AUDIO.sfx('door');
-      };
-      mesh.userData.verb = 'abrir';
-      mesh.userData.onUse = () => d.tryOpen();
-      out.doors[name] = d;
-      return d;
-    }
     // lintéis sobre as portas
     box(2, 2.4, -55, 3, WALL_H, -52, M.wallLow);
     box(-2, 2.4, -65.2, 2, WALL_H, -65, M.wallLow);
     box(-1, 2.4, -97.2, 1, WALL_H, -97, M.wallLow);
 
-    door('torax', 2.45, -55, 2.55, -52, [0, 0, -3], { su: 1.5, locked: true,
+    BUILD.door('torax', 2.45, -55, 2.55, -52, [0, 0, -3], { su: 1.5, locked: true,
       lockedMsg: 'CIRURGIA TORÁCICA — "Não entre sem bater. Nem batendo." Você não tem motivo pra entrar aí. Ainda.' });
-    const alaL = door('alaC', -2, -65.15, 0, -65.05, [-2, 0, 0], { su: 2, locked: true,
-      lockedMsg: 'ALA C. Trancada. Do outro lado... grunhidos? Não. Não pode ser.' });
-    const alaR = door('alaC2', 0, -65.15, 2, -65.05, [2, 0, 0], { su: 2, locked: true });
-    alaL.partner = alaR; alaR.partner = alaL;
-    alaR.mesh.userData.onUse = () => alaL.tryOpen();
-    door('prof3', -1, -97.15, 1, -97.05, [-2, 0, 0], { su: 2, locked: true,
+    BUILD.pair(BUILD.door('alaC', -2, -65.15, 0, -65.05, [-2, 0, 0], { su: 2, locked: true,
+      lockedMsg: 'ALA C. Trancada. Do outro lado... grunhidos? Não. Não pode ser.' }),
+    BUILD.door('alaC2', 0, -65.15, 2, -65.05, [2, 0, 0], { su: 2, locked: true }));
+    BUILD.door('prof3', -1, -97.15, 1, -97.05, [-2, 0, 0], { su: 2, locked: true,
       lockedMsg: 'Uma voz lá de dentro: "SÓ ABRO QUANDO ESSES BICHOS PARAREM DE GRUNHIR!"' });
     box(-1, 2.4, -105.55, 1, WALL_H, -105.45, M.wallLow);
-    door('prof3back', -1, -105.55, 1, -105.45, [-2, 0, 0], { su: 2, locked: true, lockedMsg: 'Porta dos fundos. Trancada. O Javali está com a chave... e te observando.' });
+    BUILD.door('prof3back', -1, -105.55, 1, -105.45, [-2, 0, 0], { su: 2, locked: true, lockedMsg: 'Porta dos fundos. Trancada. O Javali está com a chave... e te observando.' });
     sign('VASCULAR · CCIH ↓', 0, 2.62, -105.44, 1.8, 0.3, 'z+', { w: 128, h: 20, size: 12, fg: '#fff', bg: '#2a5a3a' });
 
     // ---------- PLACAS ----------
@@ -227,11 +176,7 @@ const LEVEL1 = (() => {
     for (let x = -24; x <= 20; x += 4.5) hooks.stretcher(x, -69.6, 0);
     for (const x of [-18, -13, 13, 18]) hooks.stretcher(x, -79.2, 0);
     for (const x of [-22, -6, 6, 20]) hooks.stretcher(x, -90.2, x > 0 ? 0.25 : -0.25);
-    for (const [x, z] of [[-20, -70], [20, -94], [0, -94]]) {
-      const l = new THREE.PointLight(0xff2a1a, 1.0, 11, 2); l.position.set(x, 2.7, z); scene.add(l);
-      const b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: 0xff3020 }));
-      b.position.copy(l.position); scene.add(b); l.userData.bulb = b; out.lights.push(l);
-    }
+    for (const [x, z] of [[-20, -70], [20, -94], [0, -94]]) BUILD.light(x, 2.7, z, { dist: 11 });
     out.zoneWard = { x1: -26, x2: 26, z1: -97, z2: -65 };
 
     // ---------- LEITO 12 (Capítulo 3): a Professora Muriel, internada por pancreatite ----------

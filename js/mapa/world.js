@@ -707,7 +707,7 @@ const WORLD = (() => {
 
   // =====================================================================
   // ITENS DE CURA (além do café da copa): pegam sozinhos ao passar perto, se você estiver ferido.
-  // A ORDEM IMPORTA: o save guarda o índice de cada item pego — só acrescente no fim.
+  // Cada um ganha um id 'W:n' na ordem em que aparece aqui (o save guarda os ids): só acrescente no fim.
   // =====================================================================
   const KINDS = {
     chimarrao: { heal: 40, cure: false, msgs: ['Chimarrão do galpãozinho. Amargo, quente, gaúcho. Ninguém vai sentir falta. Vão sim. (+40)'],
@@ -725,7 +725,7 @@ const WORLD = (() => {
       const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
       if (onStool) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.72, 0.35), M.metal); st.position.y = 0.36; g.add(st); }
       const item = new THREE.Group(); item.position.y = onStool ? 0.8 : 0.5; g.add(item); make(item);
-      list.push(Object.assign({ x, z, group: g, cup: item, taken: false, kind }, KINDS[kind]));
+      list.push(BUILD.pickup('W', Object.assign({ x, z, group: g, cup: item, kind }, KINDS[kind])));
     };
     const m = (geo, c, extra = {}) => new THREE.Mesh(geo, new THREE.MeshPhongMaterial(Object.assign({ color: c, emissive: 0x222222 }, extra)));
     const cuia = it => {
@@ -946,5 +946,6 @@ const WORLD = (() => {
     box(x - 0.25, h - 0.2, z - 1.1, x + 0.25, h - 0.05, z - 0.6, M.dark);
   }
 
-  return { build, box, panel, sign, mat, stretcher: (x, z, rot) => stretcher(x, z, rot, MAT), FLOOR_H, UP_H, FLOORS, get colliders() { return colliders; }, get interactables() { return interactables; } };
+  return { build, box, panel, sign, mat, stretcher: (x, z, rot) => stretcher(x, z, rot, MAT), FLOOR_H, UP_H, FLOORS,
+    get colliders() { return colliders; }, get interactables() { return interactables; }, get scene() { return scene; }, get M() { return MAT; } };
 })();

@@ -81,23 +81,28 @@
 </div>
 
 <script src="lib/three.min.js"></script>
-<script src="js/util.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/textures.js"></script>
-<script src="js/sprites.js"></script>
-<script src="js/world.js"></script>
-<script src="js/level1.js"></script>
-<script src="js/level2.js"></script>
-<script src="js/level3.js"></script>
-<script src="js/combat.js"></script>
-<script src="js/boss.js"></script>
-<script src="js/dialogue.js"></script>
-<script src="js/convo.js"></script>
-<script src="js/touch.js"></script>
-<script src="js/aura.js"></script>
-<script src="js/story1.js"></script>
-<script src="js/story2.js"></script>
-<script src="js/story3.js"></script>
+<!-- A ordem importa (sem módulos, pra funcionar com dois cliques no index.html). Mapa do código: CLAUDE.md -->
+<!-- motor: não sabe nada da história -->
+<script src="js/motor/util.js"></script>
+<script src="js/motor/audio.js"></script>
+<script src="js/motor/textures.js"></script>
+<script src="js/motor/sprites.js"></script>
+<script src="js/motor/build.js"></script>
+<!-- mapa: as áreas do hospital -->
+<script src="js/mapa/world.js"></script>
+<script src="js/mapa/level1.js"></script>
+<script src="js/mapa/level2.js"></script>
+<script src="js/mapa/level3.js"></script>
+<script src="js/motor/combat.js"></script>
+<script src="js/mecanicas/boss.js"></script>
+<script src="js/mecanicas/dialogue.js"></script>
+<script src="js/motor/convo.js"></script>
+<script src="js/motor/touch.js"></script>
+<script src="js/motor/aura.js"></script>
+<!-- roteiros: as falas -->
+<script src="js/roteiros/story1.js"></script>
+<script src="js/roteiros/story2.js"></script>
+<script src="js/roteiros/story3.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

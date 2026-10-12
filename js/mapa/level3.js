@@ -38,24 +38,10 @@ const LEVEL3 = (() => {
   function build(scene, hooks) {
     const M = hooks.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
     const colliders = WORLD.colliders;
-    const out = { lights: [] };
+    const out = {};
 
-    // ---------- PAREDES ----------
-    const runs = [];
-    MAP.forEach((row, r) => {
-      let c = 0;
-      while (c < row.length) {
-        if (row[c] !== '#') { c++; continue; }
-        let e = c; while (e + 1 < row.length && row[e + 1] === '#') e++;
-        const prev = runs.find(q => q.c1 === c && q.c2 === e && q.r2 === r - 1);
-        if (prev) prev.r2 = r; else runs.push({ c1: c, c2: e, r1: r, r2: r });
-        c = e + 1;
-      }
-    });
-    for (const q of runs) box(X0 + q.c1, 0, Z0 - q.r2 - 1, X0 + q.c2 + 1, WALL_H, Z0 - q.r1, M.wallLow, { collide: true });
-    const xw = MAP[0].length, zh = MAP.length;
-    box(X0, -0.02, Z0 - zh, X0 + xw, 0.02, Z0, M.vinyl);
-    box(X0, WALL_H - 0.05, Z0 - zh, X0 + xw, WALL_H, Z0, M.pvc);
+    // ---------- PAREDES, PISO E FORRO ----------
+    BUILD.walls(MAP, { x0: X0, z0: Z0, wallH: WALL_H, floor: M.vinyl, ceiling: M.pvc });
     const col = c => new THREE.MeshPhongMaterial({ color: c, emissive: 0x111111 });
     const glow = c => new THREE.MeshBasicMaterial({ color: c });
 
@@ -92,11 +78,7 @@ const LEVEL3 = (() => {
     [0xc01818, 0xe07020, 0xe0c030, 0x2a9a3a, 0x2a5ab0].forEach((c, k) => {
       box(-21, 0.02, -330.4 - k * 0.45, 21, 0.026, -330.25 - k * 0.45, col(c));
     });
-    for (let x = -18; x <= 18; x += 9) {
-      const l = new THREE.PointLight(0xff2a1a, 0.9, 10, 2); l.position.set(x, 2.7, -331); scene.add(l);
-      const b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.12), glow(0xff3020)); b.position.copy(l.position); scene.add(b);
-      l.userData.bulb = b; out.lights.push(l);
-    }
+    for (let x = -18; x <= 18; x += 9) BUILD.light(x, 2.7, -331, { peak: 0.8 });
     panel(-21 + 0.01, 1.6, -331, 1.4, 1.0, 'x+', M.board, {
       msg: 'Mural do PS: "ESCALA DE PLANTÃO — OUTUBRO". Seu nome aparece em todos os dias. Até nos que ainda não existem.' });
 

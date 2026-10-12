@@ -35,11 +35,10 @@
   const W = WORLD.build(scene);
   W.colliders.push({ x1: -200, x2: 200, z1: 75, z2: 200 }, { x1: -200, x2: -85, z1: -200, z2: 200 }, { x1: 85, x2: 200, z1: -200, z2: 200 });
   const L = LEVEL1.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGun: where => onGun(where), onMarmita: () => onMarmita(), onCT: () => onCT() });
-  const L2 = LEVEL2.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, cafe: (x, z) => L.makeCafe(x, z), onGel: g => onGel(g) });
+  const L2 = LEVEL2.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGel: g => onGel(g) });
   const L3 = LEVEL3.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onUp: () => climbStairs() });
-  const allCafes = () => L.cafes.concat(L2.cafes, W.pickups);   // só acrescentar no fim (o save guarda índices)
-  const allDoors = () => Object.values(L.doors).concat(Object.values(L2.doors));
-  const allLights = () => L.lights.concat(L2.lights, L3.lights);
+  BUILD.toast = toast;
+  const allCafes = () => BUILD.pickups;
 
   // ---------- LANTERNA ----------
   const flashlight = new THREE.SpotLight(0xfff0d0, 2.4, 26, 0.5, 0.55, 1.5);
@@ -199,7 +198,7 @@
       bossDone: G.bossDone, plantaoDone: G.plantaoDone, muriel: Math.floor(G.muriel), rxPerfect: G.rxPerfect,
       hp: COMBAT.P.hp, maxHp: COMBAT.P.maxHp, kills: G.kills,
       dead: COMBAT.boars.map((b, i) => (b.state === 'dead' && i < L.boars.length ? i : -1)).filter(i => i >= 0),
-      cafes: allCafes().map((c, i) => (c.taken ? i : -1)).filter(i => i >= 0),
+      cafes: allCafes().filter(c => c.taken).map(c => c.id),
       date: Date.now(),
     };
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { return; }
@@ -239,12 +238,12 @@
     if (s.duduDone) {
       G.duduStarted = G.duduDone = true;
       COMBAT.give('scalpel'); CONVO.setFollowing(s.following);
-      for (const k of ['torax', 'alaC', 'alaC2']) L.doors[k].locked = false;
+      for (const k of ['torax', 'alaC', 'alaC2']) BUILD.doors[k].locked = false;
     }
     if (s.hasGun) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
-    if (s.prof3Done) { G.prof3Started = G.prof3Done = true; L.doors.prof3.locked = false; L.doors.prof3back.locked = false; moveProf3Aside(); }
+    if (s.prof3Done) { G.prof3Started = G.prof3Done = true; BUILD.doors.prof3.locked = false; BUILD.doors.prof3back.locked = false; moveProf3Aside(); }
     G.knotPracticed = !!s.treino;
-    if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false; }
+    if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; BUILD.doors.ccih.locked = false; BUILD.doors.ccih2.locked = false; }
     G.rxPerfect = !!s.rxPerfect;
     if (s.bossDone) setupChapter3();
     if (s.muriel && !s.plantaoDone) setupLeito(s.muriel);
@@ -257,7 +256,8 @@
     COMBAT.P.maxHp = s.maxHp || 100; COMBAT.P.hp = s.hp || COMBAT.P.maxHp;
     G.kills = s.kills || 0;
     (s.dead || []).forEach(i => COMBAT.killSilently(i));
-    (s.cafes || []).forEach(i => { const c = allCafes()[i]; if (c) { c.taken = true; c.cup.visible = false; } });
+    const legacy = ['L1', 'L2', 'W'].flatMap(a => allCafes().filter(c => c.id.startsWith(a + ':')));   // save antigo guardava a posição nessa ordem
+    (s.cafes || []).forEach(i => { const c = typeof i === 'number' ? legacy[i] : allCafes().find(p => p.id === i); if (c) { c.taken = true; c.cup.visible = false; } });
     P.pos.set(s.pos[0], 0, s.pos[1]); P.yaw = s.yaw || 0; P.pitch = 0;
     setObjective(objectiveText());
   }
@@ -388,9 +388,9 @@
       await STORY1.thought(c);
     }, { instagram: true, target: dudu });
     G.duduDone = true;
-    L.doors.torax.locked = false;
-    L.doors.alaC.locked = false; L.doors.alaC2.locked = false;
-    L.doors.torax.lockedMsg = '';
+    BUILD.doors.torax.locked = false;
+    BUILD.doors.alaC.locked = false; BUILD.doors.alaC2.locked = false;
+    BUILD.doors.torax.lockedMsg = '';
     setObjective(objectiveText());
     AUDIO.play('moonlight', { fade: 3 });
     save();
@@ -416,7 +416,7 @@
     AUDIO.stop(1);
     await runConvo(c => STORY2.prof3(c, { kills: G.kills }), { target: prof3, chain: true });
     G.prof3Done = true;
-    L.doors.prof3back.locked = false;
+    BUILD.doors.prof3back.locked = false;
     moveProf3Aside();
     setObjective(objectiveText());
     G.state = 'travel';                                          // parado durante o letreiro
@@ -445,7 +445,7 @@
       notify('Você recebeu um ELOGIO do De Barros. Isso acontece com 0,3% dos internos.', '🏆 CONQUISTA RARA');
     } }), { meter: true, target: clovis });
     G.clovisDone = true;
-    L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false;
+    BUILD.doors.ccih.locked = false; BUILD.doors.ccih2.locked = false;
     setObjective(objectiveText());
     AUDIO.play('moonlight', { fade: 3 });
     save();
@@ -453,7 +453,7 @@
 
   async function startBoss() {
     G.bossStarted = true;
-    L2.doors.ccih.close();
+    BUILD.doors.ccih.close();
     if (!W.colliders.includes(gate)) W.colliders.push(gate);
     AUDIO.stop(0.5);
     await runConvo(c => STORY2.belgicaIntro(c), { target: belgica });
@@ -478,7 +478,7 @@
   function setupChapter3() {
     G.bossStarted = G.bossDone = true; belgica.mesh.visible = false;
     const i = W.colliders.indexOf(gate); if (i >= 0) W.colliders.splice(i, 1);
-    L2.doors.ccih.locked = false; L2.doors.ccih.tryOpen();
+    BUILD.doors.ccih.locked = false; BUILD.doors.ccih.tryOpen();
     dudu.mesh.position.set(-0.8, dudu.h / 2, -54.5);
     Object.assign(dudu.col, { x1: -1.1, x2: -0.5, z1: -54.8, z2: -54.2 });
     setObjective(objectiveText());
@@ -691,8 +691,8 @@
       if (n !== G.wardLeft) {
         G.wardLeft = n;
         if (G.hasGun && !G.prof3Done) setObjective(objectiveText());
-        if (n === 0 && L.doors.prof3.locked) {
-          L.doors.prof3.locked = false;
+        if (n === 0 && BUILD.doors.prof3.locked) {
+          BUILD.doors.prof3.locked = false;
           toast('Silêncio na Ala C. Lá do fundo, uma porta destranca.', 4);
           AUDIO.sfx('door');
         }
@@ -710,19 +710,12 @@
       }
     }
     // grunhidos atrás da porta da Ala C
-    if (!L.doors.alaC.open && P.pos.z < -55) {
+    if (!BUILD.doors.alaC.open && P.pos.z < -55) {
       G.wardGruntT -= dt;
       if (G.wardGruntT <= 0) { G.wardGruntT = 3 + Math.random() * 5; AUDIO.sfx('grunt', U.clamp(1 - Math.abs(P.pos.z + 65) / 20, 0.1, 0.7)); }
     }
   }
 
-  function updateDoors(dt) {
-    for (const d of allDoors()) {
-      if (!d.open || d.t >= 1) continue;
-      d.t = Math.min(1, d.t + dt * 1.4);
-      d.mesh.position.copy(d.base).addScaledVector(d.slide, d.t);
-    }
-  }
 
   // Consultório 4: Das Lied von der Erde enquanto você estiver na sala com os internos (na saída, volta o que tocava)
   function updateRoomMusic() {
@@ -804,10 +797,6 @@
     let bi = 1.0 * ((Math.sin(G.time * 1.7 + 1) > -0.3) ? 1 : 0.2);
     if (G.scare > 0 && G.scare < 99) bi = G.scare < 1.5 ? (Math.random() < 0.5 ? 1 : 0) : (G.scare < 4.5 ? 0 : bi);
     b.intensity = bi; b.userData.bulb.visible = bi > 0.5;
-    allLights().forEach((l, i) => {
-      const on = Math.sin(G.time * (1.3 + i * 0.4) + i * 2) > -0.4 ? 1 : 0.1;
-      l.intensity = on * (i >= L.lights.length ? 0.8 : 1); l.userData.bulb.visible = on > 0.5;
-    });
   }
 
   // ---------- LOOP ----------
@@ -866,7 +855,7 @@
     $('flash').style.opacity = G.flashT > 0 ? G.flashT * 2.4 : 0;
     $('infect').style.opacity = COMBAT.P.infectT > 0 ? 0.35 + Math.sin(G.time * 5) * 0.1 : 0;
     updateProf(dt);
-    updateDoors(dt);
+    BUILD.update(dt, G.time);
     W.update(dt, P.pos, G.state === 'play' && !G.paused);
     L3.update(dt, P.pos, G.state === 'play' && !G.paused);
     updateLights(dt);
@@ -902,7 +891,7 @@
   const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met|,dudu|,gun|,prof3|,clovis|,ch3|,leito|,rx|,ps)?/);
   if (dev) {
     G.dev = true;
-    window.__game = { P, G, BOSS, COMBAT, CONVO, W, L1: L, L2, L3, pickups: allCafes(), doors: Object.assign({}, L.doors, L2.doors) };   // só no modo dev, para testes automáticos
+    window.__game = { P, G, BOSS, COMBAT, CONVO, W, L1: L, L2, L3, pickups: BUILD.pickups, doors: BUILD.doors };   // só no modo dev, para testes automáticos
     ['boot', 'title'].forEach(id => show(id, false));
     show('hud'); G.state = 'play';
     P.pos.set(+dev[1], 0, +dev[2]); P.yaw = +dev[3]; P.pitch = +(dev[4] || 0);
@@ -914,14 +903,14 @@
     const later = [',prof3', ',clovis'].includes(stage) || ch3;
     if (stage === ',dudu' || stage === ',gun' || later) {
       G.duduStarted = G.duduDone = true; COMBAT.give('scalpel');
-      for (const k in L.doors) L.doors[k].locked = false;
+      for (const k of ['torax', 'alaC', 'alaC2', 'prof3', 'prof3back']) BUILD.doors[k].locked = false;
     }
     if (stage === ',gun' || later) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
     if (later) {
       G.prof3Started = G.prof3Done = true; moveProf3Aside();
       COMBAT.boars.forEach((b, i) => COMBAT.killSilently(i));
     }
-    if (stage === ',clovis' || ch3) { G.clovisStarted = G.clovisDone = true; for (const k in L2.doors) L2.doors[k].locked = false; }
+    if (stage === ',clovis' || ch3) { G.clovisStarted = G.clovisDone = true; for (const k of ['ccih', 'ccih2']) BUILD.doors[k].locked = false; }
     if (ch3) setupChapter3();
     if (stage === ',leito') setupLeito(1);
     if (stage === ',rx') setupLeito(3);
