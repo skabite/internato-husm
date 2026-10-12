@@ -1,30 +1,20 @@
-// Conversas roteirizadas (async/await): Liberato, Javali, pensamentos do interno.
-// Usa a mesma caixa de diálogo do Professor, escondendo o medidor de foco.
+// Conversas roteirizadas (async/await): c.say(quem, texto), c.choose([opções]), minijogos (c.laudos(), c.knot(mão)...).
+// Usa a mesma caixa de diálogo do Monteiro, escondendo o medidor de foco. Quem fala: js/dados/personagens.js.
 const CONVO = (() => {
-  const SPEAKERS = {
-    monteiro: { char: 'prof1', name: 'PROFESSOR MONTEIRO', cps: 30, blip: [170, 140] },   // na cutscene do saguão (a conversa dele é o DIALOGUE)
-    zap: { char: null, name: '📱 GRUPO "INTERNATO HUSM"', cps: 70, blip: null },
-    dudu: { char: 'prof2', name: 'PROFESSOR LIBERATO', cps: 36, blip: [125, 25] },
-    prof3: { char: 'prof3', name: 'JAVALI', cps: 30, blip: [70, 30], pig: true },   // "o Javali": fala grunhindo
-    clovis: { char: 'prof4', name: 'PROFESSOR DE BARROS', cps: 33, blip: [150, 30] },
-    belgica: { char: 'chefao', name: 'PROFESSOR SCHWARZENEGGER', cps: 52, blip: [140, 80] },
-    falastrao: { char: 'prof5', name: 'PROFESSOR FALASTRÃO', cps: 46, blip: [115, 70] },   // provisório (falta foto)
-    maaa: { char: 'maaa', name: 'MAAA · INTERNO VETERANO', cps: 32, blip: [135, 35] },
-    adc: { char: 'adc', name: 'ADC · INTERNO', cps: 44, blip: [190, 60] },
-    muriel: { char: 'muriel', name: 'PROFESSORA MURIEL · LEITO 12', cps: 34, blip: [215, 50] },
-    muriel2: { char: 'muriel2', name: 'PROFESSORA MURIEL · LEITO 12', cps: 34, blip: [230, 50] },
-    mascara: { char: 'prof6', name: 'PROFESSOR MÁSCARA (lembrança)', cps: 38, blip: [92, 22] },
-    eu: { char: null, name: 'VOCÊ (pensando)', cps: 48, blip: null, italic: true },
-    narr: { char: null, name: '', cps: 60, blip: null, italic: true },
-  };
+  // quem fala: nome, voz e retrato vêm da ficha em js/dados/personagens.js
+  function speakerOf(key) {
+    const p = PERSONAGENS[key];
+    if (!p || !p.fala) throw new Error('personagem sem fala em js/dados/personagens.js: ' + key);
+    const f = p.fala;
+    return { key, char: p.visual ? key : null, name: f.nome, cps: f.cps, blip: f.blip, italic: !!f.italico, pig: !!f.porco };
+  }
   let el = {}, active = false, mode = 'idle', q = null, resolver = null, options = [], speaker = null;
-  let knot = null;
-  let talk = false, igScore = 1, onNotify = null, laudos = null, lastFrame = -1;
+  let talk = false, igScore = 1, onNotify = null, lastFrame = -1;
 
   const $ = id => document.getElementById(id);
 
   function setSpeaker(key) {
-    speaker = SPEAKERS[key];
+    speaker = speakerOf(key);
     el.name.textContent = speaker.name;
     el.portrait.style.display = speaker.char ? 'block' : 'none';
     el.text.style.fontStyle = speaker.italic ? 'italic' : 'normal';
@@ -48,7 +38,7 @@ const CONVO = (() => {
     return new Promise(res => { resolver = res; });
   }
   function pick(i) {
-    if (mode === 'laudos') return laudoPick(i);
+    if (mode === 'game') return game.def.pick && game.def.pick(i);
     if (mode !== 'choices' || i >= options.length) return;
     AUDIO.sfx('click'); mode = 'idle'; el.options.innerHTML = '';
     const r = resolver; resolver = null; r(i);
@@ -99,197 +89,51 @@ const CONVO = (() => {
     if (before === after) onNotify && onNotify(nextIg(delta > 0 ? IG_GOOD : IG_BAD));
   }
 
-  // ---------- Minijogo: laudos em ordem crescente de prontuário ----------
-  function laudoStart() {
-    const nums = new Set();
-    while (nums.size < 5) nums.add(100000 + Math.floor(Math.random() * 900000));
-    laudos = { items: U.shuffle([...nums]), done: [], errors: 0 };
-    mode = 'laudos'; laudoRender();
-    return new Promise(res => { resolver = res; });
-  }
-  function laudoRender() {
-    el.options.innerHTML = '';
-    laudos.items.forEach((n, i) => {
-      const d = document.createElement('div'); d.className = 'opt' + (laudos.done.includes(n) ? ' done' : '');
-      const f = String(n).replace(/(\d{3})(\d{3})/, '$1.$2');
-      d.innerHTML = `<b>${i + 1}.</b> Laudo de colonoscopia · Pront. ${f}${laudos.done.includes(n) ? ' ✔' : ''}`;
-      d.onclick = () => laudoPick(i);
-      el.options.appendChild(d);
+  // ---------- MINIJOGOS dentro da caixa de conversa ----------
+  // Cada minijogo fica num arquivo em js/mecanicas/ e se registra com CONVO.minigame('nome', def).
+  // No roteiro vira: const resultado = await c.nome(...args)   (ex.: await c.laudos(), await c.knot('esquerda'))
+  //   def.start(ui, ...args)  monta a tela e devolve o estado do jogo (os testes leem em CONVO.minigameState)
+  //   def.key(code)           tecla apertada (opcional; sem ele, as teclas 1-9 viram def.pick)
+  //   def.pick(i)             opção escolhida (clique ou tecla 1-9; opcional)
+  //   def.update(dt)          todo quadro (opcional)
+  //   ui = { el: elementos da caixa (text, options, silence, silenceFill...), finish(resultado, atrasoMs) }
+  const minigames = {};
+  let game = null;                                                // { def, state } do minijogo em andamento
+  function startGame(name, ...args) {
+    const def = minigames[name];
+    mode = 'game';
+    return new Promise(res => {
+      resolver = res;
+      const ui = {
+        el,
+        finish(result, delayMs = 0) {
+          if (!game || game.ui !== ui) return;
+          game = null; mode = 'idle';
+          const r = resolver; resolver = null;
+          setTimeout(() => r(result), delayMs);
+        },
+      };
+      game = { def, ui, state: null };
+      game.state = def.start(ui, ...args);
     });
-  }
-  function laudoPick(i) {
-    const n = laudos.items[i];
-    if (n === undefined || laudos.done.includes(n)) return;
-    const next = Math.min(...laudos.items.filter(x => !laudos.done.includes(x)));
-    if (n === next) {
-      laudos.done.push(n); AUDIO.sfx('click');
-      if (laudos.done.length === laudos.items.length) {
-        laudoRender(); mode = 'idle';
-        const r = resolver; resolver = null; setTimeout(() => r(laudos.errors), 500);
-        return;
-      }
-    } else {
-      laudos.errors++; AUDIO.sfx('bad');
-      el.text.textContent = U.pick(['Não. Crescente. Do menor pro maior. De novo.', 'Você pulou um. De novo. Do começo.', 'Isso é decrescente em algum universo? Não neste. De novo.']);
-      laudos.done = []; U.shuffle(laudos.items);
-    }
-    laudoRender();
-  }
-
-  // ---------- Minijogo: nó cirúrgico por ARRASTO ----------
-  // Aparece uma seta; arraste na direção dela (dedo no celular, mouse segurando o botão no computador, ou setas/WASD).
-  // Cada acerto toca a próxima nota de Eine kleine Nachtmusik e aperta mais o nó.
-  // Resultado: { errors, time, timeout, perfect } — perfeito = sem erro e rápido.
-  const MELODY = [392, 293.7, 392, 293.7, 392, 293.7, 392, 493.9, 587.3, 523.3, 440, 523.3, 440, 523.3, 440, 370, 440, 293.7];
-  // mão esquerda: 4 direções · mão direita: 8 (com diagonais). Cada seta tem ~1,4 s: demorou, o fio afrouxa (conta erro).
-  const DIRS = ['L', 'R', 'U', 'D'], DIAG = ['UL', 'UR', 'DL', 'DR'];
-  const ARROW = { L: '←', R: '→', U: '↑', D: '↓', UL: '↖', UR: '↗', DL: '↙', DR: '↘' };
-  const SECTOR = ['R', 'DR', 'D', 'DL', 'L', 'UL', 'U', 'UR'];       // ângulo da tela (y pra baixo), de 45 em 45°
-  const KNOT_N = 8, KNOT_LIMIT = 15, KNOT_FAST = 8, KNOT_STEP = 1.4;
-  let kcan = null, kctx = null, kside = null, mel = 0;
-
-  // No computador fica o nó clássico: digitar a sequência (mão esquerda = WASD, direita = setas) antes do tempo acabar.
-  const KEYSETS = {
-    esquerda: { codes: ['KeyW', 'KeyA', 'KeyS', 'KeyD'], label: { KeyW: 'W', KeyA: 'A', KeyS: 'S', KeyD: 'D' } },
-    direita: { codes: ['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'], label: { ArrowUp: '↑', ArrowLeft: '←', ArrowDown: '↓', ArrowRight: '→' } },
-  };
-  const CLASSIC_N = 7, CLASSIC_LIMIT = 6, CLASSIC_FAST = 3.5;
-  function knotClassicStart(hand) {
-    const ks = KEYSETS[hand];
-    knot = { classic: true, hand, ks, seq: Array.from({ length: CLASSIC_N }, () => U.pick(ks.codes)), i: 0, errors: 0, t: 0 };
-    mode = 'knot'; knotClassicRender();
-    el.silence.style.display = '';
-    return new Promise(res => { resolver = res; });
-  }
-  function knotClassicRender() {
-    const k = knot;
-    el.options.innerHTML = '<div class="knot classic">' + k.seq.map((c, i) =>
-      '<span class="' + (i < k.i ? 'ok' : i === k.i ? 'cur' : '') + '">' + k.ks.label[c] + '</span>').join('') +
-      '</div><div class="knot-help">MÃO ' + k.hand.toUpperCase() + ' · ' + (k.hand === 'esquerda' ? 'W A S D' : 'setas') + ' · erros: ' + k.errors + '</div>';
-  }
-  function knotClassicKey(code) {
-    const k = knot;
-    if (!k.ks.codes.includes(code)) return;
-    if (code === k.seq[k.i]) { k.i++; AUDIO.sfx('note', MELODY[mel++ % MELODY.length], 0.16); }
-    else { k.errors++; AUDIO.sfx('bad'); }
-    knotClassicRender();
-    if (k.i >= k.seq.length) knotEnd();
-  }
-
-  function knotStart(hand) {
-    if (!TOUCH.on) return knotClassicStart(hand);
-    const diag = hand === 'direita', pool = diag ? DIRS.concat(DIAG, DIAG) : DIRS;
-    const seq = [];
-    while (seq.length < KNOT_N) { const d = U.pick(pool); if (d !== seq[seq.length - 1]) seq.push(d); }
-    knot = { hand, seq, diag, i: 0, errors: 0, t0: performance.now(), t: 0, step0: -0.6, fb: '', fbT: 0, drag: null, shake: 0 };
-    mode = 'knot';
-    if (!kcan) {
-      kcan = document.createElement('canvas'); kcan.id = 'rhythm'; kcan.width = 120; kcan.height = 108;
-      document.body.appendChild(kcan); kctx = kcan.getContext('2d');
-    }
-    kcan.style.display = 'block';
-    el.options.innerHTML = '<div class="knot">NÓ · MÃO ' + hand.toUpperCase() + '</div><div class="knot-help">' + (TOUCH.on
-      ? 'ARRASTE na direção da seta usando só o lado ' + (diag ? 'DIREITO' : 'ESQUERDO') + ' da tela (o lado aceso) · rápido: o fio afrouxa'
-      : 'segure o botão do mouse e ARRASTE na direção da seta · ou setas / WASD' + (diag ? ' · diagonais: Q E Z C' : '')) + '</div>';
-    for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.addEventListener(ev, knotPointer, { passive: false });
-    if (TOUCH.on) {                                                    // só no celular: metade da tela de cada mão
-      if (!kside) { kside = document.createElement('div'); kside.id = 'knotside'; kside.innerHTML = '<div class="kon"></div><div class="koff"></div>'; document.body.appendChild(kside); }
-      kside.className = hand === 'direita' ? 'right' : 'left';
-      kside.firstChild.innerHTML = '<div>MÃO ' + hand.toUpperCase() + '</div><span>ARRASTE AQUI</span>';
-      kside.style.display = 'block';
-    }
-    return new Promise(res => { resolver = res; });
-  }
-  function knotNow() { knot.t = (performance.now() - knot.t0) / 1000; return knot.t; }
-  function knotFb(t, c) { knot.fb = t; knot.fbC = c; knot.fbT = 0.5; }
-  function knotGesture(d) {
-    const k = knot; knotNow();
-    if (d === k.seq[k.i]) {
-      k.i++; k.step0 = k.t; knotFb('BOA', '#8f8');
-      AUDIO.sfx('note', MELODY[mel++ % MELODY.length], 0.16);
-      if (k.i >= k.seq.length) knotEnd();
-    } else { k.errors++; k.shake = 0.25; knotFb('ERROU', '#f77'); AUDIO.sfx('bad'); }
-  }
-  function knotKey(code) {
-    if (knot.classic) return knotClassicKey(code);
-    const m = { KeyA: 'L', ArrowLeft: 'L', KeyD: 'R', ArrowRight: 'R', KeyW: 'U', ArrowUp: 'U', KeyS: 'D', ArrowDown: 'D',
-      KeyQ: 'UL', KeyE: 'UR', KeyZ: 'DL', KeyC: 'DR' };
-    if (m[code]) knotGesture(m[code]);
-  }
-  // um gesto por toque/clique: soma o movimento até passar de ~30 px e decide a direção dominante
-  function knotPointer(e) {
-    if (mode !== 'knot') return;
-    const k = knot, touch = e.type.startsWith('touch');
-    if (touch) e.preventDefault();
-    if (e.type === 'touchstart' || (e.type === 'mousedown' && e.button === 0)) {
-      const sx = touch ? e.changedTouches[0].clientX : 0;
-      // no celular, cada mão tem a sua metade da tela; começou do lado errado = erro
-      const wrongSide = touch && (k.hand === 'direita') !== (sx >= innerWidth / 2);
-      k.drag = { x: 0, y: 0, done: false, wrongSide, lx: sx, ly: touch ? e.changedTouches[0].clientY : 0 }; return;
-    }
-    if (e.type === 'touchend' || e.type === 'mouseup') { k.drag = null; return; }
-    if (!k.drag || k.drag.done) return;
-    if (touch) { const t = e.changedTouches[0]; k.drag.x += t.clientX - k.drag.lx; k.drag.y += t.clientY - k.drag.ly; k.drag.lx = t.clientX; k.drag.ly = t.clientY; }
-    else { k.drag.x += e.movementX || 0; k.drag.y += e.movementY || 0; }
-    if (Math.hypot(k.drag.x, k.drag.y) > 30) {
-      k.drag.done = true;
-      if (k.drag.wrongSide) { k.errors++; k.shake = 0.25; knotFb('LADO ERRADO', '#f77'); AUDIO.sfx('bad'); return; }
-      const { x, y } = k.drag;
-      knotGesture(k.diag ? SECTOR[(Math.round(Math.atan2(y, x) / (Math.PI / 4)) + 8) % 8]
-        : Math.abs(x) > Math.abs(y) ? (x < 0 ? 'L' : 'R') : (y < 0 ? 'U' : 'D'));
-    }
-  }
-  function knotDraw(dt) {
-    const g = kctx, k = knot, W = 120, H = 108;
-    g.fillStyle = '#0b0d12'; g.fillRect(0, 0, W, H);
-    // o fio: cada acerto dá mais uma volta no nó
-    g.fillStyle = '#d8d2bc'; g.fillRect(8, 86, 104, 2);
-    for (let i = 0; i < k.i; i++) { g.strokeStyle = '#d8d2bc'; g.lineWidth = 2; g.beginPath(); g.ellipse(60, 80, 4 + i * 2.4, 4, 0, 0, 7); g.stroke(); }
-    // seta atual (treme quando erra)
-    const sx = k.shake > 0 ? Math.sin(k.t * 90) * 3 : 0;
-    const cur = k.seq[k.i];
-    if (cur) {
-      g.font = 'bold 44px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillStyle = '#ffd84a'; g.fillText(ARROW[cur], 60 + sx, 40);
-      g.font = '9px monospace'; g.fillStyle = '#6a6858';
-      g.fillText(k.seq.slice(k.i + 1).map(d => ARROW[d]).join(' '), 60, 68);
-      const st = Math.max(0, 1 - (k.t - k.step0) / KNOT_STEP);          // tempo desta seta
-      g.fillStyle = st > 0.35 ? '#ffd84a' : '#f77'; g.fillRect(40, 56, 40 * st, 2);
-    }
-    // tempo
-    const left = Math.max(0, 1 - k.t / KNOT_LIMIT);
-    g.fillStyle = '#222'; g.fillRect(8, 100, 104, 4);
-    g.fillStyle = k.t < KNOT_FAST ? '#8f8' : '#c55'; g.fillRect(8, 100, 104 * left, 4);
-    if (k.fbT > 0) { g.font = 'bold 9px monospace'; g.fillStyle = k.fbC; g.textAlign = 'center'; g.fillText(k.fb, 60, 10); }
-  }
-  function knotEnd(timeout = false) {
-    const k = knot; mode = 'idle'; knot = null;
-    if (k.classic) { el.silence.style.display = 'none'; el.silenceFill.style.width = '0'; }
-    else {
-      kcan.style.display = 'none'; if (kside) kside.style.display = 'none';
-      for (const ev of ['touchstart', 'touchmove', 'touchend', 'mousedown', 'mousemove', 'mouseup']) document.removeEventListener(ev, knotPointer);
-    }
-    const res = { errors: k.errors, time: k.t, timeout, perfect: !timeout && k.errors === 0 && k.t <= (k.classic ? CLASSIC_FAST : KNOT_FAST) };
-    const r = resolver; resolver = null;
-    setTimeout(() => r(res), 350);
   }
 
   return {
-    SPEAKERS,
     init(notify) {
       onNotify = notify;
       el = { root: $('dialogue'), text: $('dlg-text'), options: $('dlg-options'), name: $('dlg-name'), portrait: $('portrait'),
         ig: $('ig'), help: $('dlg-help'), focoWrap: $('foco-wrap'), breath: $('breath'), silence: $('silence'), silenceFill: $('silence-fill') };
       window.addEventListener('keydown', e => {
         if (!active) return;
-        if (mode === 'knot') { e.preventDefault(); knotKey(e.code); return; }
+        if (mode === 'game' && game.def.key) { e.preventDefault(); game.def.key(e.code); return; }
         if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE') { e.preventDefault(); advance(); }
         const n = parseInt(e.key, 10);
         if (n >= 1 && n <= 9) pick(n - 1);
       });
     },
     get active() { return active; },
-    get minigameState() { return knot || (mode === 'laudos' ? laudos : null); },   // usado pelos testes automáticos
+    minigame(name, def) { minigames[name] = def; },
+    get minigameState() { return game && game.state; },   // usado pelos testes automáticos
     get talking() { return talk; },
     get speakerChar() { return speaker && speaker.char; },
     get following() { return igScore > 0; },
@@ -302,11 +146,12 @@ const CONVO = (() => {
       el.ig.style.display = opts.instagram || opts.meter ? 'block' : 'none';
       el.help.textContent = '[ESPAÇO] continuar · [1-5] escolher';
       if (opts.instagram) { igScore = 1; igRender(); }
-      const api = { say, choose, ig, laudos: laudoStart, knot: knotStart, meter: html => { el.ig.innerHTML = html; }, wait: s => new Promise(r => setTimeout(r, s * 1000)),
+      const api = { say, choose, ig, meter: html => { el.ig.innerHTML = html; }, wait: s => new Promise(r => setTimeout(r, s * 1000)),
         clear: () => { el.text.textContent = ''; el.options.innerHTML = ''; } };
+      for (const name in minigames) api[name] = (...args) => startGame(name, ...args);
       try { await script(api); }
       finally {
-        active = false; mode = 'idle';
+        active = false; mode = 'idle'; game = null;
         el.root.classList.add('hidden');
         el.focoWrap.style.visibility = ''; el.breath.style.display = ''; el.silence.style.display = ''; el.ig.style.display = 'none';
         el.portrait.style.display = 'block'; el.text.style.fontStyle = 'normal'; el.text.style.color = '';
@@ -317,17 +162,7 @@ const CONVO = (() => {
     update(dt, time) {
       if (!active) return;
       talk = false;
-      if (mode === 'knot' && knot.classic) {
-        knot.t += dt;
-        el.silenceFill.style.width = Math.min(100, 100 * knot.t / CLASSIC_LIMIT) + '%';
-        if (knot.t >= CLASSIC_LIMIT) knotEnd(true);
-      } else if (mode === 'knot') {
-        const k = knot;
-        knotNow(); k.fbT -= dt; k.shake -= dt;
-        if (k.t - k.step0 > KNOT_STEP) { k.errors++; k.step0 = k.t; k.shake = 0.25; knotFb('FROUXO', '#f77'); AUDIO.sfx('bad'); }
-        knotDraw(dt);
-        if (k.t >= KNOT_LIMIT) knotEnd(true);
-      }
+      if (mode === 'game' && game.def.update) game.def.update(dt);
       if (mode === 'typing') {
         talk = true;
         q.acc += dt * speaker.cps;

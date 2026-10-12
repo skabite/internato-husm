@@ -1,103 +1,30 @@
 // Personagens: sprite de corpo (32x64, estilo Doom) + retrato de diálogo (48x48), ambos em pixel art gerada por código.
-// Cada personagem é descrito por um "spec" (cabelo, óculos, barba, roupa...).
+// Cada personagem é descrito por uma ficha em js/dados/personagens.js (cabelo, óculos, barba, roupa, pose...).
 const SPRITES = (() => {
-  const CHARS = {
-    // o professor do saguão (pressão de fala)
-    prof1: {
-      nome: 'PROFESSOR MONTEIRO', skin: '#e2b48e', skinD: '#b98a66',
-      hair: 'bald', hairC: '#9a958c', hairD: '#6e6a64',
-      glasses: 'thick', glassC: '#141414', beard: 'stubble', beardC: '#8f8a84',
-      coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#f2f2f0', shirtD: '#c9cfd8', tie: null,
-      faceRx: 10, faceRy: 13, brows: '#6e6a64', mouth: 'neutral', lantern: true,
-    },
-    // gastroenterologia
-    prof2: {
-      nome: 'PROFESSOR LIBERATO', skin: '#dcaa84', skinD: '#b07e5a', short: true,
-      hair: 'short', hairC: '#2e2620', hairD: '#1a1512',
-      glasses: null, beard: null,
-      coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#cfc8e6', shirtD: '#a59dc4', tie: null,
-      faceRx: 11.5, faceRy: 13.5, brows: '#2a221c', mouth: 'smile',
-    },
-    prof3: {
-      nome: 'JAVALI', skin: '#d6a47c', skinD: '#a97a56',
-      hair: 'sidepart', hairC: '#3a3836', hairD: '#8d8a86',
-      glasses: 'thin', glassC: '#3a3a3a', beard: null,
-      coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#9fd8c8', shirtD: '#6fb0a0', tie: null,
-      faceRx: 10.5, faceRy: 13.5, brows: '#2a2826', mouth: 'smile',
-    },
-    prof4: {
-      nome: 'PROFESSOR DE BARROS', skin: '#ecc3a6', skinD: '#c49a7e',
-      hair: 'slicked', hairC: '#c9c2ae', hairD: '#9a927e',
-      glasses: 'rimless', glassC: '#c8ccd0', beard: null,
-      coat: '#f4f4f0', coatD: '#c4c4bc', shirt: '#d9cfee', shirtD: '#b3a6d6', tie: null,
-      faceRx: 10.5, faceRy: 14, brows: '#a89a80', mouth: 'neutral', tall: true,
-    },
-    // chefe do PS — PROVISÓRIO até chegar a foto de referência: pijama cirúrgico verde, cabelo bagunçado grisalho, barba por fazer
-    prof5: {
-      nome: 'PROFESSOR FALASTRÃO', skin: '#e0b088', skinD: '#b48660',
-      hair: 'messy', hairC: '#8a8478', hairD: '#5a564e',
-      glasses: null, beard: 'stubble', beardC: '#6a645a',
-      coat: '#4f9a86', coatD: '#3a7666', shirt: '#4f9a86', shirtD: '#3a7666', tie: null,
-      faceRx: 12, faceRy: 13.5, brows: '#4a463e', mouth: 'smile', sax: true,
-    },
-    // internada no Leito 12 (Capítulo 3): sentada na maca, de camisola, óculos na cabeça
-    muriel: {
-      nome: 'PROFESSORA MURIEL', skin: '#ecc0a6', skinD: '#c49880', patient: true,
-      hair: 'pixie', hairC: '#dcd8d0', hairD: '#a8a49a',
-      glasses: 'onhead', glassC: '#6a5e54', beard: null,
-      coat: '#9fbcd4', coatD: '#7a98b2', shirt: '#ecc0a6', shirtD: '#c49880', tie: null, noSteth: true,
-      faceRx: 11.5, faceRy: 13, brows: '#a8a49a', mouth: 'pain', cheek: '#e0907c', earrings: '#d8d8dc',
-    },
-    // o Professor Máscara só aparece em lembrança: camisa listrada, óculos de aro fino, barba por fazer, máscara no queixo
-    prof6: {
-      nome: 'PROFESSOR MÁSCARA', skin: '#e6b89a', skinD: '#bc8e72',
-      hair: 'spiky', hairC: '#3a2a1e', hairD: '#22170f',
-      glasses: 'thin', glassC: '#a8acb2', beard: 'stubble', beardC: '#5a4a3e',
-      coat: '#bccde6', coatD: '#8fa4c6', shirt: '#bccde6', shirtD: '#8fa4c6', tie: null, noSteth: true, stripes: '#98aed2',
-      faceRx: 11.5, faceRy: 14, brows: '#2a1e16', mouth: 'frown', mask: '#9cc8e0',
-    },
-    chefao: {
-      nome: 'PROFESSOR SCHWARZENEGGER', skin: '#dcaa86', skinD: '#b07e5e',
-      hair: 'messy', hairC: '#4a3426', hairD: '#8a8078',
-      glasses: 'thick', glassC: '#141414', beard: null,
-      coat: '#b88a3e', coatD: '#8a6428', shirt: '#aac6e6', shirtD: '#7f9fc4', tie: null, lanyard: '#c0202a',
-      faceRx: 11, faceRy: 13.5, brows: '#2e2018', mouth: 'smile',
-    },
-  };
-  // internos de plantão no Consultório 4 (visual provisório até chegar foto): pijama cirúrgico por baixo do jaleco
-  CHARS.maaa = {                                                  // veterano, sentado na maca lendo "As Portas da Percepção"
-    nome: 'MAAA', skin: '#c8946c', skinD: '#9c6c48', pose: 'reading',
-    hair: 'messy', hairC: '#2a1c14', hairD: '#1a120c',
-    glasses: 'thin', glassC: '#5a4a3a', beard: 'stubble', beardC: '#3a2a1e',
-    coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#5a7ab0', shirtD: '#41598a', tie: null,
-    faceRx: 11, faceRy: 13.5, brows: '#2a1c14', mouth: 'smile', book: true,
-  };
-  CHARS.adc = {                                                   // no computador, de perfil, de cara pra tela
-    nome: 'ADC', skin: '#e8bc98', skinD: '#bc9070', pose: 'desk',
-    hair: 'short', hairC: '#4a3020', hairD: '#2e1e14',
-    glasses: null, beard: null,
-    coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#3e8a6e', shirtD: '#2c6a52', tie: null,
-    faceRx: 11, faceRy: 13.5, brows: '#3a2618', mouth: 'neutral', screenGlow: '#8ac8ff',
-  };
-  CHARS.muriel2 = Object.assign({}, CHARS.muriel, { mouth: 'smile', tears: true });   // depois do tratamento: chorando de emoção
+  // as fichas (cabelo, óculos, roupa...) ficam em js/dados/personagens.js
+  function spec(id) {
+    const p = PERSONAGENS[id];
+    if (!p || !p.visual) throw new Error('personagem sem visual em js/dados/personagens.js: ' + id);
+    return p.visual;
+  }
 
   // ======================= CORPO (32x64) =======================
   function body(s, frame) { // frame: 0 parado, 1 boca aberta, 2 gesticulando
     const c = document.createElement('canvas'); c.width = 32; c.height = 64;
     const g = c.getContext('2d');
     const p = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
-    if (s.patient) { patientBody(p, s); head(g, p, s, frame); return c; }
+    if (s.pose === 'patient') { patientBody(p, s); head(g, p, s, frame); return c; }
     if (s.pose === 'reading') { readingBody(p, s, frame); head(g, p, s, frame === 1 ? 1 : 0); readingEyes(p, s, frame); return c; }
     if (s.pose === 'desk') { deskBody(p, s, frame); return c; }
 
     p('#3a3c44', 10, 46, 5, 14); p('#3a3c44', 17, 46, 5, 14);   // calça
     p('#1b1b1d', 9, 60, 6, 3); p('#1b1b1d', 17, 60, 6, 3);       // sapatos
     // jaleco / blazer
-    p(s.coat, 7, 22, 18, s.coat === '#b88a3e' ? 22 : 26);
+    p(s.coat, 7, 22, 18, s.blazer ? 22 : 26);
     p(s.coatD, 7, 22, 1, 26); p(s.coatD, 24, 22, 1, 26); p(s.coatD, 7, 47, 18, 1);
     p(s.shirt, 14, 22, 4, 20); p(s.shirtD, 15, 22, 2, 1);
     p(s.coatD, 13, 22, 1, 25); p(s.coatD, 18, 22, 1, 25);
-    if (s.coat === '#b88a3e') p('#3a3c44', 7, 44, 18, 3);        // blazer é mais curto
+    if (s.blazer) p('#3a3c44', 7, 44, 18, 3);                    // blazer é mais curto
     p(s.coatD, 9, 30, 4, 4); p('#2a4ac0', 10, 28, 1, 3); p('#c02a2a', 11, 28, 1, 3);
     if (s.lanyard) { p(s.lanyard, 13, 21, 1, 9); p(s.lanyard, 18, 21, 1, 9); p('#eee', 14, 30, 4, 4); }
     else if (!s.noSteth) { p('#2a2a2e', 12, 21, 1, 6); p('#2a2a2e', 19, 21, 1, 6); p('#9aa', 19, 27, 2, 2); } // estetoscópio
@@ -249,9 +176,9 @@ const SPRITES = (() => {
     p(s.shirtD, cx - 7, 36, 4, 2); p(s.shirtD, cx + 3, 36, 4, 2);               // gola
     for (let y = 38; y < N; y++) { const w = Math.max(0, 7 - (y - 36) * 0.6); p(s.coatD, Math.round(cx - w) - 1, y, 1, 1); p(s.coatD, Math.round(cx + w), y, 1, 1); }
     if (s.stripes) for (let y = 36; y < N; y++) { const w = 14 + (y - 36) * 1.6; for (let x = Math.round(cx - w); x < cx + w; x++) if (x % 3 === 0 && Math.abs(x - cx) > 2) p(s.stripes, x, y); }
-    if (s.patient) for (let y = 39; y < N; y += 3) for (let x = 6 + (y % 2); x < 42; x += 3) if (Math.abs(x - cx) > 5) p(s.coatD, x, y);   // bolinhas da camisola
+    if (s.pose === 'patient') for (let y = 39; y < N; y += 3) for (let x = 6 + (y % 2); x < 42; x += 3) if (Math.abs(x - cx) > 5) p(s.coatD, x, y);   // bolinhas da camisola
     if (s.lanyard) for (let y = 37; y < N; y++) { p(s.lanyard, cx - 5 + ((y - 37) * 0.3 | 0), y); p(s.lanyard, cx + 4 - ((y - 37) * 0.3 | 0), y); }
-    else if (s.coat !== '#b88a3e' && !s.noSteth) { p('#2a2a2e', cx - 9, 37, 1, 8); p('#2a2a2e', cx + 9, 37, 1, 8); } // estetoscópio
+    else if (!s.blazer && !s.noSteth) { p('#2a2a2e', cx - 9, 37, 1, 8); p('#2a2a2e', cx + 9, 37, 1, 8); } // estetoscópio
     // pescoço
     p(s.skinD, cx - 5, 31, 10, 6); p(s.skin, cx - 4, 31, 8, 4);
     // orelhas
@@ -349,7 +276,7 @@ const SPRITES = (() => {
     }
     // sobrancelhas
     p(s.brows, cx - 8, cy - 4, 5, 1); p(s.brows, cx + 3, cy - 4, 5, 1);
-    if (s === CHARS.prof1) { p(s.brows, cx - 8, cy - 5, 2, 1); p(s.brows, cx + 6, cy - 5, 2, 1); } // sempre levantadas
+    if (s.browsUp) { p(s.brows, cx - 8, cy - 5, 2, 1); p(s.brows, cx + 6, cy - 5, 2, 1); }         // sempre levantadas
     // olhos
     for (const ex of [cx - 6, cx + 4]) { p('#f4f0ea', ex, cy - 2, 3, 2); p('#3a2a20', ex + 1, cy - 2, 1, 2); p('#000', ex + 1, cy - 2, 1, 1); }
     if (s.mouth === 'pain') { p(s.brows, cx - 4, cy - 5, 2, 1); p(s.brows, cx + 3, cy - 5, 2, 1); }   // testa franzida de dor
@@ -411,7 +338,7 @@ const SPRITES = (() => {
   const cache = {};
   function get(id) {
     if (!cache[id]) {
-      const s = CHARS[id];
+      const s = spec(id);
       cache[id] = { body: [0, 1, 2].map(f => body(s, f)), face: [0, 1, 2].map(f => portrait(s, f)) };
     }
     return cache[id];
@@ -549,7 +476,7 @@ const SPRITES = (() => {
   const SYRINGE = syringe();
 
   return {
-    CHARS, BOAR, WEAPONS, SYRINGE, texFrom,
+    BOAR, WEAPONS, SYRINGE, texFrom,
     get,
     textures(id) { return get(id).body.map(texFrom); },
     drawPortrait(canvas, id, frame) {

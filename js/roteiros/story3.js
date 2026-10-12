@@ -6,20 +6,20 @@ const STORY3 = {
   // o: { armas() → armas que você ainda tem, devolver(arma) }
   async liberato(c, o) {
     await c.say('narr', '*O Liberato está parado no meio do corredor. Braços cruzados. Ele estava te esperando. Há 4 minutos e 12 segundos.*');
-    await c.say('dudu', 'Aonde você pensa que vai?');
+    await c.say('liberato', 'Aonde você pensa que vai?');
     let i = await c.choose(['Pra casa, professor. Acabou.', 'Resolvi a CCIH! Cefalexina liberada.', '[Tentar passar pelo lado]']);
-    if (i === 0) await c.say('dudu', 'Pra casa. Às 23h14. Interessante.');
-    if (i === 1) await c.say('dudu', 'Parabéns. Anotado. Isso não muda nada.');
+    if (i === 0) await c.say('liberato', 'Pra casa. Às 23h14. Interessante.');
+    if (i === 1) await c.say('liberato', 'Parabéns. Anotado. Isso não muda nada.');
     if (i === 2) await c.say('narr', '*Ele dá um passo pro lado. Exatamente o mesmo lado. Ao mesmo tempo. Ele treinou isso.*');
-    await c.say('dudu', 'Antes. E as colonoscopias? Os laudos que eu te dei.');
+    await c.say('liberato', 'Antes. E as colonoscopias? Os laudos que eu te dei.');
     i = await c.choose(['Entreguei tudo pro Javali.', 'O Javali... grunhiu pra eles.', 'Tinha um javali em cada leito, professor.']);
-    if (i === 0) await c.say('dudu', 'Em ordem crescente de prontuário? ...Não responde. Eu já sei.');
-    if (i === 1) await c.say('dudu', 'Grunhiu. Em que tom? ...Esquece. Eu anoto como "recebido".');
-    if (i === 2) await c.say('dudu', 'Javalis são pacientes difíceis. Mas pontuais.');
+    if (i === 0) await c.say('liberato', 'Em ordem crescente de prontuário? ...Não responde. Eu já sei.');
+    if (i === 1) await c.say('liberato', 'Grunhiu. Em que tom? ...Esquece. Eu anoto como "recebido".');
+    if (i === 2) await c.say('liberato', 'Javalis são pacientes difíceis. Mas pontuais.');
 
     // ele quer o bisturi de volta... e leva tudo
-    await c.say('dudu', 'Outra coisa. O bisturi.');
-    await c.say('dudu', 'Nº 22. Etiquetado com data, hora e a inicial "D.". Eu emprestei. Emprestar pressupõe devolver.');
+    await c.say('liberato', 'Outra coisa. O bisturi.');
+    await c.say('liberato', 'Nº 22. Etiquetado com data, hora e a inicial "D.". Eu emprestei. Emprestar pressupõe devolver.');
     const NOME = { scalpel: 'o bisturi', revolver: 'o revólver', carabina: 'a carabina de ipê' };
     let escondeu = false;
     while (o.armas().length) {
@@ -29,41 +29,41 @@ const STORY3 = {
       const k = await c.choose(ops);
       if (k === tem.length) {
         escondeu = true;
-        await c.say('dudu', 'Volume no bolso direito do jaleco. O jaleco está torto dois graus por causa dele. Eu vejo. Eu sempre vejo.');
+        await c.say('liberato', 'Volume no bolso direito do jaleco. O jaleco está torto dois graus por causa dele. Eu vejo. Eu sempre vejo.');
         continue;
       }
       const w = tem[k], pediu = w === 'scalpel';
       o.devolver(w);
-      if (w === 'revolver') await c.say('dudu', 'Um .38. Do torácico. Com o bilhete: "PARA JAVALIS E RESIDENTES QUE MEXEM NA MINHA GAVETA". Você mexeu na gaveta dele. Eu devolvo. Com um bilhete meu.');
-      if (w === 'carabina') await c.say('dudu', 'Uma carabina de ipê. Do De Barros. Ele vai conferir o verniz. Eu já conferi: tem uma digital sua aqui. Eu limpo.');
-      if (w === 'scalpel') await c.say('dudu', 'O bisturi. Usado. Em javalis. Vai pra esterilização. Em ordem crescente de sujeira.');
-      if (!pediu && o.armas().includes('scalpel')) await c.say('dudu', 'Isso eu não pedi. Fica comigo também. E o bisturi?');
+      if (w === 'revolver') await c.say('liberato', 'Um .38. Do torácico. Com o bilhete: "PARA JAVALIS E RESIDENTES QUE MEXEM NA MINHA GAVETA". Você mexeu na gaveta dele. Eu devolvo. Com um bilhete meu.');
+      if (w === 'carabina') await c.say('liberato', 'Uma carabina de ipê. Do De Barros. Ele vai conferir o verniz. Eu já conferi: tem uma digital sua aqui. Eu limpo.');
+      if (w === 'scalpel') await c.say('liberato', 'O bisturi. Usado. Em javalis. Vai pra esterilização. Em ordem crescente de sujeira.');
+      if (!pediu && o.armas().includes('scalpel')) await c.say('liberato', 'Isso eu não pedi. Fica comigo também. E o bisturi?');
     }
     await c.say('narr', '*Ele empilha tudo nos braços, em ordem de tamanho. O bisturi em cima.*');
-    await c.say('dudu', 'Plantão não é lugar de arma. Nunca se sabe quem está atrás de uma cortina.');
+    await c.say('liberato', 'Plantão não é lugar de arma. Nunca se sabe quem está atrás de uma cortina.');
 
-    await c.say('dudu', 'Enfim. Você não pode sair. Você está de plantão.');
+    await c.say('liberato', 'Enfim. Você não pode sair. Você está de plantão.');
 
     let resto = ['Professor, nem tem luz.', 'Mas não tem ninguém internado nos leitos.'];
     while (true) {
       i = await c.choose(resto);
       if (resto[i].startsWith('Professor')) {
-        await c.say('dudu', 'Luz é um detalhe. Eu já fiz trinta endoscopias com a lanterna do celular. Em ordem.');
+        await c.say('liberato', 'Luz é um detalhe. Eu já fiz trinta endoscopias com a lanterna do celular. Em ordem.');
         resto = resto.filter(l => !l.startsWith('Professor'));
         continue;
       }
       break;
     }
-    await c.say('dudu', 'Não tem ninguém internado.');
-    await c.say('dudu', '...');
-    await c.say('dudu', 'Na verdade, tem.');
-    await c.say('dudu', 'Leito 12. Ala C. Atrás da cortina. Você passou do lado dela correndo atrás de javali.');
-    await c.say('dudu', 'Pancreatite. Internou ontem à noite. Ninguém prescreveu nada: o sistema caiu às 18h47. Junto com a luz.');
+    await c.say('liberato', 'Não tem ninguém internado.');
+    await c.say('liberato', '...');
+    await c.say('liberato', 'Na verdade, tem.');
+    await c.say('liberato', 'Leito 12. Ala C. Atrás da cortina. Você passou do lado dela correndo atrás de javali.');
+    await c.say('liberato', 'Pancreatite. Internou ontem à noite. Ninguém prescreveu nada: o sistema caiu às 18h47. Junto com a luz.');
     i = await c.choose(['Quem é a paciente?', 'Por que o senhor não prescreveu?']);
-    if (i === 1) await c.say('dudu', 'Eu sou o professor. Você é o interno. Isso se chama ensino. ...E eu estava realinhando os colonoscópios.');
-    await c.say('dudu', 'É a Professora Muriel. Ela dá aula pra vocês. Ela vai te reconhecer. Ela reconhece todo mundo.');
-    await c.say('dudu', 'Conversa. Examina. Lê o prontuário. Depois prescreve. Nessa ordem.');
-    await c.say('dudu', 'E volta aqui pra me contar. Eu vou estar aqui. Exatamente aqui.');
+    if (i === 1) await c.say('liberato', 'Eu sou o professor. Você é o interno. Isso se chama ensino. ...E eu estava realinhando os colonoscópios.');
+    await c.say('liberato', 'É a Professora Muriel. Ela dá aula pra vocês. Ela vai te reconhecer. Ela reconhece todo mundo.');
+    await c.say('liberato', 'Conversa. Examina. Lê o prontuário. Depois prescreve. Nessa ordem.');
+    await c.say('liberato', 'E volta aqui pra me contar. Eu vou estar aqui. Exatamente aqui.');
     await c.say('narr', '*Ele dá dois passos pro lado. Exatos. O corredor está livre. De volta pra Ala C.*');
   },
 
@@ -214,21 +214,21 @@ const STORY3 = {
 
   // ---------------- LIBERATO DE NOVO: O PS AINDA ESTÁ ABERTO ----------------
   async liberato2(c, o) {
-    await c.say('dudu', 'E a paciente do 12?');
+    await c.say('liberato', 'E a paciente do 12?');
     const i = await c.choose(['Melhorou. Ringer, analgesia, dieta precoce. Sem antibiótico.', 'Tá ótima. Chorou um pouco.', 'Quase dei meropenem. Culpa do Máscara.']);
-    if (i === 0) await c.say('dudu', 'Sem antibiótico. Anotado. O Schwarzenegger vai gostar. Ele não vai dizer. Mas vai gostar.');
-    if (i === 1) await c.say('dudu', 'Ela sempre chora. De emoção. Anotado também. Horário: 23h41.');
-    if (i === 2) await c.say('dudu', 'O Máscara. Claro. A máscara dele está no queixo desde 2020. Anotado.');
-    if (!o.perfect) await c.say('dudu', 'E você errou na prescrição antes de acertar. Eu sei. Eu sempre sei.');
+    if (i === 0) await c.say('liberato', 'Sem antibiótico. Anotado. O Schwarzenegger vai gostar. Ele não vai dizer. Mas vai gostar.');
+    if (i === 1) await c.say('liberato', 'Ela sempre chora. De emoção. Anotado também. Horário: 23h41.');
+    if (i === 2) await c.say('liberato', 'O Máscara. Claro. A máscara dele está no queixo desde 2020. Anotado.');
+    if (!o.perfect) await c.say('liberato', 'E você errou na prescrição antes de acertar. Eu sei. Eu sempre sei.');
     await c.say('eu', 'Então... agora eu posso ir?');
-    await c.say('dudu', 'Não.');
-    await c.say('dudu', 'O PS ainda está aberto.');
-    await c.say('dudu', 'O pronto-socorro não fecha. Nunca fechou. Enquanto o PS estiver aberto, o plantão está aberto. E você está de plantão.');
+    await c.say('liberato', 'Não.');
+    await c.say('liberato', 'O PS ainda está aberto.');
+    await c.say('liberato', 'O pronto-socorro não fecha. Nunca fechou. Enquanto o PS estiver aberto, o plantão está aberto. E você está de plantão.');
     const j = await c.choose(['E como eu fecho o PS?', 'Quem manda no PS?']);
-    await c.say('dudu', j === 0 ? 'Você não fecha nada. Quem fecha é o chefe do PS.' : 'O chefe do PS. Só ele.');
-    await c.say('dudu', 'O Professor Falastrão. Desce a escada caracol do hall. O PS fica lá embaixo.');
-    await c.say('dudu', 'Ele vai te explicar. Ele vai te explicar muitas coisas. Durante muito tempo.');
-    await c.say('dudu', 'E arruma esse jaleco. Tá torto. Dois graus.');
+    await c.say('liberato', j === 0 ? 'Você não fecha nada. Quem fecha é o chefe do PS.' : 'O chefe do PS. Só ele.');
+    await c.say('liberato', 'O Professor Falastrão. Desce a escada caracol do hall. O PS fica lá embaixo.');
+    await c.say('liberato', 'Ele vai te explicar. Ele vai te explicar muitas coisas. Durante muito tempo.');
+    await c.say('liberato', 'E arruma esse jaleco. Tá torto. Dois graus.');
   },
 
   // ---------------- PROFESSOR FALASTRÃO (CHEFE DO PS) ----------------

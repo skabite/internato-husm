@@ -58,16 +58,16 @@
     return { id, mesh, mat, tex, h, col, setFrame(f) { if (mat.map !== tex[f]) { mat.map = tex[f]; mat.needsUpdate = true; } },
       face() { mesh.rotation.y = Math.atan2(camera.position.x - mesh.position.x, camera.position.z - mesh.position.z); } };
   }
-  const profNPC = makeNPC('prof1', W.profStart, 0.9, 1.8);
+  const profNPC = makeNPC('monteiro', W.profStart, 0.9, 1.8);
   const prof = profNPC.mesh, profMat = profNPC.mat, profTex = profNPC.tex;
   const lantern = new THREE.PointLight(0xffb060, 1.5, 10, 2);
   scene.add(lantern);
   const profCol = { x1: 0, x2: 0, z1: 0, z2: 0 };
-  const dudu = makeNPC('prof2', L.duduPos, 0.78, 1.56);        // baixinho
-  const prof3 = makeNPC('prof3', L.prof3Pos, 0.9, 1.8);
-  const clovis = makeNPC('prof4', L2.clovisPos, 0.92, 1.9);      // alto
-  const belgica = makeNPC('chefao', L2.bossPos, 0.9, 1.8);
-  const falastrao = makeNPC('prof5', L3.falastraoPos, 0.95, 1.85);   // chefe do PS (Capítulo 3)
+  const dudu = makeNPC('liberato', L.duduPos, 0.78, 1.56);        // baixinho
+  const prof3 = makeNPC('javali', L.prof3Pos, 0.9, 1.8);
+  const clovis = makeNPC('debarros', L2.clovisPos, 0.92, 1.9);      // alto
+  const belgica = makeNPC('schwarzenegger', L2.bossPos, 0.9, 1.8);
+  const falastrao = makeNPC('falastrao', L3.falastraoPos, 0.95, 1.85);   // chefe do PS (Capítulo 3)
   const muriel = makeNPC('muriel', L.murielPos, 0.7, 1.4);           // Leito 12: sentada na maca (a maca é que colide)
   muriel.mesh.position.y = 1.18; muriel.h = 1.87; muriel.mesh.visible = false;
   muriel.mat.color.setScalar(0.62); muriel.mat.emissive.setHex(0x2e2824);   // paleta clara: não estourar na lanterna
@@ -745,7 +745,7 @@
 
     let frame = 0;
     const tt = G.time;
-    const talking = DIALOGUE.talking || (CONVO.talking && CONVO.speakerChar === 'prof1');   // na cutscene ele grava um áudio
+    const talking = DIALOGUE.talking || (CONVO.talking && CONVO.speakerChar === 'monteiro');   // na cutscene ele grava um áudio
     if (talking) frame = Math.floor(tt * 9) % 2 ? 1 : (Math.floor(tt * 1.7) % 3 === 0 ? 2 : 0);
     else if (G.objective) frame = Math.floor(tt * 4) % 3 === 0 ? 1 : (Math.floor(tt * 0.8) % 2 ? 2 : 0);
     profNPC.setFrame(frame);
