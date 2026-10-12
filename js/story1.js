@@ -1,5 +1,35 @@
 // Roteiros do Capítulo 1. Cada um é uma função async que recebe a api do CONVO (say, choose, ig, laudos, wait).
 const STORY1 = {
+  // ---------------- CUTSCENE ANTES DO MONTEIRO ----------------
+  // Os testers não entendiam que ele fala demais e que o jogo é interromper. Aqui o jogo avisa antes.
+  async monteiro(c) {
+    const cue = `<span class="cue">◆ ELE ESTÁ RESPIRANDO — ${TOUCH.on ? 'INTERROMPER' : '[ESPAÇO]'}! ◆</span>`;
+    c.meter('');
+    await c.say('narr', '*Na frente das catracas, à luz de uma lanterna, um homem de jaleco grava um áudio de WhatsApp. O contador marca 11:47.*');
+    await c.say('monteiro', '...e por isso que o feijão de quinta é o de segunda apurado, tá, e isso me lembra o PROCX, que não é o PROCV... não, peraí. Peraí. Vou apagar. Vou começar esse áudio de novo.');
+    await c.say('eu', 'Ah, não. O Professor Monteiro.');
+    await c.say('eu', 'Os veteranos avisaram no grupo...');
+    AUDIO.sfx('notify');
+    await c.say('zap', 'Veterana: regra nº 1 do HUSM: se o MONTEIRO te pegar no saguão, ninguém vem te salvar 💀');
+    AUDIO.sfx('notify');
+    await c.say('zap', 'Veterano: ele NÃO PARA de falar. tomate, PROCV, podcast, Lei 8.080. já vi interno perder o plantão inteiro ali');
+    AUDIO.sfx('notify');
+    await c.say('zap', 'Veterana: o único jeito é INTERROMPER. mas SÓ quando ele respira. cortou no meio da frase, ele perde o fio e começa TUDO de novo');
+    AUDIO.sfx('notify');
+    await c.say('zap', 'Veterano: e não dá corda ("nossa, sério?") que ele se empolga. puxa pro assunto. mas também não fica calado: silêncio ele preenche com história');
+    await c.say('eu', 'Interromper quando ele respira. Puxar pro assunto. Não dar corda. Não ficar calado.');
+    c.meter(cue);
+    await c.say('narr', TOUCH.on
+      ? '*COMO FUNCIONA: quando esse aviso amarelo piscar, ele está respirando. Na conversa, o botão CONTINUAR vira INTERROMPER!: toque na hora. Fora da respiração, não toque.*'
+      : '*COMO FUNCIONA: quando esse aviso amarelo piscar, ele está respirando. Aperte [ESPAÇO] na hora. Fora da respiração, não aperte.*');
+    c.meter('');
+    await c.say('narr', '*Cada interrupção certa e cada pergunta sobre o apagão enchem a barra FOCO DO PROFESSOR, em cima da caixa de conversa. Com 100%, ele finalmente diz o que você tem que fazer.*');
+    const i = await c.choose(['[Tentar passar de fininho]', '[Respirar fundo e ir]']);
+    if (i === 0) await c.say('narr', '*Seu tênis guincha no piso. No silêncio do apagão, é praticamente uma sirene.*');
+    else await c.say('narr', '*Você respira fundo. Ele também. E aí você percebe: ele respira MUITO pouco.*');
+    await c.say('narr', '*O áudio termina em 14:02. Ele guarda o celular. E te vê.*');
+  },
+
   // ---------------- PROFESSOR LIBERATO ----------------
   async dudu(c, game) {
     await c.say('dudu', 'Você chegou atrasado.');

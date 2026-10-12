@@ -184,7 +184,7 @@
     const data = {
       pos: [P.pos.x, P.pos.z], yaw: P.yaw, met: G.objective, scare: G.scare > 0,
       duduDone: G.duduDone, hasGun: G.hasGun, following: CONVO.following,
-      prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita, carabina: COMBAT.P.has.carabina,
+      prof3Done: G.prof3Done, treino: !!G.knotPracticed, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita, carabina: COMBAT.P.has.carabina,
       bossDone: G.bossDone, plantaoDone: G.plantaoDone, muriel: Math.floor(G.muriel), rxPerfect: G.rxPerfect,
       hp: COMBAT.P.hp, maxHp: COMBAT.P.maxHp, kills: G.kills,
       dead: COMBAT.boars.map((b, i) => (b.state === 'dead' && i < L.boars.length ? i : -1)).filter(i => i >= 0),
@@ -232,6 +232,7 @@
     }
     if (s.hasGun) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
     if (s.prof3Done) { G.prof3Started = G.prof3Done = true; L.doors.prof3.locked = false; L.doors.prof3back.locked = false; moveProf3Aside(); }
+    G.knotPracticed = !!s.treino;
     if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false; }
     G.rxPerfect = !!s.rxPerfect;
     if (s.bossDone) setupChapter3();
@@ -318,8 +319,10 @@
   }
 
   // ---------- CONVERSA COM O PROFESSOR (saguão) ----------
-  function startTalk() {
-    G.met = true; G.state = 'dialogue';
+  async function startTalk() {
+    G.met = true;
+    await runConvo(c => STORY1.monteiro(c), { target: profNPC, meter: true, chain: true });   // cutscene: o aviso dos veteranos + como interromper
+    G.state = 'dialogue';
     $('hint').textContent = '';
     document.body.classList.add('talking');
     DIALOGUE.start(onTalkEnd);
@@ -351,7 +354,7 @@
     finally {
       document.body.classList.remove('talking');
       G.state = 'play'; G.convoTarget = null;
-      relockOrPause();
+      if (!opts.chain) relockOrPause();          // chain: emenda em outra cena (a pausa, se precisar, vem no fim dela)
     }
     return res;
   }
@@ -397,12 +400,14 @@
   async function startProf3() {
     G.prof3Started = true;
     AUDIO.stop(1);
-    await runConvo(c => STORY2.prof3(c, { kills: G.kills }), { target: prof3 });
+    await runConvo(c => STORY2.prof3(c, { kills: G.kills }), { target: prof3, chain: true });
     G.prof3Done = true;
     L.doors.prof3back.locked = false;
     moveProf3Aside();
-    titleCard('CAPÍTULO 2\n\nA INFECÇÃO NO AR');
     setObjective(objectiveText());
+    G.state = 'travel';                                          // parado durante o letreiro
+    await titleCard('CAPÍTULO 2\n\nA INFECÇÃO NO AR');
+    await runConvo(async c => { G.knotPracticed = await STORY2.deBarros(c); });   // cutscene: pensando no De Barros (e treinando o nó)
     AUDIO.play('moonlight', { fade: 3 });
     save();
   }
@@ -412,13 +417,13 @@
   function titleCard(text) {
     const el = $('intro'); el.textContent = text; el.style.opacity = 1; el.style.background = '#000c'; show('intro');
     setTimeout(() => { el.style.opacity = 0; }, 2600);
-    setTimeout(() => { show('intro', false); el.style.background = ''; }, 3800);
+    return new Promise(res => setTimeout(() => { show('intro', false); el.style.background = ''; res(); }, 3800));
   }
 
   async function startClovis() {
     G.clovisStarted = true;
     AUDIO.play('nacht', { fade: 1 });
-    await runConvo(c => STORY2.clovis(c, { carabina: () => {
+    await runConvo(c => STORY2.clovis(c, { treinou: G.knotPracticed, carabina: () => {
       COMBAT.give('carabina'); AUDIO.sfx('achievement');
       notify('Você ganhou a CARABINA DE IPÊ do De Barros. [3] pra usar. Aprovação máxima: 9,9%.', '🏆 APROVAÇÃO MÁXIMA');
     }, achievement: () => {
@@ -695,10 +700,11 @@
 
     let frame = 0;
     const tt = G.time;
-    if (DIALOGUE.talking) frame = Math.floor(tt * 9) % 2 ? 1 : (Math.floor(tt * 1.7) % 3 === 0 ? 2 : 0);
+    const talking = DIALOGUE.talking || (CONVO.talking && CONVO.speakerChar === 'prof1');   // na cutscene ele grava um áudio
+    if (talking) frame = Math.floor(tt * 9) % 2 ? 1 : (Math.floor(tt * 1.7) % 3 === 0 ? 2 : 0);
     else if (G.objective) frame = Math.floor(tt * 4) % 3 === 0 ? 1 : (Math.floor(tt * 0.8) % 2 ? 2 : 0);
     profNPC.setFrame(frame);
-    prof.position.y = 0.9 + (DIALOGUE.talking ? Math.abs(Math.sin(tt * 14)) * 0.03 : 0);
+    prof.position.y = 0.9 + (talking ? Math.abs(Math.sin(tt * 14)) * 0.03 : 0);
 
     const th = prof.rotation.y;
     lantern.position.set(
@@ -801,7 +807,7 @@
     updateProf(dt);
     updateDoors(dt);
     W.update(dt, P.pos, G.state === 'play' && !G.paused);
-    L3.update(dt);
+    L3.update(dt, P.pos, G.state === 'play' && !G.paused);
     updateLights(dt);
     TOUCH.update(dt);
     if (G.state !== 'play') AURA.setFocus(null);

@@ -52,6 +52,9 @@ O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages
 - Só depois o Liberato manda você ao PS: "O PS ainda está aberto."
 - A escada caracol do hall agora desce pro PS (subsolo, layout provisório): Acolhimento/Classificação de risco, Sala Verde,
   Sala Vermelha, Sala Amarela e a Chefia do PS.
+- No fundo leste do corredor do PS: a porta do **CENTRO OBSTÉTRICO** (trancada por enquanto). Lá dentro, um cardiotocógrafo velho
+  com mau contato: batimentos que viram rádio AM, internet discada, canto de baleia (dá pra ouvir chegando perto; a janelinha
+  pisca no ritmo). Plano do minijogo em `docs/minijogo-cardiotocografia.md`.
 - Professor Falastrão (chefe do PS; visual provisório até chegar a foto): abraça quebrando costela, esmaga a mão, toca sax,
   entuba todo mundo e só fecha o PS se isso der manchete pra ele. A conversa só começa perto da mesa dele — antes dá pra
   fuçar a sala: o slide 1 de 214, o Guyton corrigido, o kit de via aérea de caneta BIC, os coletes, a vassoura...
@@ -88,6 +91,8 @@ js/story1.js         roteiros do Capítulo 1
 personagens.html     galeria dos personagens (dev)
 js/dialogue.js       sistema e textos da conversa com o professor
 js/main.js           loop, controles, estados, gatilhos
+docs/minijogo-cardiotocografia.md   plano do minijogo do CTG (Centro Obstétrico)
+docs/etica-pacientes.md             revisão ética: pacientes no jogo, interações e cuidados
 ```
 
 ## Modo dev
@@ -99,6 +104,9 @@ Ex.: `index.html#dev=0,-24,0,met` (início do corredor).
 Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (catracas) · `#dev=-2,-12,-1.08,met` (escada helicoidal) · `#dev=-2.2,-30.3,1.57,met` (banheiro masculino).
 
 ## Mecânica do diálogo
+- **Cutscene antes**: ele está gravando um áudio de WhatsApp de 14 minutos; o interno lembra o aviso dos veteranos no grupo
+  (fala demais, só dá pra interromper quando ele respira) e o jogo mostra o aviso amarelo que vai aparecer na conversa.
+  No primeiro 0,8 s da conversa o [ESPAÇO] não conta (o dedo ainda está no "continuar" da cutscene).
 - **Foco do professor** (0–100%): chegar a 100% faz ele explicar a missão.
 - Opções que alimentam a tangente baixam o foco; opções que puxam pro assunto sobem (mas ele pode sequestrar o assunto).
 - **Interromper** com Espaço durante a respiração = +foco. Fora da respiração ele não lida: perde o fio e recomeça do começo (−foco).
@@ -117,6 +125,9 @@ Outros pontos úteis: `#dev=0,14,0,p0.2` (marquise) · `#dev=2,-1.5,0.15,met` (c
 
 ## Capítulo 2 — A infecção no ar
 - A sala do Javali só abre com a Ala C sem javalis (contador no objetivo).
+- Depois do Javali e do letreiro do capítulo, **cutscene**: o interno pensa no De Barros (ele vai mandar suturar ou dar um nó, com as
+  duas mãos), o jogo explica o minijogo do nó e dá pra **treinar** no pé da mesa do Javali quantas vezes quiser (ou pular).
+  Se treinou, o De Barros repara (sente o cheiro do fio).
 - Professor De Barros: medidor "APROVAÇÃO DO DE BARROS" (quase não sobe). Minijogo do nó cirúrgico:
   - **Computador** (nó clássico): digite a sequência — WASD na mão esquerda, setas na direita. 7 teclas e 6 s por mão;
     perfeito = sem erro e até 3,5 s por mão.

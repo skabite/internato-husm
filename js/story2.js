@@ -19,6 +19,41 @@ const STORY2 = {
     await c.say('prof3', 'Porta dos fundos. E não conta pro Liberato que eu baguncei os laudos. Ainda não baguncei. Mas vou.');
   },
 
+  // ---------------- CUTSCENE: O INTERNO PENSA NO DE BARROS (e pode treinar o nó) ----------------
+  // Apresenta o minijogo do nó antes de valer nota. Devolve true se treinou (o De Barros repara).
+  async deBarros(c) {
+    await c.say('eu', 'De Barros. Cirurgia Vascular. Logo depois da porta dos fundos.');
+    await c.say('eu', 'Ambidestro. Escreve duas evoluções ao mesmo tempo, uma com cada mão. Os veteranos juram que é verdade.');
+    await c.say('eu', 'E ele não conversa com interno nenhum antes de ver as mãos do interno.');
+    await c.say('eu', 'Ele vai mandar suturar. Ou, no mínimo, dar um nó cirúrgico. Na frente dele. Com a esquerda E com a direita.');
+    await c.say('eu', 'Dizem que uma vez ele disse "razoável" pra um interno. O interno chorou. De alegria. Acho.');
+    await c.say('narr', TOUCH.on
+      ? '*NÓ CIRÚRGICO: aparece uma seta. ARRASTE o dedo na direção dela, uma laçada de cada vez. Mão esquerda no lado ESQUERDO da tela; mão direita no lado DIREITO, e ela tem diagonais. Demorou, o fio afrouxa (conta erro).*'
+      : '*NÓ CIRÚRGICO: aparece uma sequência de teclas. Mão ESQUERDA = W A S D; mão DIREITA = SETAS. Digite na ordem antes de a barrinha vermelha encher (6 s por mão). Tecla errada = hesitação.*');
+    await c.say('narr', '*Nó PERFEITO: nenhum erro e rápido, nas duas mãos. É o único jeito de impressionar o De Barros.*');
+    await c.say('eu', 'Tenho um fio de sutura no bolso do jaleco. Dá pra treinar aqui mesmo, no pé da mesa do Javali.');
+    let treinou = false;
+    let i = await c.choose(['[Treinar o nó]', '[Não precisa. Vamos logo.]']);
+    while (i === 0) {
+      if (!treinou) await c.say('narr', '*Você amarra o fio no pé da mesa. O Javali olha. Não diz nada.*');
+      treinou = true;
+      await c.say('eu', 'Mão esquerda primeiro.');
+      const e = await c.knot('esquerda');
+      await c.say('eu', 'Agora a direita.');
+      const d = await c.knot('direita');
+      const n = e.errors + d.errors;
+      if (e.perfect && d.perfect) await c.say('eu', 'Perfeito nas duas mãos. Se eu fizer isso na frente dele... talvez eu ouça um "razoável".');
+      else if (e.timeout || d.timeout) await c.say('eu', 'O fio soltou. Tem que ser mais rápido. Ele não vai esperar.');
+      else if (n === 0) await c.say('eu', 'Sem erro, mas devagar. Pro De Barros, devagar é um tipo de erro.');
+      else await c.say('eu', `${n} ${n === 1 ? 'hesitação' : 'hesitações'}. Ele vai contar cada uma.`);
+      AUDIO.sfx('grunt', 0.6);
+      await c.say('narr', '*O Javali grunhe. Aprovação? Desaprovação? Impossível saber.*');
+      i = await c.choose(['[Treinar de novo]', '[Chega. Vou falar com ele.]']);
+    }
+    await c.say('eu', 'Porta dos fundos. Vamos.');
+    return treinou;
+  },
+
   // ---------------- PROFESSOR DE BARROS ----------------
   async clovis(c, game) {
     let ap = 0.2;
@@ -47,8 +82,11 @@ const STORY2 = {
     if (i === 2) { up(-0.1); await c.say('clovis', 'Meio o quê? Termine as frases, interno. Frases pela metade são como pontes de safena pela metade.  ...Eu sei, eu sei. Mas eu tenho razão.'); }
 
     await c.say('clovis', 'Antes de eu te mandar resolver isso, me mostra uma coisa. Dá um nó cirúrgico.');
+    if (game.treinou) await c.say('clovis', 'Você andou treinando. Dá pra sentir: cheiro de fio de sutura e de mesa do Javali. Bom. Treinar é admitir que precisa. Eu nunca precisei.');
     await c.say('clovis', 'Com a mão ESQUERDA primeiro. Eu sou ambidestro. Espero que você seja pelo menos destro.');
-    if (TOUCH.on) await c.say('narr', '*Siga as setas: arraste o fio na direção certa, uma laçada de cada vez. Se demorar, o fio afrouxa. Mão esquerda do lado esquerdo, mão direita do lado direito, que vem com diagonais. O De Barros cantarola junto, meio tom acima.*');
+    await c.say('narr', TOUCH.on
+      ? '*Siga as setas: arraste o fio na direção certa, uma laçada de cada vez. Se demorar, o fio afrouxa. Mão esquerda do lado esquerdo, mão direita do lado direito, que vem com diagonais. O De Barros cantarola junto, meio tom acima.*'
+      : '*Mão esquerda: W A S D, na ordem que aparecer, antes de a barrinha encher. Depois a direita, com as setas. O De Barros cantarola junto, meio tom acima.*');
     const e = await c.knot('esquerda');
     if (e.timeout) await c.say('clovis', 'Demorou. O fio... soltou. Interessante. Os pacientes também soltam, sabia? Da gente. Pela confiança.');
     else if (e.errors === 0) { up(0.4); await c.say('clovis', 'Hm.'); }

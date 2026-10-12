@@ -2,6 +2,8 @@
 // Usa a mesma caixa de diálogo do Professor, escondendo o medidor de foco.
 const CONVO = (() => {
   const SPEAKERS = {
+    monteiro: { char: 'prof1', name: 'PROFESSOR MONTEIRO', cps: 30, blip: [170, 140] },   // na cutscene do saguão (a conversa dele é o DIALOGUE)
+    zap: { char: null, name: '📱 GRUPO "INTERNATO HUSM"', cps: 70, blip: null },
     dudu: { char: 'prof2', name: 'PROFESSOR LIBERATO', cps: 36, blip: [125, 25] },
     prof3: { char: 'prof3', name: 'JAVALI', cps: 30, blip: [70, 30], pig: true },   // "o Javali": fala grunhindo
     clovis: { char: 'prof4', name: 'PROFESSOR DE BARROS', cps: 33, blip: [150, 30] },

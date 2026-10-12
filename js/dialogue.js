@@ -91,6 +91,7 @@ const DIALOGUE = (() => {
   let deck = [], options = [], silence = 0, silenceMax = 8;
   let waitT = 0, flashT = 0, phase = 'chat', missionIdx = 0;
   let talkAnim = false, snack = false;
+  let grace = 0;                 // logo depois da cutscene o dedo ainda está no [ESPAÇO] de "continuar": não conta como interrupção
 
   function $(id) { return document.getElementById(id); }
 
@@ -209,7 +210,7 @@ const DIALOGUE = (() => {
   }
 
   function interrupt() {
-    if (mode !== 'typing' || !q.interruptible) return;
+    if (mode !== 'typing' || !q.interruptible || grace > 0) return;
     if (q.breath > 0) {
       el.breath.classList.remove('on');
       addFoco(12); AUDIO.sfx('good'); flash('INTERRUPÇÃO PERFEITA! +FOCO', true);
@@ -239,7 +240,7 @@ const DIALOGUE = (() => {
     },
     start(cb) {
       onEnd = cb; active = true; phase = 'chat';
-      foco = 15; tangents = 0; speedBoost = 0; deck = []; snack = false;
+      foco = 15; tangents = 0; speedBoost = 0; deck = []; snack = false; grace = 0.8;
       addFoco(0);
       el.root.classList.remove('hidden');
       AUDIO.play('mountain', { bpm: tempo(), fade: 0.2 });
@@ -250,6 +251,7 @@ const DIALOGUE = (() => {
     update(dt, time) {
       if (!active) return;
       if (flashT > 0) { flashT -= dt; if (flashT <= 0) el.flash.classList.remove('show'); }
+      if (grace > 0) grace -= dt;
       talkAnim = false;
 
       if (mode === 'typing') {
