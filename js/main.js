@@ -855,8 +855,8 @@
       P.yaw = Math.sin(G.time * 0.1) * 0.15; P.pitch = 0.12;
     }
 
-    DIALOGUE.update(dt, G.time);
-    CONVO.update(dt, G.time);
+    DIALOGUE.update(dt * (G.textSpeed || 1), G.time);      // textSpeed: só os testes aceleram o texto
+    CONVO.update(dt * (G.textSpeed || 1), G.time);
     COMBAT.update(dt, G.state === 'play' && !G.paused, P.bob, P.moving);
     if (G.state === 'play' && !G.paused) BOSS.update(dt);
     // efeitos de tela: olhar psíquico, clarão do teletransporte, infecção
@@ -881,7 +881,7 @@
     if (subT > 0 && (subT -= dt) <= 0) $('subtitle').classList.remove('show');
     if (notifyT > 0 && (notifyT -= dt) <= 0) $('notify').classList.remove('show');
 
-    renderer.render(scene, camera);
+    if (G.noRender) scene.updateMatrixWorld(); else renderer.render(scene, camera);   // noRender: testes automáticos
     requestAnimationFrame(frame);
   }
 
@@ -902,7 +902,7 @@
   const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met|,dudu|,gun|,prof3|,clovis|,ch3|,leito|,rx|,ps)?/);
   if (dev) {
     G.dev = true;
-    window.__game = { P, G, BOSS, COMBAT, CONVO, bossMesh: belgica.mesh };   // só no modo dev, para testes automáticos
+    window.__game = { P, G, BOSS, COMBAT, CONVO, W, L1: L, L2, L3, pickups: allCafes(), doors: Object.assign({}, L.doors, L2.doors) };   // só no modo dev, para testes automáticos
     ['boot', 'title'].forEach(id => show(id, false));
     show('hud'); G.state = 'play';
     P.pos.set(+dev[1], 0, +dev[2]); P.yaw = +dev[3]; P.pitch = +(dev[4] || 0);

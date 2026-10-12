@@ -289,7 +289,7 @@ const CONVO = (() => {
       });
     },
     get active() { return active; },
-    get knotState() { return knot; },   // usado pelos testes automáticos
+    get minigameState() { return knot || (mode === 'laudos' ? laudos : null); },   // usado pelos testes automáticos
     get talking() { return talk; },
     get speakerChar() { return speaker && speaker.char; },
     get following() { return igScore > 0; },

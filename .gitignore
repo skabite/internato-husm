@@ -14,3 +14,6 @@ imagens husm/
 
 # páginas de teste automático (temporárias)
 _*.html
+
+# prints dos testes que falharam
+tests/falhou-*.png
