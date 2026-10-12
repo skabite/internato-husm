@@ -35,27 +35,13 @@ const LEVEL3 = (() => {
   ];
   const X0 = -22, Z0 = -320, WALL_H = 3;
 
-  function build(scene, hooks) {
-    const M = hooks.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
+  function build(scene, ctx) {
+    const M = ctx.M, box = WORLD.box, panel = WORLD.panel, sign = WORLD.sign;
     const colliders = WORLD.colliders;
-    const out = { lights: [] };
+    const out = {};
 
-    // ---------- PAREDES ----------
-    const runs = [];
-    MAP.forEach((row, r) => {
-      let c = 0;
-      while (c < row.length) {
-        if (row[c] !== '#') { c++; continue; }
-        let e = c; while (e + 1 < row.length && row[e + 1] === '#') e++;
-        const prev = runs.find(q => q.c1 === c && q.c2 === e && q.r2 === r - 1);
-        if (prev) prev.r2 = r; else runs.push({ c1: c, c2: e, r1: r, r2: r });
-        c = e + 1;
-      }
-    });
-    for (const q of runs) box(X0 + q.c1, 0, Z0 - q.r2 - 1, X0 + q.c2 + 1, WALL_H, Z0 - q.r1, M.wallLow, { collide: true });
-    const xw = MAP[0].length, zh = MAP.length;
-    box(X0, -0.02, Z0 - zh, X0 + xw, 0.02, Z0, M.vinyl);
-    box(X0, WALL_H - 0.05, Z0 - zh, X0 + xw, WALL_H, Z0, M.pvc);
+    // ---------- PAREDES, PISO E FORRO ----------
+    BUILD.walls(MAP, { x0: X0, z0: Z0, wallH: WALL_H, floor: M.vinyl, ceiling: M.pvc });
     const col = c => new THREE.MeshPhongMaterial({ color: c, emissive: 0x111111 });
     const glow = c => new THREE.MeshBasicMaterial({ color: c });
 
@@ -76,7 +62,7 @@ const LEVEL3 = (() => {
     colliders.push({ x1: SX - 2.2, x2: SX + 2.2, z1: SZ - 2.2, z2: SZ + 2.2 });
     const hit = new THREE.Mesh(new THREE.CylinderGeometry(2.45, 2.45, 2.8, 8), new THREE.MeshBasicMaterial({ visible: false }));
     hit.position.set(SX, 1.4, SZ); scene.add(hit);
-    hit.userData.verb = 'subir pro hall'; hit.userData.onUse = () => hooks.onUp();
+    hit.userData.verb = 'subir pro hall'; hit.userData.onUse = () => ctx.emit('stairsUp');
     WORLD.interactables.push(hit);
     sign('PS · SUBSOLO', -16.5, 2.45, -320.98, 2.2, 0.35, 'z+', { w: 128, h: 20, size: 13, fg: '#fff', bg: '#7a1a1a' });
     out.arrive = new THREE.Vector3(-16.5, 0, -327.0); out.arriveYaw = 0;
@@ -92,13 +78,29 @@ const LEVEL3 = (() => {
     [0xc01818, 0xe07020, 0xe0c030, 0x2a9a3a, 0x2a5ab0].forEach((c, k) => {
       box(-21, 0.02, -330.4 - k * 0.45, 21, 0.026, -330.25 - k * 0.45, col(c));
     });
-    for (let x = -18; x <= 18; x += 9) {
-      const l = new THREE.PointLight(0xff2a1a, 0.9, 10, 2); l.position.set(x, 2.7, -331); scene.add(l);
-      const b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.12, 0.12), glow(0xff3020)); b.position.copy(l.position); scene.add(b);
-      l.userData.bulb = b; out.lights.push(l);
-    }
+    for (let x = -18; x <= 18; x += 9) BUILD.light(x, 2.7, -331, { peak: 0.8 });
     panel(-21 + 0.01, 1.6, -331, 1.4, 1.0, 'x+', M.board, {
       msg: 'Mural do PS: "ESCALA DE PLANTÃO — OUTUBRO". Seu nome aparece em todos os dias. Até nos que ainda não existem.' });
+
+    // ---------- porta do CENTRO OBSTÉTRICO (fundo leste do corredor) ----------
+    // Trancada por enquanto: atrás dela vai ficar o minijogo do cardiotocógrafo (docs/minijogo-cardiotocografia.md).
+    // Quando a sala existir: abrir a parede no MAPA (coluna 43, linhas 10–11) e trocar isto por uma porta de verdade.
+    const CO = { x: 20.9, z: -331 };
+    sign('CENTRO OBSTÉTRICO', 20.98, 2.62, CO.z, 2.4, 0.3, 'x-', { w: 256, h: 24, size: 15, fg: '#fff', bg: '#7a2a5a', border: true });
+    const coMsgs = [
+      'CENTRO OBSTÉTRICO. Trancada. Lá dentro, um bipe: tum-tum-tum-tum... e aí um chiado de rádio AM. Isso não é um coração.',
+      'Pela janelinha: um cardiotocógrafo do tempo do Sarney, com o cabo enrolado em esparadrapo. Ele está tocando... canto de baleia?',
+      'Um papel colado na porta: "CTG COM MAU CONTATO. NÃO BATER NO APARELHO." Embaixo, outra letra: "(bater funciona)".',
+      'Você encosta o ouvido na porta. Tum-tum-tum... internet discada... tum-tum. Alguém vai ter que sintonizar aquilo. Hoje não.',
+    ];
+    let coK = 0, ctgT = 4, tt = 0;
+    const winMat = new THREE.MeshBasicMaterial({ color: 0x0a2a1a });
+    for (const z of [CO.z - 1, CO.z]) {
+      const leaf = box(20.86, 0, z, 20.96, 2.4, z + 1, M.door, { collide: true, su: 1, sv: 2.1 });
+      leaf.userData.verb = 'abrir';
+      leaf.userData.onUse = () => { ctx.toast(coMsgs[coK++ % coMsgs.length], 5); AUDIO.sfx('dry'); ctgT = 0.4; };
+      panel(20.855, 1.54, z + 0.5, 0.44, 0.46, 'x-', winMat).raycast = () => {};   // o visor da porta (textura): a luz do monitor do CTG (não rouba o [E])
+    }
 
     // ---------- B: acolhimento / classificação de risco ----------
     box(-9, 0, -324.5, -4, 0.85, -323.7, M.wood, { collide: true, msg: 'Mesa da classificação de risco. Um carimbo "AZUL — NÃO URGENTE" gasto de tanto uso.' });
@@ -121,7 +123,7 @@ const LEVEL3 = (() => {
 
     // ---------- D: sala vermelha ----------
     for (const x of [-18, -14, -10]) {
-      hooks.stretcher(x, -341, 0);
+      ctx.stretcher(x, -341, 0);
       box(x - 0.3, 1.3, -343.4, x + 0.3, 1.7, -343.3, M.dark);
       panel(x, 1.5, -343.29, 0.5, 0.3, 'z+', glow(0x2a8a3a), { msg: 'Monitor multiparamétrico. Linha reta. Mas é porque não tem ninguém ligado nele. Né?' });
     }
@@ -133,8 +135,8 @@ const LEVEL3 = (() => {
       box(x - 0.45, 0, -339.5, x + 0.45, 0.5, -338.6, col(0x6a8aa8), { collide: true, msg: 'Poltrona da observação. Ainda afundada no formato de alguém. Alguém grande.' });
       box(x - 0.45, 0.5, -339.6, x + 0.45, 1.1, -339.4, col(0x6a8aa8));
     }
-    hooks.stretcher(-3, -343.5, Math.PI / 2);
-    hooks.stretcher(3, -343.5, Math.PI / 2);
+    ctx.stretcher(-3, -343.5, Math.PI / 2);
+    ctx.stretcher(3, -343.5, Math.PI / 2);
 
     // ---------- F: chefia do PS (Falastrão) ----------
     box(12, 0, -343.2, 17, 0.8, -342.2, M.wood, { collide: true, msg: 'A mesa do chefe do PS. Um megafone, três celulares e uma pilha de entrevistas impressas. Todas dele.' });
@@ -192,12 +194,21 @@ const LEVEL3 = (() => {
     out.chefiaR = 2.4;                        // a conversa só começa perto dele: dá pra fuçar a sala antes
     const lamp = new THREE.PointLight(0xffc070, 1.2, 8, 2); lamp.position.set(16, 1.3, -342.7); scene.add(lamp);
 
-    out.update = dt => {                                        // chiado da TV
-      tvl.intensity = 0.4 + Math.random() * 0.5;
+    out.update = (dt, pos, active) => {
+      tvl.intensity = 0.4 + Math.random() * 0.5;                // chiado da TV
       tv.material.color.setScalar(0.45 + Math.random() * 0.3);
+      // o CTG atrás da porta do CO: a janelinha pisca no ritmo do "coração" (com mau contato) e, perto, dá pra ouvir
+      tt += dt;
+      const b = Math.pow(Math.max(0, Math.sin(tt * 14.6)), 6);
+      if (Math.random() < 0.03) winMat.color.setHex(U.pick([0xff40a0, 0x4060ff, 0x000000]));
+      else winMat.color.setRGB(0.04 + 0.2 * b, 0.16 + 0.7 * b, 0.1 + 0.35 * b);
+      if (!active) return;
+      const d = Math.hypot(pos.x - CO.x, pos.z - CO.z);
+      if (d < 10 && (ctgT -= dt) <= 0) { ctgT = 5 + Math.random() * 4; AUDIO.sfx('ctg', U.clamp(1.15 - d / 10, 0.12, 1)); }
     };
     return out;
   }
 
   return { build, MAP };
 })();
+GAME.area('L3', LEVEL3.build);

@@ -16,19 +16,24 @@
 <h2>Personagens — referência visual (dev)</h2>
 <div class="row" id="row"></div>
 <script src="lib/three.min.js"></script>
-<script src="js/util.js"></script>
-<script src="js/sprites.js"></script>
+<script src="js/motor/util.js"></script>
+<script src="js/dados/personagens.js"></script>
+<script src="js/motor/sprites.js"></script>
 <script>
-  for (const id in SPRITES.CHARS) {
+  // todo personagem que tem visual em js/dados/personagens.js: retrato parado, retrato falando e os 3 quadros do corpo
+  for (const id in PERSONAGENS) {
+    if (!PERSONAGENS[id].visual) continue;
     const d = document.createElement('div'); d.className = 'card';
-    d.innerHTML = `<h3>${SPRITES.CHARS[id].nome} (${id})</h3>`;
+    d.innerHTML = `<h3>${PERSONAGENS[id].fala.nome} (${id})</h3>`;
     const pair = document.createElement('div'); pair.className = 'pair';
     for (const f of [0, 1]) {
       const pc = document.createElement('canvas'); pc.width = 48; pc.height = 48; pc.style.width = '144px';
       SPRITES.drawPortrait(pc, id, f); pair.appendChild(pc);
     }
-    const bc = document.createElement('canvas'); bc.width = 32; bc.height = 64; bc.style.width = '72px';
-    bc.getContext('2d').drawImage(SPRITES.get(id).body[0], 0, 0); pair.appendChild(bc);
+    for (const f of [0, 1, 2]) {
+      const bc = document.createElement('canvas'); bc.width = 32; bc.height = 64; bc.style.width = '72px';
+      bc.getContext('2d').drawImage(SPRITES.get(id).body[f], 0, 0); pair.appendChild(bc);
+    }
     d.appendChild(pair); document.getElementById('row').appendChild(d);
   }
 </script>

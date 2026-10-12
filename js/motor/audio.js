@@ -181,6 +181,26 @@ const AUDIO = (() => {
     };
   })();
 
+  // G. Mahler — Das Lied von der Erde, "Der Abschied" (o final: "ewig... ewig...") — Consultório 4 (MAAA e ADC)
+  // Arranjo de memória: a celesta arpejando Dó com sexta (C-E-G-A), o pedal grave em Dó e o "ewig"
+  // da voz (Mi → Ré) que nunca resolve no Dó. A flauta responde em pentatônica.
+  (() => {
+    const e8 = s => s.split(' ').map(n => n + ':0.5').join(' ');
+    const celesta = rep([e8('C5 E5 G5 A5 C6 A5 G5 E5'), e8('E5 G5 A5 C6 E6 C6 A5 G5'),
+      e8('C5 E5 G5 A5 C6 A5 G5 E5'), e8('D5 G5 A5 C6 D6 C6 A5 G5')].join(' '), 2);
+    const ewig = 'R:2 E5:2 D5:4 R:2 E5:2 D5:4 R:2 E5:2 D5:4 R:2 E5:3 D5:3';
+    const flauta = 'R:4 G5:1 A5:1 G5:1 E5:1 R:4 A5:1 C6:1 A5:1 G5:1 R:4 G5:1 A5:1 G5:1 E5:1 R:5 D5:1 E5:2';
+    SONGS.erde = {
+      bpm: 54,
+      tracks: [
+        { wave: 'triangle', vol: 0.13, ev: parse(celesta), stacc: 0.5 },
+        { wave: 'square', vol: 0.06, ev: parse(ewig), stacc: 0.97 },
+        { wave: 'square', vol: 0.03, ev: parse(flauta), stacc: 0.8 },
+        { wave: 'triangle', vol: 0.22, ev: parse('C2:8 C2:8 C2:8 C2:8'), stacc: 0.97 },
+      ],
+    };
+  })();
+
   for (const k in SONGS) {
     const s = SONGS[k];
     s.len = Math.max(...s.tracks.map(t => t.ev.reduce((a, e) => a + e.beats, 0)));
@@ -376,6 +396,30 @@ const AUDIO = (() => {
         const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 3;
         const g = ctx.createGain(); g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.16 * vol, s + 0.02); g.gain.linearRampToValueAtTime(0, s + 0.14);
         o.connect(f); f.connect(g); g.connect(sfxGain); o.start(s); o.stop(s + 0.15);
+      }
+    },
+    // cardiotocógrafo velho com mau contato (atrás da porta do Centro Obstétrico): uns batimentos e aí... outra coisa
+    ctg(vol = 1, kind) {
+      const t = ctx.currentTime, beat = 60 / (135 + Math.random() * 20), n = 3 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < n; i++) {                                     // o "tchuf-tchuf" do sonar fetal
+        const s = t + i * beat, a = noise(s, 0.12, 0.22 * vol, sfxGain, 'bandpass', 420, 2.5);
+        a.f.frequency.setValueAtTime(320, s); a.f.frequency.linearRampToValueAtTime(820, s + 0.1);
+        noise(s + 0.14, 0.09, 0.12 * vol, sfxGain, 'bandpass', 600, 2.5);
+      }
+      const s = t + n * beat;
+      const k = kind || ['modem', 'baleia', 'radio'][Math.floor(Math.random() * 3)];
+      if (k === 'modem') {                                              // internet discada
+        for (let i = 0; i < 14; i++) tone(600 + Math.random() * 2200, s + i * 0.07, 0.08, 'square', 0.035 * vol, sfxGain, 1);
+        noise(s + 1.0, 0.6, 0.08 * vol, sfxGain, 'bandpass', 2400, 1.5);
+      } else if (k === 'baleia') {                                      // canto de baleia
+        const o = ctx.createOscillator(); o.type = 'sine';
+        o.frequency.setValueAtTime(260, s); o.frequency.exponentialRampToValueAtTime(720, s + 0.9); o.frequency.exponentialRampToValueAtTime(190, s + 2.2);
+        const lfo = ctx.createOscillator(); lfo.frequency.value = 6; const lg = ctx.createGain(); lg.gain.value = 14; lfo.connect(lg); lg.connect(o.frequency);
+        const g = ctx.createGain(); g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(0.1 * vol, s + 0.3); g.gain.linearRampToValueAtTime(0, s + 2.3);
+        o.connect(g); g.connect(sfxGain); o.start(s); lfo.start(s); o.stop(s + 2.4); lfo.stop(s + 2.4);
+      } else {                                                          // rádio AM: chiado e alguém dando entrevista
+        noise(s, 1.6, 0.1 * vol, sfxGain, 'bandpass', 1800, 0.6);
+        for (let i = 0; i < 12; i++) tone(140 + Math.random() * 90, s + 0.2 + i * 0.09, 0.07, 'sawtooth', 0.03 * vol, sfxGain, 1);
       }
     },
     creak() { // dobradiça enferrujada (porta abrindo sozinha)

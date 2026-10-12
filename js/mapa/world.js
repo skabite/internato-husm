@@ -167,13 +167,15 @@ const WORLD = (() => {
     }
 
     const pickups = buildPickups(M);
+    // ninguém sai do campus: limites do mapa
+    colliders.push({ x1: -200, x2: 200, z1: 75, z2: 200 }, { x1: -200, x2: -85, z1: -200, z2: 200 }, { x1: 85, x2: 200, z1: -200, z2: 200 });
 
     return {
       colliders, interactables, update, pickups,
       spawn: new THREE.Vector3(0, 0, 44),
       profStart: new THREE.Vector3(0.5, 0, -7.5),
       profIdle: new THREE.Vector3(-10.35, 0, -9.4),      // ao lado do bebedouro, conversando com ele
-      endStretcher: anim.endStretcher, stairHit: anim.stairHit, red: [redA, redB], M, TOP,
+      endStretcher: anim.endStretcher, stairHit: anim.stairHit, red: [redA, redB], M, TOP, amb: anim.amb,
     };
   }
 
@@ -506,11 +508,17 @@ const WORLD = (() => {
     box(-1.8, 0, Z1, -1.6, CORR_H, MZ1, M.wallLow, { collide: true });
     box(-1.8, 0, MZ2, -1.6, CORR_H, Z2, M.wallLow, { collide: true });
     box(-1.8, 2.4, MZ1, -1.6, CORR_H, MZ2, M.wallLow);
-    box(1.6, 0, Z1, 1.8, CORR_H, Z2, M.wallLow, { collide: true });
+    const C4 = { x1: 1.8, x2: 7.8, z1: -36.4, z2: -29.8, dz1: -33.6, dz2: -32.4 };   // Consultório 4 (o único aberto)
+    box(1.6, 0, Z1, 1.8, CORR_H, C4.dz1, M.wallLow, { collide: true });
+    box(1.6, 0, C4.dz2, 1.8, CORR_H, Z2, M.wallLow, { collide: true });
+    box(1.6, 2.4, C4.dz1, 1.8, CORR_H, C4.dz2, M.wallLow);
     box(-1.8, CORR_H, Z1, 1.8, FLOOR_H, Z2, M.concrete);
 
-    // bloco da direita (fechado) e bloco da esquerda com o sanitário masculino escavado
-    box(1.8, 0, Z1, 14.2, FLOOR_H, Z2, M.concrete, { collide: true });
+    // bloco da direita (com o Consultório 4 escavado) e bloco da esquerda com o sanitário masculino escavado
+    box(1.8, 0, Z1, 14.2, FLOOR_H, C4.z1, M.concrete, { collide: true });
+    box(1.8, 0, C4.z2, 14.2, FLOOR_H, Z2, M.concrete, { collide: true });
+    box(C4.x2, 0, C4.z1, 14.2, FLOOR_H, C4.z2, M.concrete, { collide: true });
+    box(C4.x1, 3.0, C4.z1, C4.x2, FLOOR_H, C4.z2, M.concrete);
     const RX1 = -12.5, RX2 = -6, RZ1 = -34, RZ2 = -27;               // sala do sanitário
     box(-14.2, 0, Z1, -1.8, FLOOR_H, RZ1, M.concrete, { collide: true });
     box(-14.2, 0, RZ2, -1.8, FLOOR_H, Z2, M.concrete, { collide: true });
@@ -527,7 +535,9 @@ const WORLD = (() => {
       sign(`CONSULTÓRIO ${n}`, x - s * 0.001, 2.35, z, 0.9, 0.2, f, { w: 96, h: 20, size: 11, fg: '#222', bg: '#ddd' });
     };
     doorAt(1, -1, -34.5); doorAt(3, -1, -39); doorAt(5, -1, -43.6);
-    doorAt(2, 1, -28.4); doorAt(4, 1, -33.0); doorAt(6, 1, -43.6);
+    doorAt(2, 1, -28.4); doorAt(6, 1, -43.6);
+    sign('CONSULTÓRIO 4', 1.589, 2.55, -33.0, 0.9, 0.2, 'x-', { w: 96, h: 20, size: 11, fg: '#222', bg: '#ddd' });
+    buildConsultorio4(M, C4);
 
     // sanitário feminino (emperrado)
     panel(1.59, 1.05, -38.6, 1.0, 2.1, 'x-', M.door, {
@@ -616,8 +626,90 @@ const WORLD = (() => {
   }
 
   // =====================================================================
+  // CONSULTÓRIO 4: o único aberto do corredor. Dois internos de plantão:
+  // MAAA (veterano) lendo sentado na maca e ADC no computador, passando tomografia e ressonância.
+  // As conversas ficam no story1.js; os personagens são criados no main.js (posições em anim.amb).
+  // =====================================================================
+  function screenTex(draw) {                                     // tela de 64x48 em pixel
+    const c = document.createElement('canvas'); c.width = 64; c.height = 48;
+    const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, 64, 48); draw(g);
+    const t = new THREE.CanvasTexture(c); t.magFilter = t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
+    return t;
+  }
+  const ell = (g, cx, cy, rx, ry, col) => { g.fillStyle = col; g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, 7); g.fill(); };
+  // TC de crânio, cortes axiais (o ADC vai rolando): osso branco, cérebro cinza, ventrículos escuros
+  function ctSlice(k) {
+    return screenTex(g => {
+      const s = [0.75, 0.9, 1, 0.95, 0.8][k];
+      ell(g, 32, 24, 17 * s + 2, 21 * s + 2, '#f4f4f4');
+      ell(g, 32, 24, 17 * s, 21 * s, '#8a8a8a');
+      if (k > 0 && k < 4) { ell(g, 29, 21, 2.5 * s, 6 * s, '#2a2a2a'); ell(g, 35, 21, 2.5 * s, 6 * s, '#2a2a2a'); }
+      if (k === 2) ell(g, 32, 31, 1.5, 2, '#2a2a2a');
+      g.fillStyle = '#a0a0a0'; g.fillRect(31, 24 - 18 * s, 2, 2);
+      g.fillStyle = '#7a9a7a'; g.font = '6px monospace'; g.fillText('TC ' + (12 + k * 4) + '/40', 2, 46);
+      g.fillStyle = '#ffd84a'; g.fillRect(48, 20, 6, 1); g.fillRect(47, 19, 1, 3);   // a seta do ADC
+    });
+  }
+  // RM sagital em T2: líquor branco, cérebro cinza, cerebelo e tronco
+  function mriSlice(k) {
+    return screenTex(g => {
+      ell(g, 31, 22, 22, 17, '#d8d8e0');
+      ell(g, 31, 22, 20, 15, '#6a6a74');
+      g.fillStyle = '#d8d8e0'; g.fillRect(28 + k, 18, 8, 2);           // corpo caloso / ventrículo
+      ell(g, 42, 33, 7, 5, '#585862');                                  // cerebelo
+      g.fillStyle = '#7a7a84'; g.fillRect(33, 30, 4, 16);              // tronco
+      g.fillStyle = '#9a9aa8'; g.font = '6px monospace'; g.fillText('RM T2 SAG', 2, 46);
+    });
+  }
+  function buildConsultorio4(M, C) {
+    const { x1: X1, x2: X2, z1: Z1, z2: Z2, dz1: DZ1, dz2: DZ2 } = C;
+    box(X1, -0.02, Z1, X2, 0.025, Z2, M.vinyl);
+    box(1.6, -0.02, DZ1, X1, 0.025, DZ2, M.vinyl);                     // soleira
+    box(X1, 2.95, Z1, X2, 3.0, Z2, M.pvc);
+    wallPanel(Z1, DZ1, 0, 3, X1 + 0.01, 'x+', M.wallLow); wallPanel(DZ2, Z2, 0, 3, X1 + 0.01, 'x+', M.wallLow);
+    wallPanel(DZ1, DZ2, 2.4, 3, X1 + 0.01, 'x+', M.wallLow);
+    wallPanel(Z1, Z2, 0, 3, X2 - 0.01, 'x-', M.wallLow);
+    wallPanel(X1, X2, 0, 3, Z1 + 0.01, 'z+', M.wallLow);
+    wallPanel(X1, X2, 0, 3, Z2 - 0.01, 'z-', M.wallLow);
+    // a porta, aberta pra dentro
+    seg(X1 + 0.02, DZ2, X1 + 1.15, DZ2 - 0.2, 0, 2.35, 0.05, M.door, { su: 1, sv: 2.1,
+      msg: 'Porta do Consultório 4. A única aberta do corredor. Lá dentro, luz de tela e alguém virando página.' });
+    colliders.push({ x1: X1, x2: X1 + 1.2, z1: DZ2 - 0.32, z2: DZ2 + 0.05 });
+
+    // MAAA: a maca encostada na parede do fundo, ele sentado na beirada, de frente pra porta
+    const st = stretcher(7.0, -34.6, 0, M);
+    st.traverse(o => { if (o.userData.msg) o.userData.msg = 'A maca do MAAA. Um travesseiro dobrado em quatro e uma pilha de livros que não são de medicina.'; });
+    box(6.75, 0.92, -34.0, 7.25, 1.06, -33.7, col(0x3a5a8a), { msg: 'Livros na maca: Huxley, Camus, um Harrison com marcador na página 1 e "O Pequeno Príncipe", bem gasto.' });
+    const lamp = new THREE.PointLight(0xffc880, 0.7, 5, 2); lamp.position.set(6.4, 2.0, -34.8); scene.add(lamp);
+    // ADC: mesa encostada na parede norte, dois monitores, ele de lado, de cara pra tela
+    box(3.4, 0, Z2 - 0.75, 6.4, 0.76, Z2, M.wood, { collide: true, msg: 'Mesa do consultório. Um receituário, um carimbo sem tinta e três canetas que não escrevem.' });
+    const scans = { ct: [0, 1, 2, 3, 4].map(ctSlice), mri: [0, 1, 2].map(mriSlice) };
+    const screens = [[4.3, 'ct', 'Tomografia de crânio, cortes axiais. O ADC desce e sobe os cortes. Tem uma seta amarela em cada um. Todas com legenda.'],
+      [5.5, 'mri', 'Ressonância, sagital em T2: o líquor brilha branco. O ADC diz que é a sequência mais bonita que existe. Ele diz isso de todas.']]
+      .map(([x, kind, msg]) => {
+        box(x - 0.34, 0.86, Z2 - 0.34, x + 0.34, 1.34, Z2 - 0.24, M.dark);
+        box(x - 0.05, 0.76, Z2 - 0.3, x + 0.05, 0.86, Z2 - 0.26, M.dark);
+        return panel(x, 1.1, Z2 - 0.345, 0.6, 0.42, 'z-', new THREE.MeshBasicMaterial({ map: scans[kind][0] }), { msg });
+      });
+    box(4.6, 0.76, Z2 - 0.62, 5.2, 0.78, Z2 - 0.45, M.dark);            // teclado
+    // pistas (pra quem examina a sala antes de responder o ADC)
+    sign('HGPRT', 5.72, 1.26, Z2 - 0.352, 0.14, 0.12, 'z-', { w: 32, h: 24, size: 9, fg: '#1a1a1a', bg: '#f4e04a',
+      msg: 'Um post-it no monitor do ADC: "HGPRT ♥". Embaixo, menor: "a via de salvamento das purinas é a mais bonita".' });
+    const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.045, 0.11, 8), col(0xe8e4d8)); mug.position.set(6.1, 0.82, Z2 - 0.5); scene.add(mug);
+    mug.userData.msg = 'Caneca do ADC: "EU ♥ PURINAS". Dentro, café frio. Do lado, uma cartela de alopurinol. Pra quê? Ninguém sabe.'; interactables.push(mug);
+    sign('VIA DAS PURINAS', 4.9, 2.1, Z2 - 0.02, 1.4, 0.7, 'z-', { w: 128, h: 64, size: 12, fg: '#1a2a5a', bg: '#f2efe4', border: true,
+      msg: 'Pôster colado com fita crepe: a via de salvamento das purinas, desenhada à mão. A enzima HGPRT circulada três vezes, com um coração do lado.' });
+    const glow = new THREE.PointLight(0x8ac8ff, 0.9, 5, 2); glow.position.set(4.9, 1.2, Z2 - 0.9); scene.add(glow);
+    anim.amb = {
+      maaaPos: new THREE.Vector3(6.32, 0, -34.6), adcPos: new THREE.Vector3(4.9, 0, -31.05),
+      zone: { x1: X1 + 0.2, x2: X2, z1: Z1, z2: Z2 },                  // dentro da sala (toca o Mahler)
+      screens, scans, glow, t: 0, k: 0,
+    };
+  }
+
+  // =====================================================================
   // ITENS DE CURA (além do café da copa): pegam sozinhos ao passar perto, se você estiver ferido.
-  // A ORDEM IMPORTA: o save guarda o índice de cada item pego — só acrescente no fim.
+  // Cada um ganha um id 'W:n' na ordem em que aparece aqui (o save guarda os ids): só acrescente no fim.
   // =====================================================================
   const KINDS = {
     chimarrao: { heal: 40, cure: false, msgs: ['Chimarrão do galpãozinho. Amargo, quente, gaúcho. Ninguém vai sentir falta. Vão sim. (+40)'],
@@ -635,7 +727,7 @@ const WORLD = (() => {
       const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
       if (onStool) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.72, 0.35), M.metal); st.position.y = 0.36; g.add(st); }
       const item = new THREE.Group(); item.position.y = onStool ? 0.8 : 0.5; g.add(item); make(item);
-      list.push(Object.assign({ x, z, group: g, cup: item, taken: false, kind }, KINDS[kind]));
+      list.push(BUILD.pickup('W', Object.assign({ x, z, group: g, cup: item, kind }, KINDS[kind])));
     };
     const m = (geo, c, extra = {}) => new THREE.Mesh(geo, new THREE.MeshPhongMaterial(Object.assign({ color: c, emissive: 0x222222 }, extra)));
     const cuia = it => {
@@ -685,6 +777,13 @@ const WORLD = (() => {
       }
     }
     if (anim.senha) anim.senha.visible = Math.random() > 0.01;
+    const a = anim.amb;                                             // o ADC rolando os cortes
+    if (a && (a.t -= dt) <= 0) {
+      a.t = 0.18 + Math.random() * 0.5; a.k++;
+      a.screens[0].material.map = a.scans.ct[Math.abs(((a.k % 8) + 8) % 8 - 4)]; a.screens[0].material.needsUpdate = true;
+      if (a.k % 5 === 0) { a.screens[1].material.map = a.scans.mri[(a.k / 5 | 0) % 3]; a.screens[1].material.needsUpdate = true; }
+      a.glow.intensity = 0.75 + Math.random() * 0.25;
+    }
   }
 
   // ---------- OBJETOS ----------
@@ -849,5 +948,7 @@ const WORLD = (() => {
     box(x - 0.25, h - 0.2, z - 1.1, x + 0.25, h - 0.05, z - 0.6, M.dark);
   }
 
-  return { build, box, panel, sign, mat, stretcher: (x, z, rot) => stretcher(x, z, rot, MAT), FLOOR_H, UP_H, FLOORS, get colliders() { return colliders; }, get interactables() { return interactables; } };
+  return { build, box, panel, sign, mat, stretcher: (x, z, rot) => stretcher(x, z, rot, MAT), FLOOR_H, UP_H, FLOORS,
+    get colliders() { return colliders; }, get interactables() { return interactables; }, get scene() { return scene; }, get M() { return MAT; } };
 })();
+GAME.area('W', scene => WORLD.build(scene));

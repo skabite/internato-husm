@@ -65,7 +65,7 @@
       <div id="save-info" class="small" style="margin-top:4px"></div>
       <div id="btn-new" class="menu" style="margin-top:22px">NOVO JOGO</div>
     </div>
-    <div class="small">trilha: Bach · Beethoven · Grieg · Vivaldi · Mozart — em 8 bits</div>
+    <div class="small">trilha: Bach · Beethoven · Grieg · Vivaldi · Mozart · Mahler — em 8 bits</div>
   </div>
   <div id="intro" class="hidden"></div>
   <div id="pause" class="hidden">
@@ -81,23 +81,40 @@
 </div>
 
 <script src="lib/three.min.js"></script>
-<script src="js/util.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/textures.js"></script>
-<script src="js/sprites.js"></script>
-<script src="js/world.js"></script>
-<script src="js/level1.js"></script>
-<script src="js/level2.js"></script>
-<script src="js/level3.js"></script>
-<script src="js/combat.js"></script>
-<script src="js/boss.js"></script>
-<script src="js/dialogue.js"></script>
-<script src="js/convo.js"></script>
-<script src="js/touch.js"></script>
-<script src="js/aura.js"></script>
-<script src="js/story1.js"></script>
-<script src="js/story2.js"></script>
-<script src="js/story3.js"></script>
+<!-- A ORDEM IMPORTA (sem módulos, pra funcionar com dois cliques no index.html). Mapa do código: CLAUDE.md -->
+<!-- motor: não sabe nada da história -->
+<script src="js/motor/util.js"></script>
+<script src="js/motor/audio.js"></script>
+<script src="js/motor/textures.js"></script>
+<script src="js/dados/personagens.js"></script>
+<script src="js/motor/sprites.js"></script>
+<script src="js/motor/build.js"></script>
+<script src="js/motor/game.js"></script>
+<script src="js/motor/save.js"></script>
+<script src="js/motor/combat.js"></script>
+<script src="js/motor/aura.js"></script>
+<script src="js/motor/convo.js"></script>
+<script src="js/motor/touch.js"></script>
+<!-- mapa: as áreas do hospital (cada uma se registra com GAME.area) -->
+<script src="js/mapa/world.js"></script>
+<script src="js/mapa/level1.js"></script>
+<script src="js/mapa/level2.js"></script>
+<script src="js/mapa/level3.js"></script>
+<!-- mecânicas: minijogos e a luta -->
+<script src="js/mecanicas/dialogue.js"></script>
+<script src="js/mecanicas/laudos.js"></script>
+<script src="js/mecanicas/no.js"></script>
+<script src="js/mecanicas/boss.js"></script>
+<!-- roteiros: as falas -->
+<script src="js/roteiros/story1.js"></script>
+<script src="js/roteiros/story2.js"></script>
+<script src="js/roteiros/story3.js"></script>
+<!-- capítulos: o que acontece, quando e o que vai pro save (na ordem da história) -->
+<script src="js/capitulos/prologo.js"></script>
+<script src="js/capitulos/cap1.js"></script>
+<script src="js/capitulos/cap2.js"></script>
+<script src="js/capitulos/cap3.js"></script>
+<script src="js/capitulos/consultorio4.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

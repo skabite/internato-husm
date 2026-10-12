@@ -1,0 +1,11 @@
+{
+  "name": "internato-husm",
+  "private": true,
+  "description": "Jogo INTERNATO — HUSM: Apagão. O jogo não precisa de instalação; isto aqui é só pros testes automáticos.",
+  "scripts": {
+    "test": "node tests/run.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}

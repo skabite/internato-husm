@@ -1,7 +1,9 @@
-// Loop principal: estados, controles, câmera, gatilhos de eventos.
+// MOTOR: desenho, controles, câmera, telas (título, pausa, morte, fim), conversas, itens de cura e o laço principal.
+// Não sabe nada da história: quem decide o que acontece são os capítulos (js/capitulos/), pelos ganchos do GAME.
 (() => {
   const $ = id => document.getElementById(id);
   const canvas = $('game');
+  const G = GAME.G;
 
   // ---------- RENDER (baixa resolução, ampliada com pixels "duros") ----------
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
@@ -13,6 +15,7 @@
   const camera = new THREE.PerspectiveCamera(72, 1, 0.05, 250);
   camera.rotation.order = 'YXZ';
   scene.add(camera);
+  GAME.scene = scene; GAME.camera = camera;
 
   const RES = [180, 270, 400];
   let resIdx = 1;
@@ -28,18 +31,16 @@
   function toast(text, secs = 3.5) { $('toast').textContent = text; $('toast').classList.add('show'); toastT = secs; }
   function subtitle(text, secs = 4.5) { $('subtitle').textContent = text; $('subtitle').classList.add('show'); subT = secs; }
   function notify(text, title = '📱 Instagram') { $('notify').innerHTML = `<b>${title}</b><br>${text}`; $('notify').classList.add('show'); notifyT = 3.2; AUDIO.sfx('notify'); }
-  function setObjective(t) { $('objective').textContent = t; }
   function show(id, on = true) { $(id).classList.toggle('hidden', !on); }
+  function setTalking(on) { document.body.classList.toggle('talking', on); if (on) $('hint').textContent = ''; }
+  const refreshObjective = () => { $('objective').textContent = GAME.ask('objective') || ''; };
+  Object.assign(GAME, { toast, subtitle, notify, setTalking, refreshObjective, prompt: t => { $('prompt').textContent = t; } });
+  BUILD.toast = toast;
 
-  // ---------- MUNDO ----------
-  const W = WORLD.build(scene);
-  W.colliders.push({ x1: -200, x2: 200, z1: 75, z2: 200 }, { x1: -200, x2: -85, z1: -200, z2: 200 }, { x1: 85, x2: 200, z1: -200, z2: 200 });
-  const L = LEVEL1.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onGun: where => onGun(where), onMarmita: () => onMarmita(), onCT: () => onCT() });
-  const L2 = LEVEL2.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, cafe: (x, z) => L.makeCafe(x, z), onGel: g => onGel(g) });
-  const L3 = LEVEL3.build(scene, { M: W.M, TOP: W.TOP, toast, stretcher: WORLD.stretcher, onUp: () => climbStairs() });
-  const allCafes = () => L.cafes.concat(L2.cafes, W.pickups);   // só acrescentar no fim (o save guarda índices)
-  const allDoors = () => Object.values(L.doors).concat(Object.values(L2.doors));
-  const allLights = () => L.lights.concat(L2.lights, L3.lights);
+  // ---------- MAPA: monta as áreas registradas (js/mapa/), na ordem do index.html ----------
+  const ctx = { scene, toast, emit: GAME.emit, stretcher: WORLD.stretcher, get M() { return WORLD.M; }, get TOP() { return GAME.W.TOP; } };
+  for (const a of GAME.areas) GAME[a.id] = a.build(scene, ctx);
+  const W = GAME.W;
 
   // ---------- LANTERNA ----------
   const flashlight = new THREE.SpotLight(0xfff0d0, 2.4, 26, 0.5, 0.55, 1.5);
@@ -49,44 +50,12 @@
   const eyeLight = new THREE.PointLight(0x5a6478, 0.35, 6, 2);
   camera.add(eyeLight);
 
-  // ---------- PERSONAGENS (sprites) ----------
-  function makeNPC(id, pos, w, h) {
-    const tex = SPRITES.textures(id);
-    const mat = new THREE.MeshPhongMaterial({ map: tex[0], transparent: true, alphaTest: 0.5, side: THREE.DoubleSide, emissive: 0x1a1812 });
-    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
-    mesh.position.set(pos.x, h / 2, pos.z); scene.add(mesh);
-    const col = { x1: pos.x - 0.3, x2: pos.x + 0.3, z1: pos.z - 0.3, z2: pos.z + 0.3 };
-    return { id, mesh, mat, tex, h, col, setFrame(f) { if (mat.map !== tex[f]) { mat.map = tex[f]; mat.needsUpdate = true; } },
-      face() { mesh.rotation.y = Math.atan2(camera.position.x - mesh.position.x, camera.position.z - mesh.position.z); } };
-  }
-  const profNPC = makeNPC('prof1', W.profStart, 0.9, 1.8);
-  const prof = profNPC.mesh, profMat = profNPC.mat, profTex = profNPC.tex;
-  const lantern = new THREE.PointLight(0xffb060, 1.5, 10, 2);
-  scene.add(lantern);
-  const profCol = { x1: 0, x2: 0, z1: 0, z2: 0 };
-  const dudu = makeNPC('prof2', L.duduPos, 0.78, 1.56);        // baixinho
-  const prof3 = makeNPC('prof3', L.prof3Pos, 0.9, 1.8);
-  const clovis = makeNPC('prof4', L2.clovisPos, 0.92, 1.9);      // alto
-  const belgica = makeNPC('chefao', L2.bossPos, 0.9, 1.8);
-  const falastrao = makeNPC('prof5', L3.falastraoPos, 0.95, 1.85);   // chefe do PS (Capítulo 3)
-  const muriel = makeNPC('muriel', L.murielPos, 0.7, 1.4);           // Leito 12: sentada na maca (a maca é que colide)
-  muriel.mesh.position.y = 1.18; muriel.h = 1.87; muriel.mesh.visible = false;
-  muriel.mat.color.setScalar(0.62); muriel.mat.emissive.setHex(0x2e2824);   // paleta clara: não estourar na lanterna
-  W.colliders.push(dudu.col, prof3.col, clovis.col, falastrao.col);
-  const npcs = [dudu, prof3, clovis, belgica, falastrao, muriel];
-
-  // ---------- ESTADO ----------
-  const G = {
-    state: 'boot', paused: false, met: false, objective: false, scare: 0, ended: false,
-    profTarget: null, mutterT: 3, time: 0,
-    duduDone: false, hasGun: false, kills: 0, prof3Done: false, clovisDone: false, bossStarted: false, bossDone: false, plantaoStarted: false, plantaoDone: false, psStarted: false, muriel: 0, rxPerfect: false, psyT: 0, flashT: 0, achievement: false, musicMode: 'explore', convoTarget: null, wardGruntT: 3,
-  };
+  // ---------- JOGADOR E COLISÃO ----------
   const P = { pos: W.spawn.clone(), yaw: 0, pitch: 0, bob: 0, stepAcc: 0, moving: false };
-
-  // ---------- COLISÃO ----------
+  GAME.P = P;
   const R = 0.3;
   function wallBlocked(x, z, r = R) {
-    for (const b of W.colliders) if (x + r > b.x1 && x - r < b.x2 && z + r > b.z1 && z - r < b.z2) return true;
+    for (const b of WORLD.colliders) if (x + r > b.x1 && x - r < b.x2 && z + r > b.z1 && z - r < b.z2) return true;
     return false;
   }
   function blocked(x, z) { return wallBlocked(x, z) || COMBAT.blocks(x, z, R); }
@@ -94,52 +63,29 @@
     if (!blocked(P.pos.x + dx, P.pos.z)) P.pos.x += dx;
     if (!blocked(P.pos.x, P.pos.z + dz)) P.pos.z += dz;
   }
+  GAME.wallBlocked = wallBlocked;
 
   // ---------- COMBATE ----------
   COMBAT.init(scene, camera, {
-    colliders: W.colliders, blocked: wallBlocked, pos: () => P.pos, yaw: () => P.yaw,
+    colliders: WORLD.colliders, blocked: wallBlocked, pos: () => P.pos, yaw: () => P.yaw,
     push: (dx, dz) => { move(dx * 0.5, dz * 0.5); move(dx * 0.5, dz * 0.5); },
-    onDeath, onKill: () => { G.kills++; }, targets: () => BOSS.targets(),
+    onDeath: () => die(), onKill: () => { G.kills++; }, targets: () => GAME.collect('targets'),
+    onDodge: () => toast('Esquivou! ⚡', 0.9),
   });
-  const gate = L2.arenaGate;
-  BOSS.init(scene, camera, {
-    pos: () => P.pos, waypoints: L2.waypoints, los: COMBAT.los, rayLen: COMBAT.rayWall,
-    wallAt: (x, z) => wallBlocked(x, z, 0.05),
-    hit: (dmg, infect, psychic) => {
-      if (COMBAT.P.dead) return;
-      if (psychic) {
-        G.psyT = 0.25; COMBAT.P.hp -= dmg;
-        if (COMBAT.P.hp <= 0) { COMBAT.P.hp = 0; COMBAT.P.dead = true; onDeath(); }
-        return;
-      }
-      COMBAT.damage(dmg);
-      if (infect) { COMBAT.P.infectT = 5; toast('Seringa contaminada! INFECTADO. (café ou álcool gel ajudam)', 2.5); }
-    },
-    subtitle, prompt: t => { $('prompt').textContent = t; },
-    bar: S => renderBossBar(S), flash: col => { $('flash').style.background = col; G.flashT = 0.25; },
-    onDefeat: () => onBossDefeat(),
-  }, belgica);
-  function renderBossBar(S) {
-    if (!S) { show('bossbar', false); return; }
-    show('bossbar');
-    $('bossbar').innerHTML = '<div class="bname">PROFESSOR SCHWARZENEGGER — CCIH</div><div class="docs">' +
-      BOSS.DOCS.map((d, i) => '<span class="' + (i < S.sig ? 'ok' : '') + '">' + (i < S.sig ? '☑ ' : '☐ ') + d + '</span>').join('') + '</div>' +
-      '<div class="bhp"><div style="width:' + (100 * S.hp / S.maxHp) + '%"></div></div>';
-  }
-  for (const s of L.boars) COMBAT.spawn(s.x, s.z);
+  // efeitos de tela que os capítulos usam
+  let psyT = 0, flashT = 0;
+  GAME.fx = { psychic: () => { psyT = 0.25; }, flash: col => { $('flash').style.background = col; flashT = 0.25; } };
 
-  // ---------- AURAS (itens de cura, personagens, objetos de usar) ----------
+  // ---------- AURAS (itens de cura e objetos de usar; personagens ganham a sua no GAME.npc) ----------
   AURA.init(scene);
-  for (const c of allCafes()) AURA.add({ at: c.cup.getWorldPosition(new THREE.Vector3()).setY(c.cup.position.y + 0.1), color: 0x5cff8a, w: 1.1, opacity: 0.9, ring: 0.45, visible: () => !c.taken });
-  [[profNPC, 0xffd27a], [dudu, 0x8ac8ff], [prof3, 0xffa060], [clovis, 0xc8a8ff], [belgica, 0xb050ff], [falastrao, 0xff8a5a]].forEach(([n, color]) =>
-    AURA.add({ follow: () => n.mesh.position, color, w: 1.8, h: 2.7, opacity: 0.6, ring: 0.65, behind: 0.08, visible: () => n.mesh.visible }));
-  AURA.add({ follow: () => muriel.mesh.position, color: 0xff9ac0, w: 1.3, h: 1.7, opacity: 0.55, behind: 0.08, visible: () => muriel.mesh.visible });
-  for (const m of W.interactables) {
-    const verb = m.userData.verb;
-    if (!m.userData.onUse || verb === 'abrir') continue;          // portas não brilham (seriam muitas)
-    const visible = verb === 'revistar' ? () => !L.gunTaken : verb === 'abrir a geladeira' ? () => !G.marmita : null;
-    AURA.addObject(m, { color: 0xffc050, opacity: 0.45, visible });
+  for (const c of BUILD.pickups) AURA.add({ at: c.cup.getWorldPosition(new THREE.Vector3()).setY(c.cup.position.y + 0.1), color: 0x5cff8a, w: 1.1, opacity: 0.9, ring: 0.45, visible: () => !c.taken });
+  for (const m of WORLD.interactables) {
+    if (!m.userData.onUse || m.userData.verb === 'abrir') continue;          // portas não brilham (seriam muitas)
+    AURA.addObject(m, { color: 0xffc050, opacity: 0.45, visible: m.userData.auraVisible });
   }
+
+  // ---------- CAPÍTULOS ----------
+  GAME.each('init');
 
   // ---------- ENTRADA ----------
   const keys = {};
@@ -149,7 +95,7 @@
     if (e.code === 'KeyM') toast(AUDIO.toggleMusic() ? 'Música: ligada' : 'Música: desligada', 1.5);
     if (G.state !== 'play' || G.paused) return;
     if (e.code === 'KeyF') { flashlight.visible = !flashlight.visible; AUDIO.sfx('click'); }
-    if (e.code === 'KeyE' && BOSS.active && BOSS.trySign()) return;
+    if (e.code === 'KeyE' && GAME.any('interceptUse')) return;
     if (e.code === 'KeyE' && lookTarget) {
       if (lookTarget.userData.onUse) lookTarget.userData.onUse();
       else toast(lookTarget.userData.msg, 5);
@@ -175,83 +121,16 @@
     if (G.state === 'play') { G.paused = !locked; show('pause', !locked); }
   });
   function relockOrPause() { if (G.dev || TOUCH.on) return; if (document.pointerLockElement !== canvas) { G.paused = true; show('pause'); } }
+  GAME.relockOrPause = relockOrPause;
 
-  // ---------- SAVE (localStorage do navegador) ----------
-  const SAVE_KEY = 'internato-husm-save-v1';
-  function readSave() { try { return JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { return null; } }
-  function save(quiet = false) {
-    if (G.ended || !G.met || G.state !== 'play' || BOSS.active) return;
-    const data = {
-      pos: [P.pos.x, P.pos.z], yaw: P.yaw, met: G.objective, scare: G.scare > 0,
-      duduDone: G.duduDone, hasGun: G.hasGun, following: CONVO.following,
-      prof3Done: G.prof3Done, clovisDone: G.clovisDone, achievement: G.achievement, marmita: !!G.marmita, carabina: COMBAT.P.has.carabina,
-      bossDone: G.bossDone, plantaoDone: G.plantaoDone, muriel: Math.floor(G.muriel), rxPerfect: G.rxPerfect,
-      hp: COMBAT.P.hp, maxHp: COMBAT.P.maxHp, kills: G.kills,
-      dead: COMBAT.boars.map((b, i) => (b.state === 'dead' && i < L.boars.length ? i : -1)).filter(i => i >= 0),
-      cafes: allCafes().map((c, i) => (c.taken ? i : -1)).filter(i => i >= 0),
-      date: Date.now(),
-    };
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) { return; }
-    if (!quiet && toastT <= 0) toast('💾 Jogo salvo', 1.5);
-  }
-  function wardLeft() { return COMBAT.boars.filter((b, i) => i < L.boars.length && b.state !== 'dead').length; }
-  function objectiveText() {
-    if (G.plantaoDone) return 'OBJETIVO: Descer a ESCADA CARACOL (hall da recepção) até o PS\n• Convencer o PROFESSOR FALASTRÃO (Chefia do PS) a fechar o PS';
-    if (G.muriel >= 4) return 'OBJETIVO: Voltar ao PROFESSOR LIBERATO (corredor da Endoscopia)';
-    if (G.muriel >= 3) return 'OBJETIVO: Prescrever pra PROFESSORA MURIEL (Leito 12, Ala C)';
-    if (G.muriel >= 2) return 'OBJETIVO: Ver a TC no NEGATOSCÓPIO (parede da direita da Ala C)';
-    if (G.muriel >= 1) return 'OBJETIVO: Avaliar a paciente do LEITO 12 (Ala C, atrás da cortina)';
-    if (G.bossDone) return 'OBJETIVO: Ir embora pra casa (saída pela recepção)';
-    if (G.clovisDone) return 'OBJETIVO: Resolver a CCIH com o SCHWARZENEGGER — 3 assinaturas ou na bala\n• Fuja do olhar (pilares) · atire nele e nas seringas · telefone tocou: [E]';
-    if (G.prof3Done) return 'OBJETIVO: Falar com o PROFESSOR DE BARROS (porta dos fundos do Javali)';
-    if (G.hasGun) {
-      const n = wardLeft();
-      return n > 0 ? 'OBJETIVO: Limpar a ALA C — javalis restantes: ' + n + '\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver'
-        : 'OBJETIVO: Entregar os laudos ao JAVALI (fim da Ala C)';
-    }
-    if (G.hasGun) return 'OBJETIVO: Atravessar a ALA C e entregar os laudos ao JAVALI\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver';
-    if (G.duduDone) return 'OBJETIVO: Pegar o revólver na sala da CIRURGIA TORÁCICA\n• Está em 1 de 5 lugares: 2 gavetas da mesa, 2 armários ou o arquivo\n• Entregar os laudos ao JAVALI (fim da Ala C)';
-    if (G.objective) return 'OBJETIVO: Encontrar o PROFESSOR LIBERATO (Endoscopia)';
-    return 'OBJETIVO: Entrar no HUSM';
-  }
-  function applySave(s) {
-    if (s.met) {
-      G.met = G.objective = true;
-      G.profTarget = W.profIdle.clone();
-      prof.position.x = G.profTarget.x; prof.position.z = G.profTarget.z;
-    }
-    if (s.scare) {
-      G.scare = 99; G.banged = true;
-      const st = W.endStretcher, [, hz] = st.userData.h;
-      st.position.z = -37.5; st.userData.col.z1 = -37.5 - hz; st.userData.col.z2 = -37.5 + hz;
-    }
-    if (s.duduDone) {
-      G.duduStarted = G.duduDone = true;
-      COMBAT.give('scalpel'); CONVO.setFollowing(s.following);
-      for (const k of ['torax', 'alaC', 'alaC2']) L.doors[k].locked = false;
-    }
-    if (s.hasGun) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
-    if (s.prof3Done) { G.prof3Started = G.prof3Done = true; L.doors.prof3.locked = false; L.doors.prof3back.locked = false; moveProf3Aside(); }
-    if (s.clovisDone) { G.clovisStarted = G.clovisDone = true; L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false; }
-    G.rxPerfect = !!s.rxPerfect;
-    if (s.bossDone) setupChapter3();
-    if (s.muriel && !s.plantaoDone) setupLeito(s.muriel);
-    if (s.plantaoDone) setupPlantao();
-    G.achievement = !!s.achievement; G.marmita = !!s.marmita;
-    if (s.carabina) COMBAT.give('carabina');
-    COMBAT.P.maxHp = s.maxHp || 100; COMBAT.P.hp = s.hp || COMBAT.P.maxHp;
-    G.kills = s.kills || 0;
-    (s.dead || []).forEach(i => COMBAT.killSilently(i));
-    (s.cafes || []).forEach(i => { const c = allCafes()[i]; if (c) { c.taken = true; c.cup.visible = false; } });
-    P.pos.set(s.pos[0], 0, s.pos[1]); P.yaw = s.yaw || 0; P.pitch = 0;
-    setObjective(objectiveText());
-  }
+  // ---------- SAVE ----------
+  GAME.save = (quiet = false) => { if (SAVE.write() && !quiet && toastT <= 0) toast('💾 Jogo salvo', 1.5); };
   function continueGame() {
-    const s = readSave(); if (!s) return startNew();
+    const s = SAVE.read(); if (!s) return startNew();
     show('title', false);
     AUDIO.stop(0.8);
     lock();
-    applySave(s);
+    SAVE.apply(s);
     G.state = 'play';
     show('hud');
     AUDIO.play('moonlight', { fade: 2 });
@@ -264,17 +143,17 @@
     AUDIO.init();
     AUDIO.play('toccata', { fade: 0.1 });
     show('boot', false); show('title');
-    const s = readSave();
+    const s = SAVE.read();
     show('title-save', !!s); show('title-new', !s);
-    if (s) $('save-info').textContent = `salvo em ${new Date(s.date).toLocaleString('pt-BR')} · ${s.plantaoDone ? 'de plantão (PS)' : s.muriel ? 'de plantão (Leito 12)' : s.bossDone ? 'depois do Schwarzenegger' : s.clovisDone ? 'a caminho da CCIH' : s.prof3Done ? 'depois do Javali' : s.hasGun ? 'com revólver' : s.duduDone ? 'depois do Liberato' : 'depois do saguão'}`;
+    if (s) $('save-info').textContent = `salvo em ${new Date(s.date).toLocaleString('pt-BR')} · ${SAVE.label(s)}`;
     G.state = 'title';
   };
-  $('title').onclick = () => { if (!readSave()) startNew(); };
+  $('title').onclick = () => { if (!SAVE.read()) startNew(); };
   $('btn-continue').onclick = e => { e.stopPropagation(); continueGame(); };
   $('btn-new').onclick = e => {
     e.stopPropagation();
     if (!confirm('Começar um jogo novo? O save atual será apagado.')) return;
-    try { localStorage.removeItem(SAVE_KEY); } catch (err) { /* sem storage */ }
+    SAVE.clear();
     startNew();
   };
   function startNew() {
@@ -290,25 +169,51 @@
       show('intro', false);
       G.state = 'play';
       show('hud');
-      setObjective('OBJETIVO: Entrar no HUSM');
+      refreshObjective();
       AUDIO.play('moonlight', { fade: 3 });
       relockOrPause();
     }, 6000);
-  };
+  }
   $('pause').onclick = () => { if (TOUCH.on) { G.paused = false; show('pause', false); } else lock(); };
   $('end').onclick = () => location.reload();
   $('dead').onclick = () => respawn();
 
-  // ---------- EXAMINAR ----------
+  // letreiro de capítulo (devolve uma promise que acaba quando ele some)
+  GAME.titleCard = text => {
+    const el = $('intro'); el.textContent = text; el.style.opacity = 1; el.style.background = '#000c'; show('intro');
+    setTimeout(() => { el.style.opacity = 0; }, 2600);
+    return new Promise(res => setTimeout(() => { show('intro', false); el.style.background = ''; res(); }, 3800));
+  };
+  // viagem com a tela preta (escadas): texto, passos, e o jogador aparece em `to`, olhando pra `yaw`
+  GAME.travel = (text, to, yaw) => {
+    if (G.state !== 'play') return;
+    G.state = 'travel';
+    const el = $('intro'); el.textContent = text; el.style.opacity = 1; el.style.background = '#000'; show('intro');
+    for (let k = 0; k < 6; k++) setTimeout(() => AUDIO.sfx('step', false), 200 + k * 260);
+    setTimeout(() => { P.pos.copy(to); P.yaw = yaw; P.pitch = 0; }, 900);
+    setTimeout(() => { el.style.opacity = 0; }, 1900);
+    setTimeout(() => { show('intro', false); el.style.background = ''; G.state = 'play'; relockOrPause(); GAME.save(true); }, 2900);
+  };
+  // fim de capítulo: apaga o save e mostra o resumo (o texto é do capítulo)
+  GAME.end = (n, text) => {
+    G.ended = true; G.state = 'end';
+    SAVE.clear();
+    AUDIO.play('toccata', { fade: 0.2, loop: false });
+    document.exitPointerLock && document.exitPointerLock();
+    show('hud', false); show('pause', false);
+    $('end').innerHTML = `<div class="title-sub2">FIM DO CAPÍTULO ${n}</div><div>${text}</div><div class="small">clique para recomeçar</div>`;
+    show('end');
+  };
+
+  // ---------- EXAMINAR ([E] no que está na mira) ----------
   const ray = new THREE.Raycaster(); ray.far = 2.6;
   let lookTarget = null, rayFrame = 0;
-  const skipRay = new Set([prof, dudu.mesh, prof3.mesh, clovis.mesh, belgica.mesh, falastrao.mesh, muriel.mesh]);
   function updateLook() {
     if (++rayFrame % 4) return;
     ray.setFromCamera({ x: 0, y: 0 }, camera);
     lookTarget = null;
     for (const h of ray.intersectObjects(scene.children, true)) {
-      if (skipRay.has(h.object) || COMBAT.boars.some(b => b.mesh === h.object)) continue;
+      if (GAME.skipRay.has(h.object) || COMBAT.boars.some(b => b.mesh === h.object)) continue;
       if (h.object.userData.msg || h.object.userData.onUse) lookTarget = h.object;
       break;
     }
@@ -317,434 +222,54 @@
     $('hint').textContent = lookTarget ? `${TOUCH.on ? '' : '[E] '}${verb || 'examinar'}` : '';
   }
 
-  // ---------- CONVERSA COM O PROFESSOR (saguão) ----------
-  function startTalk() {
-    G.met = true; G.state = 'dialogue';
-    $('hint').textContent = '';
-    document.body.classList.add('talking');
-    DIALOGUE.start(onTalkEnd);
-  }
-  function onTalkEnd(kind, snack) {
-    G.state = 'play';
-    G.objective = true;
-    document.body.classList.remove('talking');
-    setObjective('OBJETIVO: Encontrar o PROFESSOR LIBERATO (Endoscopia)');
-    if (kind === 'desmaio') toast('Você "desmaia". Quando abre os olhos, ele está explicando os tomates para o bebedouro.', 6);
-    else toast('Você sai andando rápido. Ele não percebe. Continua falando... com o bebedouro.', 6);
-    if (snack) {
-      COMBAT.P.maxHp += 10; COMBAT.P.hp = COMBAT.P.maxHp;
-      setTimeout(() => toast('O café e o biscoito do professor fizeram efeito: +10 de saúde máxima.', 4), 6300);
-    }
-    G.profTarget = W.profIdle.clone();
-    setTimeout(() => { if (!G.ended) AUDIO.play('moonlight', { fade: 4 }); }, 2500);
-    relockOrPause();
-    save();
-  }
-
   // ---------- CONVERSAS ROTEIRIZADAS ----------
-  async function runConvo(script, opts = {}) {
+  // GAME.runConvo(c => STORY.x(c), { target: npc, instagram, meter, chain }) — chain: emenda em outra cena sem pausar no meio
+  GAME.runConvo = async (script, opts = {}) => {
     G.state = 'convo'; G.convoTarget = opts.target || null;
-    $('hint').textContent = '';
-    document.body.classList.add('talking');
-    let res;
-    try { res = await CONVO.run(script, opts); }
+    setTalking(true);
+    try { await CONVO.run(script, opts); }
     finally {
-      document.body.classList.remove('talking');
+      setTalking(false);
       G.state = 'play'; G.convoTarget = null;
-      relockOrPause();
+      if (!opts.chain) relockOrPause();
     }
-    return res;
-  }
+  };
 
-  async function startLiberato() {
-    G.duduStarted = true;
-    AUDIO.play('prelude', { fade: 1 });
-    let following = true;
-    await runConvo(async c => {
-      following = await STORY1.dudu(c, { giveScalpel: () => { COMBAT.give('scalpel'); AUDIO.sfx('pickup'); }, following: () => CONVO.following });
-      if (following) {
-        COMBAT.P.maxHp += 25; COMBAT.P.hp = COMBAT.P.maxHp;
-        await c.say('narr', '*O Liberato ainda te segue no Instagram. Você se sente estranhamente protegido. (+25 de saúde máxima)*');
-      } else {
-        await c.say('narr', '*O Liberato não te segue mais no Instagram. Você vai ter que se virar sozinho.*');
-      }
-      await STORY1.thought(c);
-    }, { instagram: true, target: dudu });
-    G.duduDone = true;
-    L.doors.torax.locked = false;
-    L.doors.alaC.locked = false; L.doors.alaC2.locked = false;
-    L.doors.torax.lockedMsg = '';
-    setObjective(objectiveText());
-    AUDIO.play('moonlight', { fade: 3 });
-    save();
-  }
-
-  async function onGun(where) {
-    AUDIO.sfx('pickup');
-    await runConvo(c => STORY1.gunFound(c, where));
-    COMBAT.give('revolver'); G.hasGun = true;
-    save();
-    setObjective('OBJETIVO: Atravessar a ALA C e entregar os laudos ao JAVALI\n[CLIQUE] atirar · [R] recarregar · [1] bisturi · [2] revólver');
-    // emboscada: um javali invade o corredor transversal
-    setTimeout(() => {
-      AUDIO.sfx('bang');
-      const b = COMBAT.spawn(26, -63, { alert: true });
-      b.sx = 26; b.sz = -63;
-      toast('!!!', 1.5);
-    }, 1800);
-  }
-
-  async function startProf3() {
-    G.prof3Started = true;
-    AUDIO.stop(1);
-    await runConvo(c => STORY2.prof3(c, { kills: G.kills }), { target: prof3 });
-    G.prof3Done = true;
-    L.doors.prof3back.locked = false;
-    moveProf3Aside();
-    titleCard('CAPÍTULO 2\n\nA INFECÇÃO NO AR');
-    setObjective(objectiveText());
-    AUDIO.play('moonlight', { fade: 3 });
-    save();
-  }
-  function moveProf3Aside() {
-    prof3.mesh.position.x = -4.5; Object.assign(prof3.col, { x1: -4.8, x2: -4.2 });
-  }
-  function titleCard(text) {
-    const el = $('intro'); el.textContent = text; el.style.opacity = 1; el.style.background = '#000c'; show('intro');
-    setTimeout(() => { el.style.opacity = 0; }, 2600);
-    setTimeout(() => { show('intro', false); el.style.background = ''; }, 3800);
-  }
-
-  async function startClovis() {
-    G.clovisStarted = true;
-    AUDIO.play('nacht', { fade: 1 });
-    await runConvo(c => STORY2.clovis(c, { carabina: () => {
-      COMBAT.give('carabina'); AUDIO.sfx('achievement');
-      notify('Você ganhou a CARABINA DE IPÊ do De Barros. [3] pra usar. Aprovação máxima: 9,9%.', '🏆 APROVAÇÃO MÁXIMA');
-    }, achievement: () => {
-      G.achievement = true; AUDIO.sfx('achievement');
-      notify('Você recebeu um ELOGIO do De Barros. Isso acontece com 0,3% dos internos.', '🏆 CONQUISTA RARA');
-    } }), { meter: true, target: clovis });
-    G.clovisDone = true;
-    L2.doors.ccih.locked = false; L2.doors.ccih2.locked = false;
-    setObjective(objectiveText());
-    AUDIO.play('moonlight', { fade: 3 });
-    save();
-  }
-
-  async function startBoss() {
-    G.bossStarted = true;
-    L2.doors.ccih.close();
-    if (!W.colliders.includes(gate)) W.colliders.push(gate);
-    AUDIO.stop(0.5);
-    await runConvo(c => STORY2.belgicaIntro(c), { target: belgica });
-    AUDIO.play('fifth', { fade: 0.2 });
-    toast('Fuja do OLHAR atrás dos pilares · atire nele e nas SERINGAS · ou, quando o TELEFONE tocar, corra até ele e aperte [E]', 7);
-    BOSS.start();
-  }
-  async function onBossDefeat() {
-    G.bossDone = true;
-    $('prompt').textContent = '';
-    AUDIO.stop(0.4);
-    await runConvo(c => STORY2.belgicaDefeat(c), { target: belgica });
-    belgica.mesh.visible = false; show('bossbar', false);
-    setupChapter3();
-    titleCard('CAPÍTULO 3\n\nPLANTÃO');
-    AUDIO.play('moonlight', { fade: 3 });
-    save();
-  }
-
-  // ---------- CAPÍTULO 3: O PLANTÃO ----------
-  // a arena reabre e o Liberato fica de tocaia no corredor, na frente da Endoscopia
-  function setupChapter3() {
-    G.bossStarted = G.bossDone = true; belgica.mesh.visible = false;
-    const i = W.colliders.indexOf(gate); if (i >= 0) W.colliders.splice(i, 1);
-    L2.doors.ccih.locked = false; L2.doors.ccih.tryOpen();
-    dudu.mesh.position.set(-0.8, dudu.h / 2, -54.5);
-    Object.assign(dudu.col, { x1: -1.1, x2: -0.5, z1: -54.8, z2: -54.2 });
-    setObjective(objectiveText());
-  }
-  async function startPlantao() {
-    G.plantaoStarted = true;
-    AUDIO.play('prelude', { fade: 1 });
-    await runConvo(c => STORY3.liberato(c), { target: dudu });
-    setupLeito(1);
-    AUDIO.play('moonlight', { fade: 3 });
-    save();
-  }
-  // Leito 12 (G.muriel): 1 avaliar · 2 ver a TC · 3 prescrever · 4 voltar no Liberato · 5 liberado pro PS
-  function setupLeito(stage) {
-    G.plantaoStarted = true; G.muriel = Math.max(G.muriel, stage);
-    dudu.mesh.position.x = -1.7; Object.assign(dudu.col, { x1: -2, x2: -1.4 });   // libera o corredor
-    muriel.mesh.visible = true; L.ctFilm.visible = true;
-    if (G.muriel >= 4) L.murielBetter();
-    setObjective(objectiveText());
-  }
-  async function startMuriel1() {
-    G.muriel = 1.5;                                             // em andamento (não dispara de novo)
-    await runConvo(c => STORY3.muriel1(c), { target: muriel });
-    G.muriel = 2; setObjective(objectiveText()); save();
-  }
-  async function onCT() {
-    if (!G.bossDone || G.muriel < 1) { toast('Negatoscópio. Ligado no nobreak, iluminando... nada. Ninguém pendurou exame nenhum.', 4); return; }
-    if (G.muriel < 2) { toast('Negatoscópio: uma TC de abdome. Etiqueta: "LEITO 12 — M.". Melhor ver a paciente primeiro.', 4); return; }
-    if (G.muriel >= 3) { toast('A TC do Leito 12: pancreatite edematosa intersticial. Sem necrose, sem coleção, sem gás. Sem infecção local.', 5); return; }
-    if (G.muriel !== 2) return;
-    G.muriel = 2.5;
-    await runConvo(c => STORY3.tc(c));
-    G.muriel = 3; setObjective(objectiveText()); save();
-  }
-  async function startMuriel2() {
-    G.muriel = 3.5;
-    const flash = on => document.body.classList.toggle('flashback', on);
-    try {
-      await runConvo(c => STORY3.muriel2(c, {
-        flash,
-        better: () => { L.murielBetter(); AUDIO.sfx('pickup'); },
-        perfect: () => {
-          G.rxPerfect = true; AUDIO.sfx('achievement');
-          notify('Prescrição perfeita: sem antibiótico, sem jejum, sem medo. A CCIH aprovaria.', '🏆 PRESCRIÇÃO PERFEITA');
-        },
-      }), { target: muriel, meter: true });
-    } finally { flash(false); }
-    G.muriel = 4; setObjective(objectiveText()); save();
-  }
-  async function startLiberato2() {
-    G.muriel = 4.5;
-    AUDIO.play('prelude', { fade: 1 });
-    await runConvo(c => STORY3.liberato2(c, { perfect: G.rxPerfect }), { target: dudu });
-    setupPlantao();
-    AUDIO.play('moonlight', { fade: 3 });
-    save();
-  }
-  // a escada caracol do hall passa a descer pro PS
-  function setupPlantao() {
-    setupLeito(5);
-    G.plantaoStarted = G.plantaoDone = true;
-    W.stairHit.userData.verb = 'descer pro PS';
-    W.stairHit.userData.onUse = () => stairTravel('Você desce a escada caracol.\nUm andar. Dois.\nO cheiro de álcool 70% aumenta.', L3.arrive, L3.arriveYaw);
-    setObjective(objectiveText());
-  }
-  function climbStairs() { stairTravel('Você sobe a escada caracol.\nO hall continua escuro.', new THREE.Vector3(1.4, 0, -15.5), -Math.PI / 2); }
-  function stairTravel(text, to, yaw) {
-    if (G.state !== 'play') return;
-    G.state = 'travel';
-    const el = $('intro'); el.textContent = text; el.style.opacity = 1; el.style.background = '#000'; show('intro');
-    for (let k = 0; k < 6; k++) setTimeout(() => AUDIO.sfx('step', false), 200 + k * 260);
-    setTimeout(() => { P.pos.copy(to); P.yaw = yaw; P.pitch = 0; }, 900);
-    setTimeout(() => { el.style.opacity = 0; }, 1900);
-    setTimeout(() => { show('intro', false); el.style.background = ''; G.state = 'play'; relockOrPause(); save(true); }, 2900);
-  }
-  async function startFalastrao() {
-    G.psStarted = true;
-    AUDIO.play('toccata', { fade: 0.5 });
-    await runConvo(c => STORY3.falastrao(c), { target: falastrao });
-    falastrao.mesh.visible = false;
-    const i = W.colliders.indexOf(falastrao.col); if (i >= 0) W.colliders.splice(i, 1);
-    chapterEnd(3);
-  }
-  // a marmita do Liberato, na geladeira da copa: cura 50, mas se ele te seguia, deixa de seguir (e leva o bônus junto)
-  function onMarmita() {
-    if (G.marmita) { toast('Geladeira. Só sobrou o pote vazio da marmita do Liberato. E a culpa.', 3); return; }
-    G.marmita = true; COMBAT.heal(50); AUDIO.sfx('pickup');
-    toast('Marmita "LIBERATO — NÃO TOCAR — SÉRIO". Você comeu. Arroz, feijão e frango em porções geometricamente iguais. (+50)', 5);
-    if (G.duduDone && CONVO.following) {
-      CONVO.setFollowing(false);
-      COMBAT.P.maxHp = Math.max(100, COMBAT.P.maxHp - 25); COMBAT.P.hp = Math.min(COMBAT.P.hp, COMBAT.P.maxHp);
-      setTimeout(() => notify('prof.liberato deixou de seguir você. (ele sabe.) −25 de saúde máxima'), 1800);
-    }
-    save(true);
-  }
-  function onGel(g) {
-    if (g.used) { toast('Dispenser de álcool gel. Vazio. Alguém usou tudo. Provavelmente o Liberato.', 3); return; }
-    g.used = true; COMBAT.heal(10); COMBAT.P.infectT = 0; AUDIO.sfx('pickup');
-    toast('Álcool gel. Mãos limpas, infecção controlada. (+10, cura a infecção)', 3);
-  }
-
-  // ---------- MORTE / CHECKPOINT ----------
-  function onDeath() {
+  // ---------- MORTE ----------
+  const DEATH_DEFAULT = ['Você desmaiou.\nO residente da noite vai ter que preencher a notificação.'];
+  function die() {
     G.state = 'dead';
     document.exitPointerLock && document.exitPointerLock();
-    $('dead-msg').textContent = U.pick([
-      'Um javali passou por cima de você.\nEm pleno HUSM. Ninguém vai acreditar.',
-      'Causa da síncope: javali.\nO Liberato vai querer isso em ordem crescente.',
-      'Você virou estatística.\nO residente da noite vai ter que preencher a notificação.',
-    ]);
-    if (BOSS.active) $('dead-msg').textContent = U.pick([
-      'O olhar do Schwarzenegger atravessou sua alma.\nE o seu Lattes.',
-      'Seringa contaminada.\nA CCIH vai abrir uma investigação. Sobre você.',
-      'Ele nem precisou encostar em você.\nTambém não precisou chegar no horário.',
-      ...(COMBAT.P.has.carabina ? ['Nem a carabina de ipê resolveu.\nO De Barros vai querer ela de volta. Encerada.'] : []),
-    ]);
+    $('dead-msg').textContent = U.pick(GAME.ask('deathLines') || DEATH_DEFAULT);
     show('dead'); show('hud', false);
     AUDIO.stop(0.5);
   }
+  GAME.die = die;
   function respawn() {
     show('dead', false); show('hud');
     COMBAT.resetAfterDeath();
-    if (G.bossStarted && !G.bossDone) {
-      G.bossStarted = false; BOSS.reset(L2.bossPos);
-      const i = W.colliders.indexOf(gate); if (i >= 0) W.colliders.splice(i, 1);
-      $('prompt').textContent = '';
-    }
-    P.pos.copy(G.prof3Done ? L2.checkpoint : (G.hasGun || G.duduDone ? L.checkpoint : W.spawn)); P.yaw = 0; P.pitch = 0;
+    $('prompt').textContent = '';
+    GAME.each('onRespawn');
+    P.pos.copy(GAME.ask('checkpoint') || W.spawn); P.yaw = 0; P.pitch = 0;
     G.state = 'play'; G.musicMode = 'explore';
     AUDIO.play('moonlight', { fade: 2 });
     lock(); relockOrPause();
   }
 
-  // ---------- FIM DO CAPÍTULO ----------
-  function chapterEnd(n = 1) {
-    G.ended = true; G.state = 'end';
-    try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* sem storage */ }
-    AUDIO.play('toccata', { fade: 0.2, loop: false });
-    document.exitPointerLock && document.exitPointerLock();
-    show('hud', false); show('pause', false);
-    $('end').innerHTML =
-      `<div class="title-sub2">FIM DO CAPÍTULO ${n}</div>` +
-      `<div>${n >= 3 ? 'PS FECHADO. Por decisão dele. Anotado: decisão DELE.\nPlantão encerrado... por enquanto.' : 'CEFALEXINA LIBERADA. Registrado em ata.'}${n >= 3 ? '\n' + (G.rxPerfect ? '💊 Prescrição perfeita pra Professora Muriel. A CCIH aprovaria.' : '💊 A Professora Muriel melhorou. O Máscara ainda acha que era caso de meropenem.') : ''}\nJavalis abatidos: ${G.kills}${COMBAT.P.has.carabina ? '\n🪵 Carabina de ipê na mochila. Encerada.' : ''}\nLiberato ${CONVO.following ? 'ainda te segue' : 'não te segue mais'} no Instagram.\n${G.achievement ? '🏆 Você recebeu um elogio do De Barros.' : 'O De Barros não te elogiou. Quase ninguém recebe.'}\n\n${n >= 3 ? 'O Falastrão está dando entrevista na rádio...' : 'A infecção continua no ar...'}\nCONTINUA</div>` +
-      '<div class="small">clique para recomeçar</div>';
-    show('end');
-  }
-
-  // ---------- SUSTO DO CORREDOR ----------
-  function updateScare(dt) {
-    if (!G.objective) return;
-    if (!G.scare && P.pos.z < -27) { G.scare = 0.0001; AUDIO.sfx('squeak'); }
-    if (G.scare > 0 && G.scare < 99) {
-      G.scare += dt;
-      const s = W.endStretcher;
-      const t = U.clamp(G.scare / 2.6, 0, 1);
-      s.position.z = -40 + 2.5 * (1 - Math.pow(1 - t, 2));
-      const [hx, hz] = s.userData.h, col = s.userData.col;
-      col.z1 = s.position.z - hz; col.z2 = s.position.z + hz;
-      if (G.scare > 3.6 && !G.banged) { G.banged = true; AUDIO.sfx('bang'); toast('...', 2); }
-      if (G.scare > 6) G.scare = 99;
-    }
-  }
-
-  // ---------- GATILHOS DO CAPÍTULO 1 ----------
-  const inZone = (z, p = P.pos) => p.x > z.x1 && p.x < z.x2 && p.z > z.z1 && p.z < z.z2;
-  function updateChapter(dt) {
-    if (G.objective && !G.duduStarted && inZone(L.zoneEndo)) startLiberato();
-    if (G.duduDone && !G.prof3Started && inZone(L.zoneProf3)) startProf3();
-    if (G.prof3Done && !G.clovisStarted && inZone(L2.zoneClovis)) startClovis();
-    if (G.clovisDone && !G.bossStarted && !G.bossDone && inZone(L2.zoneArena)) startBoss();
-    const dLib = Math.hypot(P.pos.x - dudu.mesh.position.x, P.pos.z - dudu.mesh.position.z);
-    const atBed = inZone(L.zoneLeito);
-    if (G.bossDone && !G.plantaoStarted && dLib < 3.2) startPlantao();
-    if (G.muriel === 1 && atBed) startMuriel1();
-    if (G.muriel === 3 && atBed) startMuriel2();
-    if (G.muriel === 4 && dLib < 4) startLiberato2();            // ele está encostado na parede: pega o corredor inteiro
-    if (G.plantaoDone && !G.psStarted && Math.hypot(P.pos.x - L3.falastraoPos.x, P.pos.z - L3.falastraoPos.z) < L3.chefiaR) startFalastrao();
-    // Ala C: a porta do Javali só abre sem nenhum javali vivo
-    if (G.hasGun || G.duduDone) {
-      const n = wardLeft();
-      if (n !== G.wardLeft) {
-        G.wardLeft = n;
-        if (G.hasGun && !G.prof3Done) setObjective(objectiveText());
-        if (n === 0 && L.doors.prof3.locked) {
-          L.doors.prof3.locked = false;
-          toast('Silêncio na Ala C. Lá do fundo, uma porta destranca.', 4);
-          AUDIO.sfx('door');
-        }
-      }
-    }
-    // café
-    for (const c of allCafes()) {
+  // ---------- ITENS DE CURA: pega sozinho ao passar perto, se estiver ferido (ou infectado) ----------
+  function updatePickups(dt) {
+    for (const c of BUILD.pickups) {
       if (c.taken) continue;
       c.cup.rotation.y += dt;
-      if (Math.hypot(c.x - P.pos.x, c.z - P.pos.z) < 0.9) {
-        const needCure = c.cure !== false && COMBAT.P.infectT > 0;
-        if (COMBAT.P.hp >= COMBAT.P.maxHp && !needCure) { if (!c.warned) { toast(c.full || 'Café da copa. Você está bem por enquanto. Guarda pra depois.', 2.5); c.warned = true; } continue; }
-        c.taken = true; c.cup.visible = false; COMBAT.heal(c.heal || 30); if (c.cure !== false) COMBAT.P.infectT = 0; AUDIO.sfx('pickup'); save(true);
-        toast(U.pick(c.msgs || ['Café da copa. Frio. Amargo. Perfeito. (+30)', 'Café passado às 6h da manhã. Ainda funciona. (+30)', 'Café com um gosto leve de micro-ondas de peixe. (+30)']), 3);
-      }
-    }
-    // grunhidos atrás da porta da Ala C
-    if (!L.doors.alaC.open && P.pos.z < -55) {
-      G.wardGruntT -= dt;
-      if (G.wardGruntT <= 0) { G.wardGruntT = 3 + Math.random() * 5; AUDIO.sfx('grunt', U.clamp(1 - Math.abs(P.pos.z + 65) / 20, 0.1, 0.7)); }
+      if (Math.hypot(c.x - P.pos.x, c.z - P.pos.z) >= 0.9) continue;
+      const needCure = c.cure !== false && COMBAT.P.infectT > 0;
+      if (COMBAT.P.hp >= COMBAT.P.maxHp && !needCure) { if (!c.warned) { toast(c.full || 'Café da copa. Você está bem por enquanto. Guarda pra depois.', 2.5); c.warned = true; } continue; }
+      c.taken = true; c.cup.visible = false; COMBAT.heal(c.heal || 30); if (c.cure !== false) COMBAT.P.infectT = 0; AUDIO.sfx('pickup'); GAME.save(true);
+      toast(U.pick(c.msgs || ['Café da copa. Frio. Amargo. Perfeito. (+30)', 'Café passado às 6h da manhã. Ainda funciona. (+30)', 'Café com um gosto leve de micro-ondas de peixe. (+30)']), 3);
     }
   }
 
-  function updateDoors(dt) {
-    for (const d of allDoors()) {
-      if (!d.open || d.t >= 1) continue;
-      d.t = Math.min(1, d.t + dt * 1.4);
-      d.mesh.position.copy(d.base).addScaledVector(d.slide, d.t);
-    }
-  }
-
-  function updateMusic() {
-    if (G.state !== 'play' || !G.duduDone || BOSS.active || G.bossDone) return;
-    if (COMBAT.alerted && G.musicMode !== 'combat') { G.musicMode = 'combat'; AUDIO.play('summer', { fade: 0.3 }); }
-    else if (!COMBAT.alerted && G.musicMode === 'combat' && COMBAT.sinceAlert > 6) { G.musicMode = 'explore'; AUDIO.play('moonlight', { fade: 3 }); }
-  }
-
-  // ---------- PROFESSOR DO SAGUÃO ----------
-  function updateProf(dt) {
-    if (G.state === 'dialogue') {
-      const dx = P.pos.x - prof.position.x, dz = P.pos.z - prof.position.z, d = Math.hypot(dx, dz);
-      if (d > 1.9) { prof.position.x += dx / d * 2.2 * dt; prof.position.z += dz / d * 2.2 * dt; }
-    } else if (G.profTarget) {
-      const dx = G.profTarget.x - prof.position.x, dz = G.profTarget.z - prof.position.z, d = Math.hypot(dx, dz);
-      if (d > 0.1) { prof.position.x += dx / d * 1.1 * dt; prof.position.z += dz / d * 1.1 * dt; }
-    }
-    profNPC.face();
-
-    let frame = 0;
-    const tt = G.time;
-    if (DIALOGUE.talking) frame = Math.floor(tt * 9) % 2 ? 1 : (Math.floor(tt * 1.7) % 3 === 0 ? 2 : 0);
-    else if (G.objective) frame = Math.floor(tt * 4) % 3 === 0 ? 1 : (Math.floor(tt * 0.8) % 2 ? 2 : 0);
-    profNPC.setFrame(frame);
-    prof.position.y = 0.9 + (DIALOGUE.talking ? Math.abs(Math.sin(tt * 14)) * 0.03 : 0);
-
-    const th = prof.rotation.y;
-    lantern.position.set(
-      prof.position.x - Math.cos(th) * 0.33 + Math.sin(th) * 0.2,
-      0.5,
-      prof.position.z + Math.sin(th) * 0.33 + Math.cos(th) * 0.2);
-    lantern.intensity = 1.35 + Math.sin(tt * 23) * 0.08 + (Math.random() < 0.03 ? -0.5 : 0);
-
-    const idx = W.colliders.indexOf(profCol);
-    const still = G.state !== 'dialogue' && (!G.profTarget || Math.hypot(G.profTarget.x - prof.position.x, G.profTarget.z - prof.position.z) <= 0.1);
-    const far = Math.hypot(P.pos.x - prof.position.x, P.pos.z - prof.position.z) > 0.8;
-    if (still && far) {
-      Object.assign(profCol, { x1: prof.position.x - 0.3, x2: prof.position.x + 0.3, z1: prof.position.z - 0.3, z2: prof.position.z + 0.3 });
-      if (idx < 0) W.colliders.push(profCol);
-    } else if (idx >= 0) W.colliders.splice(idx, 1);
-
-    if (G.objective && G.state === 'play') {
-      G.mutterT -= dt;
-      const d = Math.hypot(P.pos.x - prof.position.x, P.pos.z - prof.position.z);
-      if (G.mutterT <= 0 && d < 9) { subtitle('PROF. MONTEIRO (para o bebedouro): ' + U.pick(DIALOGUE.MUTTER)); G.mutterT = 6; }
-    }
-
-    // Liberato, Javali, De Barros e o Schwarzenegger (na luta, o BOSS controla os quadros dele)
-    for (const n of npcs) {
-      n.face();
-      if (n === belgica && BOSS.active) continue;
-      const speaking = CONVO.talking && !!CONVO.speakerChar && CONVO.speakerChar.startsWith(n.id);   // muriel2 = muriel chorando
-      n.setFrame(speaking ? Math.floor(tt * 7) % 2 : 0);
-    }
-  }
-
-  // ---------- LUZES DE EMERGÊNCIA ----------
-  function updateLights(dt) {
-    const [a, b] = W.red;
-    const blink = (Math.sin(G.time * 2.2) > -0.2) ? 1 : 0.15;
-    a.intensity = 0.9 * blink; a.userData.bulb.visible = blink > 0.5;
-    let bi = 1.0 * ((Math.sin(G.time * 1.7 + 1) > -0.3) ? 1 : 0.2);
-    if (G.scare > 0 && G.scare < 99) bi = G.scare < 1.5 ? (Math.random() < 0.5 ? 1 : 0) : (G.scare < 4.5 ? 0 : bi);
-    b.intensity = bi; b.userData.bulb.visible = bi > 0.5;
-    allLights().forEach((l, i) => {
-      const on = Math.sin(G.time * (1.3 + i * 0.4) + i * 2) > -0.4 ? 1 : 0.1;
-      l.intensity = on * (i >= L.lights.length ? 0.8 : 1); l.userData.bulb.visible = on > 0.5;
-    });
-  }
-
-  // ---------- LOOP ----------
+  // ---------- LAÇO ----------
   let last = performance.now();
   function frame(now) {
     const dt = U.clamp((now - last) / 1000, 0, 0.05); last = now;
@@ -767,42 +292,36 @@
         P.stepAcc += dt * (run ? 5.2 : 3.0);
         if (P.stepAcc > (run ? 0.85 : 0.7)) { P.stepAcc = 0; AUDIO.sfx('step', run); }
       }
-      if (!G.met && P.pos.z < -1.2) startTalk();
-      updateScare(dt);
-      updateChapter(dt);
-      updateMusic();
+      GAME.each('update', dt);
+      updatePickups(dt);
       updateLook();
-      if ((G.saveT = (G.saveT || 20) - dt) <= 0) { G.saveT = 20; if (!COMBAT.alerted && !BOSS.active) save(true); }
+      if ((G.saveT = (G.saveT || 20) - dt) <= 0) { G.saveT = 20; if (!COMBAT.alerted) GAME.save(true); }
     }
 
     // câmera puxada para quem está falando
-    const target = G.state === 'dialogue' ? prof : (G.state === 'convo' && G.convoTarget ? G.convoTarget.mesh : null);
+    const target = (G.state === 'dialogue' || G.state === 'convo') && G.convoTarget;
     if (target) {
-      const dx = target.position.x - P.pos.x, dz = target.position.z - P.pos.z;
-      const headY = target === prof ? 1.55 : (G.convoTarget.h - 0.25);
+      const dx = target.mesh.position.x - P.pos.x, dz = target.mesh.position.z - P.pos.z;
       P.yaw = U.angleLerp(P.yaw, Math.atan2(-dx, -dz), Math.min(1, dt * 4));
-      P.pitch = U.lerp(P.pitch, Math.atan2(headY - 1.62, Math.hypot(dx, dz)), Math.min(1, dt * 4));
+      P.pitch = U.lerp(P.pitch, Math.atan2(target.head - 1.62, Math.hypot(dx, dz)), Math.min(1, dt * 4));
     }
-
     if (G.state === 'title' || G.state === 'boot' || G.state === 'intro') {
       P.yaw = Math.sin(G.time * 0.1) * 0.15; P.pitch = 0.12;
     }
 
-    DIALOGUE.update(dt, G.time);
-    CONVO.update(dt, G.time);
+    DIALOGUE.update(dt * (G.textSpeed || 1), G.time);      // textSpeed: só os testes aceleram o texto
+    CONVO.update(dt * (G.textSpeed || 1), G.time);
     COMBAT.update(dt, G.state === 'play' && !G.paused, P.bob, P.moving);
-    if (G.state === 'play' && !G.paused) BOSS.update(dt);
-    // efeitos de tela: olhar psíquico, clarão do teletransporte, infecção
-    if (G.psyT > 0) G.psyT -= dt;
-    if (G.flashT > 0) G.flashT -= dt;
-    $('psy').style.opacity = G.psyT > 0 ? 0.55 + Math.sin(G.time * 30) * 0.15 : 0;
-    $('flash').style.opacity = G.flashT > 0 ? G.flashT * 2.4 : 0;
+    // efeitos de tela: olhar psíquico, clarão, infecção
+    if (psyT > 0) psyT -= dt;
+    if (flashT > 0) flashT -= dt;
+    $('psy').style.opacity = psyT > 0 ? 0.55 + Math.sin(G.time * 30) * 0.15 : 0;
+    $('flash').style.opacity = flashT > 0 ? flashT * 2.4 : 0;
     $('infect').style.opacity = COMBAT.P.infectT > 0 ? 0.35 + Math.sin(G.time * 5) * 0.1 : 0;
-    updateProf(dt);
-    updateDoors(dt);
-    W.update(dt, P.pos, G.state === 'play' && !G.paused);
-    L3.update(dt);
-    updateLights(dt);
+    GAME.updateNpcs(G.time);
+    GAME.each('frame', dt, G.time);
+    BUILD.update(dt, G.time);
+    for (const a of GAME.areas) { const area = GAME[a.id]; if (area.update) area.update(dt, P.pos, G.state === 'play' && !G.paused); }
     TOUCH.update(dt);
     if (G.state !== 'play') AURA.setFocus(null);
     AURA.update(G.time, camera);
@@ -814,7 +333,7 @@
     if (subT > 0 && (subT -= dt) <= 0) $('subtitle').classList.remove('show');
     if (notifyT > 0 && (notifyT -= dt) <= 0) $('notify').classList.remove('show');
 
-    renderer.render(scene, camera);
+    if (G.noRender) scene.updateMatrixWorld(); else renderer.render(scene, camera);   // noRender: testes automáticos
     requestAnimationFrame(frame);
   }
 
@@ -828,37 +347,23 @@
     player: () => P, toast,
   });
 
-  // modo de desenvolvimento: index.html#dev=x,z,yaw[,pPITCH][,estágio] pula as telas (sem áudio)
-  //   talk = abre a conversa do saguão · met = depois do saguão · dudu = depois do Liberato (bisturi) · gun = com revólver
-  //   prof3 = depois do Javali (Ala C limpa) · clovis = depois do De Barros (CCIH liberada)
-  //   ch3 = depois do Schwarzenegger · leito = Liberato já mandou ver o Leito 12 · rx = falta só prescrever · ps = liberado pro PS
-  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(,talk|,met|,dudu|,gun|,prof3|,clovis|,ch3|,leito|,rx|,ps)?/);
+  // ---------- MODO DEV: index.html#dev=x,z,yaw[,pPITCH][,estágio][,touch] ----------
+  // Pula as telas (sem áudio), põe o jogador em (x, z) olhando pra yaw e aplica o estágio. Cada capítulo declara os seus
+  // em dev: { nome: { save: {...}, then() } }; o estágio vale junto com todos os anteriores (um save parcial acumulado).
+  // Estágios hoje: talk · met · liberato · gun · javali · debarros · ch3 · leito · rx · ps (ver README).
+  const dev = location.hash.match(/^#dev=([-\d.]+),([-\d.]+),([-\d.]+)(?:,p([-\d.]+))?(?:,([a-z0-9]+))?/);
   if (dev) {
     G.dev = true;
-    window.__game = { P, G, BOSS, COMBAT, CONVO, bossMesh: belgica.mesh };   // só no modo dev, para testes automáticos
+    window.__game = { GAME, P, G, BOSS, COMBAT, CONVO, SAVE, BUILD, W, L1: GAME.L1, L2: GAME.L2, L3: GAME.L3, pickups: BUILD.pickups, doors: BUILD.doors };   // só no modo dev (testes)
     ['boot', 'title'].forEach(id => show(id, false));
     show('hud'); G.state = 'play';
+    const stages = GAME.chapters.flatMap(c => Object.entries(c.dev || {}).map(([name, st]) => ({ name, ...st })));
+    const k = dev[5] && dev[5] !== 'touch' ? stages.findIndex(st => st.name === dev[5]) : -1;
+    if (dev[5] && dev[5] !== 'touch' && k < 0) console.warn('estágio dev desconhecido: ' + dev[5] + ' (existem: ' + stages.map(s => s.name).join(', ') + ')');
+    if (k >= 0) SAVE.apply(Object.assign({}, ...stages.slice(0, k + 1).map(st => st.save || {})));
     P.pos.set(+dev[1], 0, +dev[2]); P.yaw = +dev[3]; P.pitch = +(dev[4] || 0);
-    setObjective('[DEV]');
-    const stage = dev[5];
-    if (stage === ',talk') startTalk();
-    if (stage && stage !== ',talk') { G.met = G.objective = true; G.profTarget = W.profIdle.clone(); }
-    const ch3 = [',ch3', ',leito', ',rx', ',ps'].includes(stage);
-    const later = [',prof3', ',clovis'].includes(stage) || ch3;
-    if (stage === ',dudu' || stage === ',gun' || later) {
-      G.duduStarted = G.duduDone = true; COMBAT.give('scalpel');
-      for (const k in L.doors) L.doors[k].locked = false;
-    }
-    if (stage === ',gun' || later) { G.hasGun = true; L.gunTaken = true; COMBAT.give('revolver'); }
-    if (later) {
-      G.prof3Started = G.prof3Done = true; moveProf3Aside();
-      COMBAT.boars.forEach((b, i) => COMBAT.killSilently(i));
-    }
-    if (stage === ',clovis' || ch3) { G.clovisStarted = G.clovisDone = true; for (const k in L2.doors) L2.doors[k].locked = false; }
-    if (ch3) setupChapter3();
-    if (stage === ',leito') setupLeito(1);
-    if (stage === ',rx') setupLeito(3);
-    if (stage === ',ps') setupPlantao();
+    refreshObjective();
+    if (k >= 0 && stages[k].then) stages[k].then();
   }
   requestAnimationFrame(frame);
 })();

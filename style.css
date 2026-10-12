@@ -73,6 +73,7 @@ body.talking #weapon { display: none !important; }
 #notify b { color: #c13584; }
 #ig { font-size: 20px; color: #ddd; text-shadow: 2px 2px #000; display: none; }
 #ig .ok { color: #8f8; } #ig .no { color: #f77; }
+#ig .cue { font-size: 26px; color: #ffd84a; animation: blink .18s steps(2) infinite; }   /* o aviso de respiração, mostrado na cutscene do Monteiro */
 #ig .rx { display: inline-block; background: #0b0d10e0; border: 1px solid #5a6a7a; padding: 6px 10px; font-size: 0.8em; line-height: 1.35; }
 .opt.done { color: #6a8a6a; }
 .opt.next { color: #fff8; text-align: right; grid-column: 1 / -1; animation: blink 1s steps(2) infinite; }
@@ -100,7 +101,7 @@ body.flashback #game { filter: sepia(0.9) contrast(1.15) brightness(0.8) blur(0.
 #bossbar .docs span.ok { color: #8f8; }
 #prompt { position: absolute; left: 50%; top: 64%; transform: translateX(-50%); font-family: 'Press Start 2P', monospace; font-size: 15px;
   color: #ffd84a; text-shadow: 3px 3px #000; animation: blink .5s steps(2) infinite; white-space: nowrap; }
-body.talking #stats, body.talking #prompt, body.talking #bossbar { display: none; }
+body.talking #stats, body.talking #prompt, body.talking #bossbar { display: none !important; }   /* !important: o combat.js põe display inline no #stats */
 #bossbar .bhp { width: 420px; height: 10px; margin: 8px auto 0; border: 2px solid #d8a0ff; background: #000a; }
 #bossbar .bhp div { height: 100%; background: #b040ff; transition: width .15s; }
 
