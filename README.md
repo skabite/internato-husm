@@ -74,10 +74,13 @@ O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages
 - Você pede licença (consentimento é mecânica, não decoração), faz as manobras de Leopold, põe o toco e vai **sintonizar**:
   mova o transdutor pela barriga, gire o dial, e quando o cabo falhar **bata no aparelho** com a mão plana, quando a luzinha acender.
   Fora de hora, o sinal cai e você começa de novo. Com o traçado limpo, **fixe a cinta** e a fita imprime vinte minutos.
-- Depois, a pergunta de prova: ler o traçado (categorias da FIGO 2015).
+  A barriga aparece vista de cima, com a cabeça pra cima: o **D** e o **E** desenhados nela são os lados *dela* (a direita dela fica à esquerda da tela).
+- Se o tempo acabar, a Rosane pede licença, ouve com o Pinard em quatro segundos e prende a cinta pra você. A história segue.
+- Depois, a pergunta de prova: ler o traçado (categorias I a III — a revisão clínica ainda vai dizer se fica essa ou a da FIGO 2015).
 - **Armadilhas** que o jogo ensina: o batimento limpo e devagar (84) é o **da mãe** — sempre confira o pulso materno; e o visor que mostra
   280 ou 70 é contagem dobrada, não sofrimento fetal. *Perda de sinal não é frequência cardíaca.*
-- Jogar certo do começo ao fim dá a conquista **SINTONIA FINA**. Errar não machuca ninguém: o bebê está bem o tempo todo.
+- Jogar certo do começo ao fim dá a conquista **SINTONIA FINA**: licença, Leopold, toco, o aparelho sem erro e a leitura de primeira.
+  Errar não machuca ninguém: o bebê está bem o tempo todo.
 - Música: por enquanto a mesma do plantão (a Canção de Ninar de Brahms em 8 bits ainda não entrou).
 
 ## Auras

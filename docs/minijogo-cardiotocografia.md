@@ -10,9 +10,11 @@ Faltam a fase 3 (o áudio das estações), a fase 4 (celular e acessibilidade) e
 | `js/mecanicas/ctg.js` | o minijogo (a barriga, o visor da FCF, o dial de sintonia e a fita) |
 | `js/capitulos/cap4.js` | o que acontece e quando; o `cap3.js` avisa por `GAME.emit('psFechado')` |
 | `js/dados/personagens.js` | `tcheco`, `jaque`/`jaque2`, `sandro`, `rosane` |
-| `tests/10-cap4.test.js` | joga o capítulo inteiro, inclusive a armadilha da mãe |
+| `tests/10-cap4.test.js` | joga o capítulo inteiro, inclusive a armadilha da mãe, o tempo acabando (Pinard) e os erros que tiram a SINTONIA FINA |
 
-**Revisão clínica: PENDENTE.** Leopold, o toco e as categorias da FIGO 2015 precisam passar por alguém da Obstetrícia.
+**Revisão clínica: PENDENTE.** Leopold, o toco e a leitura do traçado precisam passar por alguém da Obstetrícia.
+Atenção: o roteiro fala em **Categoria I / III**, que é a classificação do NICHD/ACOG (2008); a da **FIGO 2015** é
+**normal / suspeito / patológico** (e "variabilidade moderada" também é termo do NICHD). Decidir qual das duas o jogo ensina.
 
 ## A ideia em uma frase
 Um cardiotocógrafo (CTG) velhíssimo, com mau contato e "consertado com peça de rádio", capta tudo

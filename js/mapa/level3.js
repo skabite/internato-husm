@@ -98,9 +98,9 @@ const LEVEL3 = (() => {
     let coK = 0;
     const coUse = coDoor.mesh.userData.onUse;
     coDoor.mesh.userData.onUse = () => { if (coDoor.locked) coDoor.lockedMsg = coMsgs[coK++ % coMsgs.length]; coUse(); };
-    // o visor da porta anda junto com ela (é filho do batente): é a luz do monitor do CTG piscando lá dentro
+    // os visores da porta (um em cada folha) andam junto com ela: é a luz do monitor do CTG piscando lá dentro
     const winMat = new THREE.MeshBasicMaterial({ color: 0x0a2a1a });
-    panel(-0.055, 0.34, -0.5, 0.44, 0.46, 'x-', winMat, { parent: coDoor.mesh }).raycast = () => {};
+    for (const dz of [-0.5, 0.5]) panel(-0.055, 0.34, dz, 0.44, 0.46, 'x-', winMat, { parent: coDoor.mesh }).raycast = () => {};
 
     // ---------- G: CENTRO OBSTÉTRICO (a sala do capítulo 4) ----------
     // x 22 a 31, z -327 a -336. Leito PPP, carrinho do CTG, Pinard, bola de parto, berço aquecido e a pia (onde mora o gel).
@@ -108,19 +108,22 @@ const LEVEL3 = (() => {
     const coLamp = new THREE.PointLight(0xd8e8ff, 0.9, 12, 2); coLamp.position.set(26.6, 2.7, -331.4); scene.add(coLamp);
     const coWarm = new THREE.PointLight(0x9fd8ff, 0.5, 8, 2); coWarm.position.set(29.4, 2.7, -334.4); scene.add(coWarm);
 
-    // o leito PPP (pré-parto, parto e pós-parto): cabeceira na parede leste — é onde a gestante fica
+    // o leito PPP (pré-parto, parto e pós-parto): cabeceira pro leste — é onde a gestante fica
     box(26.0, 0, -329.1, 28.8, 0.55, -328.2, M.metal, { collide: true, su: 0.6, sv: 0.6,
       msg: 'Leito PPP. A grade já está abaixada deste lado. Alguém preparou tudo antes de você chegar — do jeito que deveria ser.' });
     box(26.1, 0.55, -329.0, 28.7, 0.66, -328.3, M.mattress);
     box(28.8, 0, -329.2, 29.0, 1.05, -328.1, M.white);
-    box(25.3, 0.42, -328.7, 25.7, 0.48, -328.3, M.seat, { collide: true, msg: 'A cadeira do acompanhante, encostada na grade. Não é do enxoval bonito: é a que aguenta a noite inteira.' });
+    const cadeira = 'A cadeira do acompanhante, encostada na grade. Não é do enxoval bonito: é a que aguenta a noite inteira.';
+    box(25.3, 0.42, -328.7, 25.7, 0.48, -328.3, M.seat, { collide: true, msg: cadeira });
+    box(25.26, 0.48, -328.7, 25.32, 0.98, -328.3, M.seat, { msg: cadeira });             // encosto
+    for (const [x, z] of [[25.33, -328.67], [25.67, -328.67], [25.33, -328.33], [25.67, -328.33]]) box(x - 0.02, 0, z - 0.02, x + 0.02, 0.42, z + 0.02, M.metal);
 
     // o carrinho do cardiotocógrafo (o aparelho do minijogo)
     box(29.4, 0, -330.4, 30.6, 0.8, -329.6, M.metal, { collide: true, su: 0.6, sv: 0.6 });
     box(29.45, 0.8, -330.35, 30.55, 1.42, -329.65, M.dark, { msg: 'CARDIOTOCÓGRAFO — PATRIMÔNIO 000.001. Etiqueta amarelada: "consertado pelo técnico do rádio, 1998". Daí o dial de SINTONIA colado em cima. Daí tudo o mais.' });
     panel(29.42, 1.16, -330.0, 0.36, 0.26, 'x-', glow(0x2a8a3a));               // o visor da FCF (apagado até o capítulo 4)
-    const ctgDial = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.04, 8), glow(0xd8c040));
-    ctgDial.rotation.z = Math.PI / 2; ctgDial.position.set(30.56, 1.12, -329.9); scene.add(ctgDial);
+    const ctgDial = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.05, 10), glow(0xd8c040));
+    ctgDial.rotation.z = 0.5; ctgDial.position.set(29.72, 1.45, -330.05); scene.add(ctgDial);   // o dial de sintonia, colado em cima (inclinado pra quem olha)
     box(29.5, 0.8, -329.62, 30.5, 1.34, -329.58, M.metal);                     // a fita de papel saindo
     let ctgT = 4, tt = 0;                                                       // o som e a luz do CTG (o capítulo 4 assume o aparelho)
 
@@ -157,7 +160,7 @@ const LEVEL3 = (() => {
     box(23.15, 0, -334.65, 24.05, 0.06, -333.75, M.dark);
     ball.userData.msg = 'Bola de parto. Cinquenta e cinco centímetros, cheia do jeito certo. A gestante senta nela, não você.';
     WORLD.interactables.push(ball);
-    panel(22.05, 1.6, -331.6, 1.1, 1.5, 'x+', M.board, {
+    panel(22.05, 1.6, -334.2, 1.1, 1.5, 'x+', M.board, {                // parede oeste, ao sul da porta (z −332 a −330 é o vão)
       msg: 'Quadro do CO: protocolo de parto normal, escala de plantão e um cartaz grande: "É DIREITO DA GESTANTE UM ACOMPANHANTE DE SUA ESCOLHA, DURANTE TODO O TRABALHO DE PARTO, PARTO E PÓS-PARTO IMEDIATO — LEI 11.108/2005". Ninguém tirou.' });
     panel(30.94, 1.7, -327.9, 1.4, 1.0, 'x-', M.board, {
       msg: 'Um quadro de feltro cheio de recém-nascido de fita métrica: "PARABÉNS, BEBÊ". Nomes, datas e um "3.450 g" escrito por cima de outro. O Tcheco conta as que ele pegou, de cabeça, e nunca erra.' });

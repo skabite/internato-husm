@@ -41,7 +41,7 @@ O dono do projeto é leigo em programação: explique as coisas em linguagem sim
   escuta tem `on: { gun(...) {}, bossDefeated() {} }`.
 - Uma cena típica: gatilho no `update` → `await GAME.runConvo(c => STORY2.deBarros(c, {...}), { target: npc })` → muda
   `GAME.G` → destranca porta (`BUILD.doors.x.locked = false`) → `GAME.refreshObjective()` → `GAME.save()`.
-- Serviços do `GAME`: `toast`, `subtitle`, `notify`, `prompt`, `runConvo`, `titleCard` (promise), `travel` (escada com tela
+- Serviços do `GAME`: `toast`, `subtitle`, `notify`, `prompt`, `runConvo`, `titleCard(texto, segundos)` (promise), `travel` (escada com tela
   preta), `save`, `end(n, texto)`, `die`, `fx.flash/psychic`, `inZone(zona)`, `dist(npc)`, `N.id` (personagem pelo id), `P` (jogador).
 
 ## Receitas
@@ -83,7 +83,7 @@ GAME.chapter((() => {
    estoura na lanterna: `dim: 0.42`.
 3. Falas: `c.say('id', 'texto')`. Pose nova (deitado, de perfil...) se desenha em `sprites.js` (veja `readingBody`, `deskBody`).
 ### Minijogo novo
-`js/mecanicas/nome.js`: `CONVO.minigame('nome', { start(ui, ...args) { ...; return estado }, key(code), pick(i), update(dt) })`;
+`js/mecanicas/nome.js`: `CONVO.minigame('nome', { start(ui, ...args) { ...; return estado }, key(code, evento), pick(i), update(dt) })`;
 termina com `ui.finish(resultado, atrasoMs)`. `<script>` depois do `convo.js`. No roteiro: `const r = await c.nome(...)`.
 Modelos: `laudos.js` (escolher opções), `no.js` (teclas/arrasto com tempo), `ctg.js` (canvas próprio + medição contínua).
 Quem desenha em canvas usa um `<canvas>` próprio e o CSS amplia (`#rhythm`, `#ctg` em `style.css`). Plano do CTG: `docs/minijogo-cardiotocografia.md`.
@@ -130,3 +130,5 @@ seguinte colada na anterior (afaste-o antes).
   é por ela que o `touch.js` esconde o **CONTINUAR ▶** no celular — e sem isso cada toque nele vira um `Space`,
   que o minijogo lê como "bater no aparelho". Veja `js/mecanicas/ctg.js` (`addOpts`) e `js/motor/touch.js` (`update`).
 - O minijogo do CTG é o único que mede `dt` de verdade (o nó depende de `performance.now()`): mexer nele pensando no relógio de parede dá diferença nos testes.
+- Na barriga do CTG (vista de cima, cabeça pra cima da tela) **a direita DELA fica à esquerda da tela**, como olhar alguém de frente.
+  O lado vem de Leopold (`STORY4.tcheco1` devolve `lado`); as letras D e E desenhadas na barriga lembram o jogador.
