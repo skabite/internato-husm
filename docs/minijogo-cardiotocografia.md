@@ -1,8 +1,18 @@
 # Minijogo: sintonizar o cardiotocógrafo (Centro Obstétrico)
 
-Status: **planejado**. Por enquanto só a porta existe: fica no fundo leste do corredor do PS (subsolo),
-trancada, com o aparelho tocando batimentos com mau contato que descambam pra rádio AM, internet discada e
-canto de baleia (`js/mapa/level3.js`, efeito `ctg` em `js/motor/audio.js`).
+Status: **fases 1 e 2 feitas** — a sala existe, a história está escrita e o minijogo roda (visual, sem som).
+Faltam a fase 3 (o áudio das estações), a fase 4 (celular e acessibilidade) e a fase 5 (testar com gente de fora).
+
+| Onde | O quê |
+|---|---|
+| `js/mapa/level3.js` | a sala (colunas 44–52 do `MAP`), a porta de verdade (`BUILD.doors.co`, trancada até o cap. 4) e o mobiliário: leito PPP, carrinho do CTG, Pinard, bola de parto, berço aquecido, pia com gel |
+| `js/roteiros/story4.js` | as falas: consentimento, Leopold, o toco e a leitura do traçado |
+| `js/mecanicas/ctg.js` | o minijogo (a barriga, o visor da FCF, o dial de sintonia e a fita) |
+| `js/capitulos/cap4.js` | o que acontece e quando; o `cap3.js` avisa por `GAME.emit('psFechado')` |
+| `js/dados/personagens.js` | `tcheco`, `jaque`/`jaque2`, `sandro`, `rosane` |
+| `tests/10-cap4.test.js` | joga o capítulo inteiro, inclusive a armadilha da mãe |
+
+**Revisão clínica: PENDENTE.** Leopold, o toco e as categorias da FIGO 2015 precisam passar por alguém da Obstetrícia.
 
 ## A ideia em uma frase
 Um cardiotocógrafo (CTG) velhíssimo, com mau contato e "consertado com peça de rádio", capta tudo
@@ -113,15 +123,17 @@ Cada faixa do dial tem uma "estação". Todas têm **legenda na tela**, pra quem
 - Dificuldade: `σ` e `τ` diminuem e o mau contato fica mais frequente. Três níveis no máximo.
 
 ### Fases sugeridas
-1. Sala do CO + porta abrindo + roteiro sem minijogo (dá pra testar a história).
-2. Protótipo do minijogo **sem som** (só visual: SINAL, visor, fita). Se for divertido sem som, o som só melhora.
-3. Motor de áudio e as estações.
-4. Celular (toque) e acessibilidade (legendas, nada que dependa só do som).
-5. Teste com 3 ou 4 pessoas de fora e ajuste de `σ`, `τ` e do tempo-alvo.
+1. ✅ Sala do CO + porta abrindo + roteiro (dá pra testar a história).
+2. ✅ Protótipo do minijogo **sem som** (só visual: SINAL, visor, fita). Se for divertido sem som, o som só melhora.
+3. ⬜ Motor de áudio e as estações (`AUDIO.ctgStart/ctgSet/ctgStop`). Hoje só entra o efeito `ctg` solto, em `level3.js`.
+   A música sugerida pra sala é a Canção de Ninar de Brahms desafinando com o sinal (ainda não existe em `audio.js`).
+4. ◐ Celular: **feito** (arrastar o dedo move o transdutor; DIAL ◀ ▶, BATER e FIXAR viram botões na caixa de conversa).
+   Falta rever a acessibilidade com calma: as legendas e o aviso visual de "BATA!" já estão lá, e o minijogo dá pra jogar inteiro sem som.
+5. ⬜ Teste com 3 ou 4 pessoas de fora e ajuste de `σ`, `τ` e do tempo-alvo.
 
 ## Perguntas pra você decidir
-1. Quem é o(a) professor(a) do CO, e essa pessoa topa aparecer?
-2. Capítulo 4 (recomendado) ou missão opcional no Capítulo 3?
+1. ~~Quem é o(a) professor(a) do CO, e essa pessoa topa aparecer?~~ → **decidido: o Professor Tcheco** (fotos de referência na pasta `Tcheco`, fora do git). *Falta confirmar com ele que ele topa aparecer.*
+2. ~~Capítulo 4 (recomendado) ou missão opcional no Capítulo 3?~~ → **decidido: Capítulo 4.**
 3. Comédia com tensão leve (recomendado) ou um susto de verdade (o sinal some por alguns segundos)?
    Mesmo no susto, o bebê nunca corre risco por erro do jogador.
 4. Precisão clínica: quem revisa o conteúdo (Leopold, FIGO, armadilhas)? Sugiro um(a) professor(a) ou residente

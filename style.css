@@ -128,6 +128,10 @@ body.touch #keys, body.touch #dlg-help { display: none; }
 #rhythm { position: fixed; left: 50%; top: 4%; transform: translateX(-50%); width: 300px; height: 270px; display: none; z-index: 7;
   image-rendering: pixelated; border: 3px double #c9c2a8; background: #0b0d12; pointer-events: none; }
 
+/* o cardiotocógrafo (Centro Obstétrico, capítulo 4): maior que o nó — tem a barriga, o visor e o dial na mesma tela */
+#ctg { position: fixed; left: 50%; top: 2%; transform: translateX(-50%); width: 440px; height: 308px; display: none; z-index: 7;
+  image-rendering: pixelated; border: 3px double #c9c2a8; background: #0b0d12; pointer-events: none; }
+
 /* tela baixa (celular deitado): tudo menor */
 @media (max-height: 520px) {
   #objective { font-size: 16px; left: 10px; top: 8px; max-width: 46vw; }
@@ -150,10 +154,12 @@ body.touch #keys, body.touch #dlg-help { display: none; }
   #hp { font-size: 13px; } #ammo { font-size: 9px; margin-top: 4px; } #stats { left: 12px; bottom: 8px; }
   .knot { font-size: 12px; letter-spacing: 2px; } .knot-help { font-size: 14px; } #ig { font-size: 15px; }
   #rhythm { width: 190px; height: 171px; top: 2%; }
+  #ctg { width: 290px; height: 203px; top: 1%; }
   #notify { font-size: 14px; top: 64px; }
 }
 body.touch #dialogue { padding-right: 150px; }
 @media (max-height: 330px) { #rhythm { width: 140px; height: 126px; } }
+@media (max-height: 330px) { #ctg { width: 220px; height: 154px; } }
 
 /* nó do De Barros no celular: a metade da tela da mão da vez fica acesa */
 #knotside { position: fixed; inset: 0; display: none; pointer-events: none; z-index: 4; }

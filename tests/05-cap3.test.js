@@ -48,11 +48,15 @@ module.exports = [
       await g.goTo(14.5, -339.2, 3.14);
       await g.until(() => CONVO.active, null, { what: 'Falastrão' });
       await g.talkThrough(['Schwarzenegger']);
-      await g.until(() => !document.getElementById('end').classList.contains('hidden'), null, { what: 'tela de fim' });
-      const end = await g.eval(() => document.getElementById('end').textContent);
-      assert(end.includes('FIM DO CAPÍTULO 3') && end.includes('Prescrição perfeita'), 'fim errado: ' + end.slice(0, 120));
-      assert(end.includes('voltou pro De Barros'), 'fim não fala da carabina devolvida');
-      eq(await g.eval(() => localStorage.getItem('internato-husm-save-v1') || localStorage.getItem('internato-husm-save')), null, 'save apagado no fim');
+      // o capítulo 3 não encerra mais o jogo: o resumo vira letreiro e o capítulo 4 continua a noite
+      await g.until(() => document.getElementById('intro').textContent.includes('Prescrição perfeita'), null, { what: 'letreiro do resumo' });
+      const card = await g.eval(() => document.getElementById('intro').textContent);
+      assert(card.includes('voltou pro De Barros'), 'o resumo não fala da carabina devolvida');
+      await g.until(() => __game.G.psDone, null, { what: 'PS fechado' });
+      // o letreiro do resumo leva ~4 s; a porta do CO destranca quando ele sai
+      await g.until(() => BUILD.doors.co.locked === false, null, { what: 'a porta do Centro Obstétrico destrancar', timeout: 15000 });
+      await g.until(() => __game.G.state === 'play', null, { what: 'o jogo voltar a andar' });
+      assert((await g.eval(() => document.getElementById('objective').textContent)).includes('CENTRO OBSTÉTRICO'), 'objetivo não aponta pro CO');
     },
   },
 ];

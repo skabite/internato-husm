@@ -21,6 +21,7 @@ A fonte pixelada vem do Google Fonts (sem internet, cai numa fonte monoespaçada
 | R | recarregar |
 | 1–5 | opções de diálogo |
 | Espaço | interromper o professor (só quando ele respira!) |
+| Mouse · Q/E · Espaço · Enter | no CTG: move o transdutor · gira o dial · bate no aparelho · fixa a cinta |
 
 ## No celular (Android)
 Abra o link do jogo (GitHub Pages) no Chrome do celular e deite o aparelho. Os controles de toque aparecem sozinhos:
@@ -32,6 +33,7 @@ Abra o link do jogo (GitHub Pages) no Chrome do celular e deite o aparelho. Os c
 - **USAR** (fica amarelo quando tem algo pra examinar), **ARMA** (alterna entre as armas que você tem), **R** (recarregar), 🔦, **PX** (resolução — use se travar) e **II** (pausa).
 - Nas conversas: toque nas opções; **INTERROMPER!** acende quando o professor respira; **CONTINUAR ▶** avança.
 - Nó cirúrgico do De Barros: arraste o dedo na direção da seta — mão esquerda na metade esquerda da tela, direita na direita (o lado da vez fica aceso).
+- Cardiotocógrafo (Centro Obstétrico): arraste o dedo na tela pra mover o transdutor pela barriga; **DIAL ◀**, **DIAL ▶**, **BATER** e **FIXAR** são os quatro botões da caixa de conversa.
 - No computador dá pra testar os controles de toque com `index.html#touch`.
 
 ### Publicar no GitHub Pages
@@ -63,6 +65,21 @@ O site do Pages é público (quem tiver o link joga). Em conta gratuita, o Pages
   fuçar a sala: o slide 1 de 214, o Guyton corrigido, o kit de via aérea de caneta BIC, os coletes, a vassoura...
 - Música: Prelúdio (Bach) no Liberato, Tocata e Fuga (Bach) no Falastrão.
 
+## Capítulo 4 — Sintonia (Centro Obstétrico)
+- O Falastrão fecha o PS e vai dar entrevista. No fundo leste do corredor, a porta do **CENTRO OBSTÉTRICO** destranca sozinha.
+- Lá dentro: o **Professor Tcheco** (Obstetrícia), a **Jaqueline** em trabalho de parto de termo, o marido **Sandro** — acompanhante,
+  como manda a Lei 11.108/2005 — e a **Enfermeira Rosane**, que resolve qualquer coisa com um Pinard de madeira em quatro segundos.
+- O **cardiotocógrafo** é o vilão: patrimônio 000.001, consertado pelo técnico do rádio em 1998, com um dial de sintonia colado em cima.
+  Por isso ele pega rádio AM, canto de baleia, internet discada e o Monteiro falando de tomates pelo encanamento — e não o coração do bebê.
+- Você pede licença (consentimento é mecânica, não decoração), faz as manobras de Leopold, põe o toco e vai **sintonizar**:
+  mova o transdutor pela barriga, gire o dial, e quando o cabo falhar **bata no aparelho** com a mão plana, quando a luzinha acender.
+  Fora de hora, o sinal cai e você começa de novo. Com o traçado limpo, **fixe a cinta** e a fita imprime vinte minutos.
+- Depois, a pergunta de prova: ler o traçado (categorias da FIGO 2015).
+- **Armadilhas** que o jogo ensina: o batimento limpo e devagar (84) é o **da mãe** — sempre confira o pulso materno; e o visor que mostra
+  280 ou 70 é contagem dobrada, não sofrimento fetal. *Perda de sinal não é frequência cardíaca.*
+- Jogar certo do começo ao fim dá a conquista **SINTONIA FINA**. Errar não machuca ninguém: o bebê está bem o tempo todo.
+- Música: por enquanto a mesma do plantão (a Canção de Ninar de Brahms em 8 bits ainda não entrou).
+
 ## Auras
 Itens de cura brilham em verde, cada personagem tem um brilho da sua cor, objetos de usar (gavetas, geladeira, álcool gel) brilham em dourado,
 e o objeto que você está olhando pulsa (dá pra examinar com [E] / USAR).
@@ -86,9 +103,9 @@ js/motor/                  o motor: não sabe nada da história
 js/dados/personagens.js    a ficha de cada personagem: como fala e como aparece
 js/mapa/                   as áreas: world.js (entrada, saguão, corredor, Consultório 4), level1 (ala de trás),
                            level2 (Vascular e CCIH), level3 (PS no subsolo) — 1 unidade = 1 metro
-js/mecanicas/              dialogue.js (Monteiro: interromper), laudos.js, no.js (nó cirúrgico), boss.js (Schwarzenegger)
-js/roteiros/               as falas: story1 (prólogo, Cap. 1, Consultório 4), story2, story3
-js/capitulos/              o que acontece e quando: prologo, cap1, cap2, cap3, consultorio4
+js/mecanicas/              dialogue.js (Monteiro: interromper), laudos.js, no.js (nó cirúrgico), ctg.js (cardiotocógrafo), boss.js (Schwarzenegger)
+js/roteiros/               as falas: story1 (prólogo, Cap. 1, Consultório 4), story2, story3, story4 (Centro Obstétrico)
+js/capitulos/              o que acontece e quando: prologo, cap1, cap2, cap3, cap4, consultorio4
 js/main.js                 laço, controles, câmera, telas
 tests/                     testes automáticos que jogam o jogo inteiro (npm test)
 personagens.html           galeria dos personagens (dev)
@@ -102,7 +119,7 @@ no celular, a porta do CO, cafés, telas e saves (inclusive saves antigos). Leva
 
 ## Modo dev
 `index.html#dev=x,z,yaw` pula as telas iniciais e posiciona o jogador.
-Opcional `,pPITCH` (olhar pra cima/baixo). Estágios (cada um inclui os anteriores): `,talk` abre a conversa do saguão · `,met` depois do saguão · `,liberato` depois do Liberato (com bisturi) · `,gun` com revólver · `,javali` depois do Javali (Ala C limpa) · `,debarros` depois do De Barros (CCIH liberada) · `,ch3` depois do Schwarzenegger (Capítulo 3) · `,leito` Liberato já mandou ver o Leito 12 · `,rx` falta só prescrever pra Professora Muriel · `,ps` liberado pro PS (escada caracol desce). Cada capítulo declara os seus em `dev:` (js/capitulos/).
+Opcional `,pPITCH` (olhar pra cima/baixo). Estágios (cada um inclui os anteriores): `,talk` abre a conversa do saguão · `,met` depois do saguão · `,liberato` depois do Liberato (com bisturi) · `,gun` com revólver · `,javali` depois do Javali (Ala C limpa) · `,debarros` depois do De Barros (CCIH liberada) · `,ch3` depois do Schwarzenegger (Capítulo 3) · `,leito` Liberato já mandou ver o Leito 12 · `,rx` falta só prescrever pra Professora Muriel · `,ps` liberado pro PS (escada caracol desce) · `,co` porta do Centro Obstétrico destrancada · `,fita` depois da fita (fim do capítulo). Cada capítulo declara os seus em `dev:` (js/capitulos/).
 Ex. do Leito 12: `index.html#dev=21.2,-72,3.14,rx`. Acrescente `,touch` pra testar os controles de celular.
 No modo dev o jogo não pausa sem o mouse travado, não liga o som e expõe `window.__game` para os testes automáticos.
 Ex.: `index.html#dev=0,-24,0,met` (início do corredor).

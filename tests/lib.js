@@ -93,17 +93,40 @@ class Game {
     await this.key('Digit' + (i + 1));
     await sleep(60);
   }
-  // conversa inteira: escolhe por uma lista de preferências (a primeira que existir), senão a opção 1. Nó: faz perfeito.
-  async talkThrough(prefs = [], max = 60) {
+  // conversa inteira: escolhe por uma lista de preferências (a primeira que existir), senão a opção 1.
+  // Minijogo no meio: joga sozinho (o nó e o cardiotocógrafo sabem se resolver).
+  async talkThrough(prefs = [], max = 60, { pararNoJogo = false } = {}) {
     for (let k = 0; k < max; k++) {
       const opts = await this.talk();
       if (!opts) return;
-      if (await this.eval(() => !!CONVO.minigameState)) { await this.knot(); continue; }
+      const jogo = await this.eval(() => CONVO.minigameState ? (CONVO.minigameState.seq ? 'knot' : 'ctg') : null);
+      if (jogo && pararNoJogo) return;
+      if (jogo) { await this[jogo](); continue; }
       const pref = prefs.find(p => opts.some(o => o.includes(p)));
       await this.pick(pref || 1);
     }
     throw new Error('conversa sem fim');
   }
+  // cardiotocógrafo: cola o transdutor no foco, acerta o dial e bate quando a luzinha do cabo acende.
+  // colar = false deixa o transdutor onde está (pra testar a armadilha da mãe, por exemplo).
+  async ctg({ colar = true, max = 900 } = {}) {
+    await this.until(() => CONVO.minigameState, null, { what: 'o CTG começar' });
+    for (let i = 0; i < max; i++) {
+      const s = await this.eval(colar => {
+        const st = CONVO.minigameState;
+        if (!st) return null;
+        if (colar) { st.p.u = st.F.u; st.p.v = st.F.v; st.dial = st.dstar; }
+        return { fase: st.fase, sinal: st.sinal, cont: st.contato, luz: st.luz, queda: st.quedaT };
+      }, colar);
+      if (!s) return;
+      if (s.queda <= 0 && s.cont < 0.5 && s.luz > 0 && s.luz < 0.34) await this.key2('Space');
+      else if (s.fase === 'sintonizar' && s.sinal > 0.6) await this.key2('Enter');
+      await sleep(40);
+    }
+    throw new Error('o CTG não terminou');
+  }
+  // tecla direto no handler (o page.keyboard.press é lento demais pro ritmo do minijogo)
+  key2(code) { return this.eval(c => window.dispatchEvent(new KeyboardEvent('keydown', { code: c })), code); }
   // minijogo do nó (teclado): digita a sequência certa
   async knot() {
     await this.talk();                                         // passa as falas até o nó começar
