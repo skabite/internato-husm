@@ -89,14 +89,19 @@ GAME.chapter((() => {
     G.psStarted = true;
     AUDIO.play('toccata', { fade: 0.5 });
     await GAME.runConvo(c => STORY3.falastrao(c), { target: falastrao });
-    falastrao.mesh.visible = false;
-    const i = WORLD.colliders.indexOf(falastrao.col); if (i >= 0) WORLD.colliders.splice(i, 1);
+    falastraoSai();
     // o capítulo não acaba mais aqui: o resumo vira letreiro e o cap4 continua a noite
-    // (o Falastrão fechou o PS e, no fundo do corredor, a porta do Centro Obstétrico destranca sozinha)
-    await GAME.titleCard(endText());
+    // (o Falastrão fechou o PS e, no fundo do corredor, a porta do Centro Obstétrico destranca sozinha).
+    // O resumo tem umas dez linhas: o letreiro fica mais tempo no ar que o normal, pra dar tempo de ler.
+    await GAME.titleCard(endText(), 9);
     G.psDone = true;                       // só depois do letreiro: enquanto ele está no ar, o cap4 não pode disparar
     GAME.emit('psFechado');
     GAME.refreshObjective(); GAME.save();
+  }
+  // o Falastrão foi dar entrevista: sai da sala (e do caminho)
+  function falastraoSai() {
+    falastrao.mesh.visible = false;
+    const i = WORLD.colliders.indexOf(falastrao.col); if (i >= 0) WORLD.colliders.splice(i, 1);
   }
   function endText() {
     return 'PS FECHADO. Por decisão dele. Anotado: decisão DELE.\nPlantão encerrado... por enquanto.' +
@@ -138,7 +143,7 @@ GAME.chapter((() => {
       if (s.bossDone) setupChapter3();
       if (s.muriel && !s.plantaoDone) setupLeito(s.muriel);
       if (s.plantaoDone) setupPlantao();
-      if (s.psDone) G.psDone = true;
+      if (s.psDone) { G.psDone = true; falastraoSai(); }          // ele continua na rádio (senão volta pra sala, mudo)
       if (G.muriel >= 1) disarm();                                 // o Liberato já recolheu as armas
     },
     objective() {

@@ -38,7 +38,7 @@ module.exports = [
       await g.pick(1);
       await g.talkThrough([], 60, { pararNoJogo: true });
       // fixa em cima do ponto materno: batimento limpo, mas é o coração dela
-      await g.eval(() => { const s = CONVO.minigameState; s.p.u = s.M.u; s.p.v = s.M.v; s.dial = s.dstar; });
+      await g.eval(() => { const s = CONVO.minigameState; s.p.u = s.M.u; s.p.v = s.M.v; s.dial = s.dstar; s.quedaProx = 99; });
       await g.until(() => CONVO.minigameState.sinal > 0.6 && CONVO.minigameState.contato > 0.5, null, { what: 'sinal limpo em cima da mãe' });
       await tecla(g, 'Enter');
       await sleep(200);
@@ -104,6 +104,7 @@ module.exports = [
       await g.page.click('#boot');
       await sleep(300);
       await g.page.evaluate(() => document.getElementById('btn-continue').click());
+      await g.page.evaluate(() => { GAME.G.noRender = true; GAME.G.textSpeed = 8; });   // sem isso, numa máquina lenta passa dos 120 s
       await sleep(700);
       // como 'coStarted' não vai pro save, a cena recomeça sozinha — em vez de o capítulo ficar sem gatilho
       await g.until(() => CONVO.active, null, { what: 'a cena recomeçar sozinha no CONTINUAR' });
@@ -113,6 +114,63 @@ module.exports = [
       const ctg = await g.eval(() => GAME.G.ctg);
       assert(ctg && ctg.fixou, 'não deu pra terminar o capítulo depois do CONTINUAR: ' + JSON.stringify(ctg));
       await g.until(() => !document.getElementById('end').classList.contains('hidden'), null, { what: 'chegar ao fim' });
+      g.noErrors();
+    },
+  },
+  {
+    name: 'cap4 · quem entra pela porta e vai até o Tcheco começa a cena (e o Falastrão continua fora da sala)',
+    async run(g) {
+      await g.open('23.0,-331.1,-1.5708,co');              // logo depois da porta, olhando pro Tcheco
+      // o save com o PS fechado não traz o Falastrão de volta: ele está na rádio
+      eq(await g.eval(() => [GAME.N.falastrao.mesh.visible, WORLD.colliders.includes(GAME.N.falastrao.col)]), [false, false], 'Falastrão fora da sala');
+      await sleep(300);
+      eq(await g.eval(() => CONVO.active), false, 'na porta a cena ainda não começa');
+      await g.eval(() => BUILD.doors.co.tryOpen());
+      await g.goTo(26.8, -331.1, -1.5708);                  // de frente pro Tcheco, fora da faixa do leito
+      await g.until(() => CONVO.active, null, { what: 'a cena começar perto do Tcheco' });
+      eq(await g.eval(() => BUILD.doors.co.open), false, 'a porta fecha quando a cena começa');
+      // dorso à direita DELA: na barriga vista de cima (cabeça pra cima), o foco fica na metade esquerda da tela
+      await g.talkThrough([], 60, { pararNoJogo: true });
+      assert(await g.eval(() => CONVO.minigameState.F.u < 0.5), 'o foco devia estar do lado D (esquerda da tela)');
+      g.noErrors();
+    },
+  },
+  {
+    name: 'cap4 · se o tempo do CTG acaba, a Rosane ouve com o Pinard e a história segue',
+    async run(g) {
+      await g.open('27.0,-330.0,-1.9,co');
+      await g.until(() => CONVO.active, null, { what: 'a cena começar' });
+      await g.talkThrough([], 60, { pararNoJogo: true });
+      g.lines = [];
+      await g.eval(() => { CONVO.minigameState.t = 999; });   // o relógio do minijogo estoura
+      await g.talkThrough();
+      assert(g.lines.some(l => l.includes('Pinard')), 'a Rosane devia resolver com o Pinard: ' + JSON.stringify(g.lines.slice(0, 6)));
+      const ctg = await g.eval(() => GAME.G.ctg);
+      eq([ctg.timeout, ctg.perfeito], [true, false], 'tempo esgotado e sem SINTONIA FINA');
+      await g.until(() => !document.getElementById('end').classList.contains('hidden'), null, { what: 'tela de fim' });
+      const fim = await g.eval(() => document.getElementById('end').textContent);
+      assert(fim.includes('Pinard') && !fim.includes('SINTONIA FINA'), 'fim errado: ' + fim.slice(0, 200));
+      g.noErrors();
+    },
+  },
+  {
+    name: 'cap4 · errar Leopold ou a leitura tira a SINTONIA FINA (e a Rosane não diz que você fixou na mãe)',
+    async run(g) {
+      await g.open('27.0,-330.0,-1.9,co');
+      await g.until(() => CONVO.active, null, { what: 'a cena começar' });
+      await g.talk(); await g.pick(1);                       // pede licença
+      await g.talk(); await g.pick('pélvica');               // Leopold errado (o Tcheco corrige e pergunta de novo)
+      await g.talkThrough([], 60, { pararNoJogo: true });
+      await g.ctg();                                         // o aparelho, de primeira e sem cair na mãe
+      let opts = await g.talk();
+      while (!opts.some(o => o.includes('Bradicardia'))) { await g.pick(1); opts = await g.talk(); }
+      g.lines = [];
+      await g.pick('Bradicardia');                           // leitura errada: o 84 é o pulso da mãe
+      await g.talkThrough();
+      assert(g.lines.some(l => l.includes('A fita está em 140')), 'a Rosane explica o 84 sem inventar armadilha: ' + JSON.stringify(g.lines.slice(0, 5)));
+      assert(!g.lines.some(l => l.includes('Sem um erro')), 'o Tcheco não pode dizer "sem um erro" depois de dois erros');
+      const ctg = await g.eval(() => GAME.G.ctg);
+      eq([ctg.perfeito, ctg.erradas], [false, 2], 'Leopold errado + leitura errada');
       g.noErrors();
     },
   },

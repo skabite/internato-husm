@@ -93,7 +93,7 @@ const CONVO = (() => {
   // Cada minijogo fica num arquivo em js/mecanicas/ e se registra com CONVO.minigame('nome', def).
   // No roteiro vira: const resultado = await c.nome(...args)   (ex.: await c.laudos(), await c.knot('esquerda'))
   //   def.start(ui, ...args)  monta a tela e devolve o estado do jogo (os testes leem em CONVO.minigameState)
-  //   def.key(code)           tecla apertada (opcional; sem ele, as teclas 1-9 viram def.pick)
+  //   def.key(code, evento)   tecla apertada (opcional; sem ele, as teclas 1-9 viram def.pick). evento.repeat = tecla segurada
   //   def.pick(i)             opção escolhida (clique ou tecla 1-9; opcional)
   //   def.update(dt)          todo quadro (opcional)
   //   ui = { el: elementos da caixa (text, options, silence, silenceFill...), finish(resultado, atrasoMs) }
@@ -125,7 +125,7 @@ const CONVO = (() => {
         ig: $('ig'), help: $('dlg-help'), focoWrap: $('foco-wrap'), breath: $('breath'), silence: $('silence'), silenceFill: $('silence-fill') };
       window.addEventListener('keydown', e => {
         if (!active) return;
-        if (mode === 'game' && game.def.key) { e.preventDefault(); game.def.key(e.code); return; }
+        if (mode === 'game' && game.def.key) { e.preventDefault(); game.def.key(e.code, e); return; }   // e: pra ver e.repeat
         if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyE') { e.preventDefault(); advance(); }
         const n = parseInt(e.key, 10);
         if (n >= 1 && n <= 9) pick(n - 1);

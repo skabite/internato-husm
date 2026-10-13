@@ -52,8 +52,8 @@ module.exports = [
       await g.until(() => document.getElementById('intro').textContent.includes('Prescrição perfeita'), null, { what: 'letreiro do resumo' });
       const card = await g.eval(() => document.getElementById('intro').textContent);
       assert(card.includes('voltou pro De Barros'), 'o resumo não fala da carabina devolvida');
-      await g.until(() => __game.G.psDone, null, { what: 'PS fechado' });
-      // o letreiro do resumo leva ~4 s; a porta do CO destranca quando ele sai
+      await g.until(() => __game.G.psDone, null, { what: 'PS fechado', timeout: 15000 });
+      // o letreiro do resumo fica 9 s no ar (dá tempo de ler); a porta do CO destranca quando ele sai
       await g.until(() => BUILD.doors.co.locked === false, null, { what: 'a porta do Centro Obstétrico destrancar', timeout: 15000 });
       await g.until(() => __game.G.state === 'play', null, { what: 'o jogo voltar a andar' });
       assert((await g.eval(() => document.getElementById('objective').textContent)).includes('CENTRO OBSTÉTRICO'), 'objetivo não aponta pro CO');

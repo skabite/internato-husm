@@ -178,11 +178,12 @@
   $('end').onclick = () => location.reload();
   $('dead').onclick = () => respawn();
 
-  // letreiro de capítulo (devolve uma promise que acaba quando ele some)
-  GAME.titleCard = text => {
+  // letreiro de capítulo (devolve uma promise que acaba quando ele some). secs: tempo no ar, contando o 1,2 s do esmaecer
+  GAME.titleCard = (text, secs = 3.8) => {
     const el = $('intro'); el.textContent = text; el.style.opacity = 1; el.style.background = '#000c'; show('intro');
-    setTimeout(() => { el.style.opacity = 0; }, 2600);
-    return new Promise(res => setTimeout(() => { show('intro', false); el.style.background = ''; res(); }, 3800));
+    el.classList.toggle('long', text.split('\n').length > 6);          // resumo comprido: letra menor, senão sai da tela
+    setTimeout(() => { el.style.opacity = 0; }, (secs - 1.2) * 1000);
+    return new Promise(res => setTimeout(() => { show('intro', false); el.style.background = ''; el.classList.remove('long'); res(); }, secs * 1000));
   };
   // viagem com a tela preta (escadas): texto, passos, e o jogador aparece em `to`, olhando pra `yaw`
   GAME.travel = (text, to, yaw) => {
@@ -202,6 +203,7 @@
     document.exitPointerLock && document.exitPointerLock();
     show('hud', false); show('pause', false);
     $('end').innerHTML = `<div class="title-sub2">FIM DO CAPÍTULO ${n}</div><div>${text}</div><div class="small">clique para recomeçar</div>`;
+    $('end').classList.toggle('long', text.split('\n').length > 7);    // resumo comprido: letra menor, senão sai da tela
     show('end');
   };
 

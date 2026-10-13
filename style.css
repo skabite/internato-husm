@@ -55,6 +55,7 @@ html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color:
 #intro { position: fixed; inset: 0; background: #000; display: flex; align-items: center; justify-content: center;
   font-size: 34px; line-height: 1.5; color: #ddd; white-space: pre-line; transition: opacity 1.2s; }
 #end { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000e; font-size: 30px; white-space: pre-line; }
+#intro.long { font-size: 24px; line-height: 1.35; } #end.long { font-size: 22px; }   /* resumos compridos (fim de capítulo): cabem na tela */
 @keyframes blink { 50% { opacity: 0; } }
 body.talking #keys, body.talking #crosshair, body.talking #hint { display: none; }
 
@@ -131,6 +132,7 @@ body.touch #keys, body.touch #dlg-help { display: none; }
 /* o cardiotocógrafo (Centro Obstétrico, capítulo 4): maior que o nó — tem a barriga, o visor e o dial na mesma tela */
 #ctg { position: fixed; left: 50%; top: 2%; transform: translateX(-50%); width: 440px; height: 308px; display: none; z-index: 7;
   image-rendering: pixelated; border: 3px double #c9c2a8; background: #0b0d12; pointer-events: none; }
+body.ctg #objective { visibility: hidden; }   /* ficaria cortado embaixo do aparelho */
 
 /* tela baixa (celular deitado): tudo menor */
 @media (max-height: 520px) {
@@ -150,6 +152,7 @@ body.touch #keys, body.touch #dlg-help { display: none; }
   .title-sub { font-size: 18px; margin-top: 10px; } .title-sub2 { font-size: 13px; margin: 10px 0 18px; }
   .blink { font-size: 22px; } .small { font-size: 14px; margin-top: 14px; }
   #intro { font-size: 20px; } #end { font-size: 18px; }
+  #intro.long { font-size: 16px; } #end.long { font-size: 15px; }
   #boot, #title, #pause { padding: 16px 24px; }
   #hp { font-size: 13px; } #ammo { font-size: 9px; margin-top: 4px; } #stats { left: 12px; bottom: 8px; }
   .knot { font-size: 12px; letter-spacing: 2px; } .knot-help { font-size: 14px; } #ig { font-size: 15px; }
