@@ -111,8 +111,48 @@ const PERSONAGENS = {
       faceRx: 12, faceRy: 13.5, brows: '#4a463e', mouth: 'smile', sax: true,
     },
   },
+  // ---------- capítulo 4: Centro Obstétrico ----------
+  tcheco: {                       // Obstetrícia: chefe do Centro Obstétrico, paciente e direto
+    fala: { nome: 'PROFESSOR TCHECO', cps: 38, blip: [148, 42] },
+    visual: {
+      skin: '#e4b892', skinD: '#b98c68', hair: 'sidepart', hairC: '#2a1f18', hairD: '#171009',
+      coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#e08a4a', shirtD: '#b8682e',
+      faceRx: 11, faceRy: 13.5, brows: '#241a12', mouth: 'smile',
+    },
+  },
+  jaque: {                        // a gestante: camisola do CO, deitada no leito PPP (pose 'patient')
+    fala: { nome: 'JAQUELINE', cps: 40, blip: [205, 45] },
+    visual: {
+      skin: '#e8bda0', skinD: '#c09070', pose: 'patient', hair: 'messy', hairC: '#3a2418', hairD: '#241410',
+      coat: '#cfe0ee', coatD: '#9db4c8', shirt: '#e8bda0', shirtD: '#c09070', noSteth: true,
+      faceRx: 11.5, faceRy: 13, brows: '#3a2418', mouth: 'pain', cheek: '#e0907c',
+    },
+  },
+  sandro: {                       // o acompanhante (Lei 11.108/2005): faz as perguntas que o jogador faria
+    fala: { nome: 'SANDRO · ACOMPANHANTE', cps: 42, blip: [120, 40] },
+    visual: {
+      skin: '#d8a882', skinD: '#ac7c58', hair: 'short', hairC: '#241a12', hairD: '#120c08',
+      beard: 'stubble', beardC: '#2e241c',
+      coat: '#3e5a7a', coatD: '#2a3e58', shirt: '#8a9aa8', shirtD: '#667686', noSteth: true,
+      faceRx: 11.5, faceRy: 13.5, brows: '#241a12', mouth: 'neutral',
+    },
+  },
+  rosane: {                       // enfermeira obstetra: a rede de segurança (resolve com o Pinard em 4 s)
+    fala: { nome: 'ENFERMEIRA ROSANE', cps: 40, blip: [190, 30] },
+    visual: {
+      skin: '#c8946c', skinD: '#9c6c48', hair: 'pixie', hairC: '#2a1c14', hairD: '#160e08',
+      coat: '#f2f4f6', coatD: '#c2c8d0', shirt: '#f2f4f6', shirtD: '#c2c8d0', noSteth: true,
+      faceRx: 11, faceRy: 13.5, brows: '#2a1c14', mouth: 'smile',
+    },
+  },
 };
-// a Muriel depois do tratamento: chorando de emoção (mesmo personagem, outro rosto e voz um pouco mais aguda)
+
+// a Jaqueline depois do traçado: aliviada (mesmo personagem, outro rosto)
+PERSONAGENS.jaque2 = {
+  fala: Object.assign({}, PERSONAGENS.jaque.fala, { blip: [220, 40] }),
+  visual: Object.assign({}, PERSONAGENS.jaque.visual, { mouth: 'smile', cheek: '#e8a08c' }),
+};
+
 PERSONAGENS.muriel2 = {
   fala: Object.assign({}, PERSONAGENS.muriel.fala, { blip: [230, 50] }),
   visual: Object.assign({}, PERSONAGENS.muriel.visual, { mouth: 'smile', tears: true }),

@@ -91,7 +91,12 @@ GAME.chapter((() => {
     await GAME.runConvo(c => STORY3.falastrao(c), { target: falastrao });
     falastrao.mesh.visible = false;
     const i = WORLD.colliders.indexOf(falastrao.col); if (i >= 0) WORLD.colliders.splice(i, 1);
-    GAME.end(3, endText());
+    // o capítulo não acaba mais aqui: o resumo vira letreiro e o cap4 continua a noite
+    // (o Falastrão fechou o PS e, no fundo do corredor, a porta do Centro Obstétrico destranca sozinha)
+    await GAME.titleCard(endText());
+    G.psDone = true;                       // só depois do letreiro: enquanto ele está no ar, o cap4 não pode disparar
+    GAME.emit('psFechado');
+    GAME.refreshObjective(); GAME.save();
   }
   function endText() {
     return 'PS FECHADO. Por decisão dele. Anotado: decisão DELE.\nPlantão encerrado... por enquanto.' +
@@ -120,22 +125,24 @@ GAME.chapter((() => {
       if (G.muriel === 1 && atBed) startMuriel1();
       if (G.muriel === 3 && atBed) startMuriel2();
       if (G.muriel === 4 && dLib < 4) startLiberato2();            // ele está encostado na parede: pega o corredor inteiro
-      if (G.plantaoDone && !G.psStarted && Math.hypot(P.pos.x - L3.falastraoPos.x, P.pos.z - L3.falastraoPos.z) < L3.chefiaR) startFalastrao();
+      if (G.plantaoDone && !G.psStarted && !G.psDone && Math.hypot(P.pos.x - L3.falastraoPos.x, P.pos.z - L3.falastraoPos.z) < L3.chefiaR) startFalastrao();
     },
     on: {
       bossDefeated() { setupChapter3(); GAME.titleCard('CAPÍTULO 3\n\nPLANTÃO'); },
       ct: () => onCT(),
       stairsUp: () => GAME.travel('Você sobe a escada caracol.\nO hall continua escuro.', new THREE.Vector3(1.4, 0, -15.5), -Math.PI / 2),
     },
-    save(s) { Object.assign(s, { muriel: Math.floor(G.muriel || 0), rxPerfect: !!G.rxPerfect, plantaoDone: !!G.plantaoDone }); },
+    save(s) { Object.assign(s, { muriel: Math.floor(G.muriel || 0), rxPerfect: !!G.rxPerfect, plantaoDone: !!G.plantaoDone, psDone: !!G.psDone }); },
     load(s) {
       G.rxPerfect = !!s.rxPerfect;
       if (s.bossDone) setupChapter3();
       if (s.muriel && !s.plantaoDone) setupLeito(s.muriel);
       if (s.plantaoDone) setupPlantao();
+      if (s.psDone) G.psDone = true;
       if (G.muriel >= 1) disarm();                                 // o Liberato já recolheu as armas
     },
     objective() {
+      if (G.psDone) return null;                               // a partir daqui quem manda é o cap4
       if (G.plantaoDone) return 'OBJETIVO: Descer a ESCADA CARACOL (hall da recepção) até o PS\n• Convencer o PROFESSOR FALASTRÃO (Chefia do PS) a fechar o PS';
       if (G.muriel >= 4) return 'OBJETIVO: Voltar ao PROFESSOR LIBERATO (corredor da Endoscopia)';
       if (G.muriel >= 3) return 'OBJETIVO: Prescrever pra PROFESSORA MURIEL (Leito 12, Ala C)';
@@ -144,7 +151,7 @@ GAME.chapter((() => {
       if (G.bossDone) return 'OBJETIVO: Ir embora pra casa (saída pela recepção)';
       return null;
     },
-    saveLabel: s => (s.plantaoDone ? 'de plantão (PS)' : s.muriel ? 'de plantão (Leito 12)' : null),
+    saveLabel: s => (s.psDone ? null : s.plantaoDone ? 'de plantão (PS)' : s.muriel ? 'de plantão (Leito 12)' : null),
     dev: {
       ch3: { save: { bossDone: true } },                           // depois do Schwarzenegger (Liberato te esperando)
       leito: { save: { muriel: 1 } },                             // Liberato já mandou ver o Leito 12 (sem armas)

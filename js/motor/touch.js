@@ -127,7 +127,7 @@ const TOUCH = (() => {
     if (!H) return;
     const talking = DIALOGUE.active || CONVO.active;
     const playing = H.state() === 'play' && !H.paused() && !talking;
-    const knot = !!document.querySelector('#dlg-options .knot');
+    const minigame = !!document.querySelector('#dlg-options .knot, #dlg-options .ctgbtn');   // o CTG também esconde o CONTINUAR (o toque vira BATER)
     const show = (b, v) => { b.style.display = v ? '' : 'none'; };
     for (const k of ['use', 'light', 'px', 'pause']) show(btn[k], playing);
     show(btn.aim, playing && COMBAT.P.weapon);
@@ -136,7 +136,7 @@ const TOUCH = (() => {
     show(btn.weapon, playing && (COMBAT.P.has.revolver || COMBAT.P.has.carabina));
     show(btn.reload, playing && (COMBAT.P.weapon === 'revolver' || COMBAT.P.weapon === 'carabina'));
     btn.aim.innerHTML = 'MIRA<br>' + AIM[aim].label;
-    show(btn.talk, talking && !knot);
+    show(btn.talk, talking && !minigame);
     btn.talk.textContent = DIALOGUE.active ? 'INTERROMPER!' : 'CONTINUAR ▶';
     btn.talk.classList.toggle('hot', DIALOGUE.active && document.getElementById('breath').classList.contains('on'));
     btn.use.classList.toggle('hot', !!document.getElementById('hint').textContent || !!document.getElementById('prompt').textContent);

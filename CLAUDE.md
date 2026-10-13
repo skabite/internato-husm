@@ -20,17 +20,18 @@ O dono do projeto é leigo em programação: explique as coisas em linguagem sim
 | `js/mapa/world.js` | entrada do Bloco D: praça, saguão, hall, corredor dos ambulatórios, banheiro, Consultório 4 | `WORLD` (área `W`) |
 | `js/mapa/level1.js` | ala de trás (mapa em texto): Endoscopia, Torácica, copa, Ala C (javalis, Leito 12), sala do Javali | área `L1` |
 | `js/mapa/level2.js` | Vascular (De Barros) e CCIH (arena do chefe) | área `L2` |
-| `js/mapa/level3.js` | PS no subsolo (layout provisório); porta do Centro Obstétrico (trancada) | área `L3` |
-| `js/mecanicas/` | `dialogue.js` (Monteiro: interromper quando ele respira), `laudos.js`, `no.js` (nó cirúrgico), `boss.js` (Schwarzenegger) | `DIALOGUE`, `BOSS` |
-| `js/roteiros/storyN.js` | **só as falas** (funções async que recebem `c`) | `STORY1..3` |
-| `js/capitulos/*.js` | **o que acontece e quando**: gatilhos, objetivo, save, estágios do modo dev | — |
+| `js/mapa/level3.js` | PS no subsolo (layout provisório) e a sala do **Centro Obstétrico** (colunas 44–52, cap. 4) | área `L3` |
+| `js/mecanicas/` | `dialogue.js` (Monteiro: interromper quando ele respira), `laudos.js`, `no.js` (nó cirúrgico), `ctg.js` (cardiotocógrafo), `boss.js` (Schwarzenegger) | `DIALOGUE`, `BOSS` |
+| `js/roteiros/storyN.js` | **só as falas** (funções async que recebem `c`) | `STORY1..4` |
+| `js/capitulos/*.js` | **o que acontece e quando**: prologo, cap1..cap4, consultorio4 | — |
 | `js/main.js` | motor: render, controles, câmera, telas, `runConvo`, itens de cura, laço | — |
 | `tests/` | testes que jogam o jogo inteiro (`npm test`) | — |
 | `docs/` | planos (minijogo do CTG) e revisão ética (pacientes) | — |
 
 ### Personagens (id único em todo lugar)
 `monteiro` (saguão) · `liberato` · `javali` · `debarros` · `schwarzenegger` (chefe) · `muriel` / `muriel2` (Leito 12, chorando)
-· `mascara` (lembrança) · `falastrao` (PS) · `maaa`, `adc` (Consultório 4) · sem desenho: `eu` (pensamento), `narr`, `zap` (grupo).
+· `mascara` (lembrança) · `falastrao` (PS) · `maaa`, `adc` (Consultório 4) · Centro Obstétrico: `tcheco` (chefe), `jaque` / `jaque2`
+(a gestante, aliviada depois da fita), `sandro` (acompanhante), `rosane` (enfermeira obstetra) · sem desenho: `eu`, `narr`, `zap`.
 
 ## Como as peças conversam
 - `main.js` monta as áreas (`GAME.area`), chama `init()` de cada capítulo e, a cada quadro, `update(dt)` (só jogando)
@@ -84,7 +85,8 @@ GAME.chapter((() => {
 ### Minijogo novo
 `js/mecanicas/nome.js`: `CONVO.minigame('nome', { start(ui, ...args) { ...; return estado }, key(code), pick(i), update(dt) })`;
 termina com `ui.finish(resultado, atrasoMs)`. `<script>` depois do `convo.js`. No roteiro: `const r = await c.nome(...)`.
-Modelos: `laudos.js` (escolher opções), `no.js` (teclas/arrasto com tempo). Plano do próximo: `docs/minijogo-cardiotocografia.md`.
+Modelos: `laudos.js` (escolher opções), `no.js` (teclas/arrasto com tempo), `ctg.js` (canvas próprio + medição contínua).
+Quem desenha em canvas usa um `<canvas>` próprio e o CSS amplia (`#rhythm`, `#ctg` em `style.css`). Plano do CTG: `docs/minijogo-cardiotocografia.md`.
 ### Área nova (ou sala)
 - Área com mapa em texto: `js/mapa/levelN.js` com `MAP` e `BUILD.walls/scan/door/light/cafe`; no fim
   `GAME.area('LN', LEVELN.build)`. Coloque longe das outras (o PS fica em z −320; chega-se por `GAME.travel`).
@@ -119,4 +121,12 @@ seguinte colada na anterior (afaste-o antes).
 - Modo dev não liga o som (o `AUDIO.init` é no clique da tela inicial).
 - `GAME.G.muriel` com .5 = cena em andamento (não dispara de novo).
 - `state 'dialogue'` é só a conversa do Monteiro (`DIALOGUE`); o resto usa `'convo'`.
-- A porta do Centro Obstétrico (`level3.js`) é falsa: só avisa. A sala vem com o minijogo do CTG.
+- O capítulo 3 não encerra mais o jogo: ele emite `GAME.emit('psFechado')` e o `cap4.js` continua (destranca `BUILD.doors.co`).
+- **O `MAP` de `level3.js` tem exatamente 26 linhas e cada uma é 1 metro.** Apagar ou acrescentar uma linha
+  empurra TODAS as paredes dali pra baixo em 1 m — e os móveis, que são posicionados em coordenadas absolutas,
+  ficam dentro da parede (foi o que aconteceu em out/2026: a vassoura e os troféus do Falastrão sumiram).
+  Área nova se faz **alargando as linhas** (colunas), não mudando a contagem delas.
+- Minijogo que desenha em canvas e põe botões na caixa de conversa precisa da classe **`.ctgbtn`** (ou `.knot`):
+  é por ela que o `touch.js` esconde o **CONTINUAR ▶** no celular — e sem isso cada toque nele vira um `Space`,
+  que o minijogo lê como "bater no aparelho". Veja `js/mecanicas/ctg.js` (`addOpts`) e `js/motor/touch.js` (`update`).
+- O minijogo do CTG é o único que mede `dt` de verdade (o nó depende de `performance.now()`): mexer nele pensando no relógio de parede dá diferença nos testes.
