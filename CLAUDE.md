@@ -12,7 +12,7 @@ O dono do projeto é leigo em programação: explique as coisas em linguagem sim
 | `js/motor/save.js` | save no `localStorage`, versão 2, `migrate()` converte saves antigos | `SAVE` |
 | `js/motor/build.js` | caixa de ferramentas do mapa: `walls`/`scan` (mapa em texto), `door`/`pair`, `light`, `cafe`/`pickup` | `BUILD` |
 | `js/motor/convo.js` | conversas roteirizadas (`c.say`, `c.choose`, `c.ig`, `c.meter`) + API de minijogos | `CONVO` |
-| `js/motor/sprites.js` | desenha personagens a partir da ficha; também javali, armas, seringa | `SPRITES` |
+| `js/motor/sprites.js` | desenha personagens a partir da ficha; também javali, armas, seringa e a pintura de parede (`paintingTex`) | `SPRITES` |
 | `js/motor/combat.js` | armas, javalis (IA), dano, esquiva, HUD de saúde | `COMBAT` |
 | `js/motor/audio.js` | músicas 8-bit (`SONGS`) e efeitos (`SFX`) gerados na hora | `AUDIO` |
 | `js/motor/` (resto) | `textures` (texturas), `aura` (brilhos), `touch` (celular), `util` (`U.clamp`, `U.pick`...) | |
@@ -30,7 +30,8 @@ O dono do projeto é leigo em programação: explique as coisas em linguagem sim
 
 ### Personagens (id único em todo lugar)
 `monteiro` (saguão) · `liberato` · `javali` · `debarros` · `schwarzenegger` (chefe) · `muriel` / `muriel2` (Leito 12, chorando)
-· `mascara` (lembrança) · `falastrao` (PS) · `maaa`, `adc` (Consultório 4) · Centro Obstétrico: `tcheco` (chefe), `jaque` / `jaque2`
+· `mascara` (lembrança) · `falastrao` (PS) · `maaa`, `adc` (Consultório 4) · `eca` (só no quadro do Consultório 4)
+· Centro Obstétrico: `tcheco` (chefe), `jaque` / `jaque2`
 (a gestante, aliviada depois da fita), `sandro` (acompanhante), `rosane` (enfermeira obstetra) · sem desenho: `eu`, `narr`, `zap`.
 
 ## Como as peças conversam
@@ -98,6 +99,11 @@ Quem desenha em canvas usa um `<canvas>` próprio e o CSS amplia (`#rhythm`, `#c
 ### Item de cura
 `BUILD.cafe('LN', x, z)` ou `BUILD.pickup('LN', { x, z, cup, heal, msgs, full })`. O id é `'LN:n'` pela ordem em cada área:
 acrescente **no fim** da área pra não trocar o id dos que já existem (o save guarda os ids).
+### Retrato de parede
+A pessoa real vira uma ficha em `js/dados/personagens.js` inspirada na foto. A foto fica fora do git, em "personagens jogo/",
+e é só inspiração: não converter a foto em pixel art, porque destoa do jogo. `SPRITES.paintingTex(id)` dá a pintura 48x64 (3:4)
+a partir da ficha. Moldura e placa (`TEX.plaque(linhas)`) como as do Eça em `buildConsultorio4` (js/mapa/world.js).
+As opções novas da ficha (`beca`, `cat`, `mouth: 'grin'`) estão documentadas no topo de `personagens.js`.
 ### Mudou o que vai pro save?
 Campo novo: escreva em `save(s)` e leia em `load(s)` com valor padrão (saves antigos não têm). Renomeou ou mudou formato:
 suba `SAVE.VERSION` e converta em `migrate()` (e acrescente um save antigo em `tests/07-save.test.js`).
@@ -107,6 +113,7 @@ suba `SAVE.VERSION` e converta em `migrate()` (e acrescente um save antigo em `t
 - Comentário explica a regra ou o porquê, não o óbvio. Densidade parecida com o resto.
 - 1 unidade = 1 metro. O hospital cresce pra −z. `yaw` 0 olha pra −z, −π/2 olha pra +x, π olha pra +z.
 - Pessoas reais: fotos de referência ficam **fora do git** (`.gitignore`); professores são caricaturas com nome trocado.
+  a foto é só inspiração pra ficha, não vira pixel art direto.
   Antes de pôr paciente novo, leia `docs/etica-pacientes.md` (checklist no fim).
 
 ## Testes

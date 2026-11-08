@@ -484,5 +484,38 @@ const TEX = (() => {
     });
   };
 
+  // Placa de latão gravada: gradiente, borda escura e texto com sombra clara (o "gravado").
+  T.plaque = function (lines) {
+    const t = make(512, 256, (g, w, h) => {
+      const grd = g.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, '#d9b85c'); grd.addColorStop(1, '#a8832e');
+      g.fillStyle = grd; g.fillRect(0, 0, w, h);
+      g.strokeStyle = '#6b5420'; g.lineWidth = 4; g.strokeRect(2, 2, w - 4, h - 4);
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      const font = s => 'bold ' + s + 'px serif';                  // tudo em negrito: serifa fina some de longe
+      const sizes = lines.map((line, i) => {
+        let s = i === 0 ? 60 : i === 1 ? 38 : 26;                 // a 1ª linha é o nome; a 2ª, o cargo
+        g.font = font(s);
+        while (g.measureText(line).width > w - 40 && s > 8) { s--; g.font = font(s); }
+        return s;
+      });
+      const total = sizes.reduce((a, b) => a + b, 0);
+      const room = h - 2 * (lines.length + 1);                     // o texto nunca se sobrepõe
+      if (total > room) {
+        const k = room / total;
+        for (let i = 0; i < sizes.length; i++) sizes[i] = Math.floor(sizes[i] * k);
+      }
+      const gap = (h - sizes.reduce((a, b) => a + b, 0)) / (lines.length + 1);
+      let y = gap;
+      lines.forEach((line, i) => {
+        y += sizes[i] / 2; g.font = font(sizes[i]);
+        g.fillStyle = '#f0dc9a'; g.fillText(line, w / 2 + 1, y + 1);
+        g.fillStyle = '#2a1f0a'; g.fillText(line, w / 2, y);
+        y += sizes[i] / 2 + gap;
+      });
+    });
+    t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;   // magFilter continua Nearest
+    return t;
+  };
+
   return T;
 })();

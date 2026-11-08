@@ -51,4 +51,28 @@ module.exports = [
       await g.goTo(0, -33); await g.until(() => AUDIO.playing === 'moonlight', null, { what: 'voltar a música' });
     },
   },
+  {
+    name: 'Retrato do Eça na parede do fundo',
+    async run(g) {
+      await g.open('3,-33,-1.57,met');
+      const info = await g.eval(() => {
+        const c = SPRITES.paintingTex('eca').image;   // o canvas que vai pra parede, no tamanho dele
+        const dados = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        const rgb = hex => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+        const [hr, hg, hb] = rgb(PERSONAGENS.eca.visual.hairC);
+        const [sr, sg, sb] = rgb(PERSONAGENS.eca.visual.skin);
+        let hair = 0, skin = 0;
+        for (let i = 0; i < dados.length; i += 4) {
+          if (dados[i] === hr && dados[i + 1] === hg && dados[i + 2] === hb) hair++;
+          if (dados[i] === sr && dados[i + 1] === sg && dados[i + 2] === sb) skin++;
+        }
+        return { ok: c.width * 4 === c.height * 3 && hair > 20 && skin > 20, hair, skin };
+      });
+      assert(info.ok, `pintura do Eça com proporção errada, cabelo (${info.hair}) ou pele (${info.skin}) de menos`);
+      await g.goTo(6.7, -31.9, -1.5708, 0.15);
+      await g.until(() => document.getElementById('hint').textContent.includes('examinar'), null, { what: 'mirar o retrato' });
+      await g.key('KeyE');
+      await g.until(() => document.getElementById('toast').textContent.includes('INTERNO DO SÉCULO'), null, { what: 'ler a placa' });
+    },
+  },
 ];

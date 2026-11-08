@@ -4,11 +4,11 @@
 //
 //   fala:   { nome, cps (letras por segundo), blip: [tom, variação] da voz em bipes (null = muda),
 //             italico (pensamento/narração), porco (grunhe nas pausas) }
-//   visual: ficha do desenho (32x64 no mapa, 48x48 na conversa), lida por js/motor/sprites.js:
+//   visual: ficha do desenho (32x64 no mapa, 48x48 na conversa, 48x64 na pintura de parede (SPRITES.paintingTex)), lida por js/motor/sprites.js:
 //     skin/skinD (pele/sombra) · hair: bald | short | sidepart | slicked | messy | pixie | spiky · hairC/hairD
 //     glasses: thick | thin | rimless | onhead · glassC · beard: 'stubble' · beardC · brows (cor)
-//     coat/coatD (jaleco) · shirt/shirtD · mouth: neutral | smile | frown | pain · faceRx/faceRy (rosto)
-//     extras: short, tall, blazer, lantern, sax, lanyard, mask, stripes, cheek, earrings, tears, noSteth, browsUp, book, screenGlow
+//     coat/coatD (jaleco) · shirt/shirtD · mouth: neutral | smile | grin | frown | pain · faceRx/faceRy (rosto)
+//     extras: beca (cor da faixa verde da beca de formatura), cat (gato frajola de chapéu no colo), short, tall, blazer, lantern, sax, lanyard, mask, stripes, cheek, earrings, tears, noSteth, browsUp, book, screenGlow
 //     pose: (em pé) | patient (deitada na maca) | reading (sentado lendo) | desk (de perfil no computador)
 const PERSONAGENS = {
   // ---------- sem desenho ----------
@@ -51,6 +51,17 @@ const PERSONAGENS = {
       skin: '#e8bc98', skinD: '#bc9070', pose: 'desk', hair: 'short', hairC: '#4a3020', hairD: '#2e1e14',
       coat: '#ecebe4', coatD: '#b9b8b0', shirt: '#3e8a6e', shirtD: '#2c6a52',
       faceRx: 11, faceRy: 13.5, brows: '#3a2618', mouth: 'neutral', screenGlow: '#8ac8ff',
+    },
+  },
+
+  eca: {                          // interno de verdade (caricatura autorizada): ruivo, óculos, beca de formatura e o gato de chapéu; só aparece no quadro do Consultório 4
+    fala: { nome: 'EÇA', cps: 36, blip: [150, 45] },
+    visual: {
+      skin: '#f0c4a8', skinD: '#c8957a', hair: 'short', hairC: '#b3541e', hairD: '#843a14',
+      glasses: 'thin', glassC: '#aeb8c2',
+      coat: '#1e1e26', coatD: '#0e0e14', shirt: '#f4f2ee', shirtD: '#cfd0d8', noSteth: true,
+      faceRx: 11, faceRy: 13.5, brows: '#8a4018', mouth: 'grin', cheek: '#e08a7a',
+      beca: '#2fa04e', cat: true,
     },
   },
 

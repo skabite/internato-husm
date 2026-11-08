@@ -8,6 +8,34 @@ const SPRITES = (() => {
     return p.visual;
   }
 
+  // gato frajola de beca e chapéu de plumas (18x19), colo do Eça. Letras: k preto · w branco · g cinza-marrom · b olho azul
+  // L/l renda do babador · P/p pluma branca (luz/sombra). Desenhado com o mesmo p() de quem chamou.
+  const CAT = [
+    '....ppPPPPPPpp....',
+    '...pPPPPPPPPPPp...',
+    '..pPPPPPPPPPPPPp..',
+    '...ppPPPPPPPPpp...',
+    '....kkkkkkkkkk....',
+    '..kkgkkkkkkkkgkk..',
+    '..kgggkkkwwwgggk..',
+    '..kggbbwkkbbwwgk..',
+    '..kgwwwwkkwwwwwk..',
+    '...gwwwwkkwwwwg...',
+    '....wwwwwkwwwww...',
+    '...kkkLLLLLLLLkkk.',
+    '..kkkLLlLLLLlLLkkk',
+    '..kkLLlLLlLLlLLkk.',
+    '..kkLlLLlLLlLLlkk.',
+    '..kkkLlLLlLLlLkkk.',
+    '...kkLLlLLlLLlkk..',
+    '....wwkLlLLlkkww..',
+    '....wwww....wwww..',
+  ];
+  const CATC = { k: '#1a1a1e', w: '#f4f0ea', g: '#6a5a52', b: '#7aa0d8', L: '#efe4d2', l: '#bfb09a', P: '#ffffff', p: '#cfc8d4' };
+  function cat(p, x, y) {
+    CAT.forEach((row, j) => { for (let i = 0; i < row.length; i++) { const ch = row[i]; if (ch !== '.') p(CATC[ch], x + i, y + j); } });
+  }
+
   // ======================= CORPO (32x64) =======================
   function body(s, frame) { // frame: 0 parado, 1 boca aberta, 2 gesticulando
     const c = document.createElement('canvas'); c.width = 32; c.height = 64;
@@ -40,6 +68,13 @@ const SPRITES = (() => {
       p('#d8a830', 15, 39, 4, 3); p('#d8a830', 18, 36, 2, 5); p('#f0d070', 18, 36, 2, 1); p('#a87818', 15, 41, 4, 1);
       for (const y of [28, 31, 34]) p('#5a4010', 14 + Math.floor((y - 25) * 0.2), y, 1, 1);
     }
+    if (s.beca) {                                                   // beca de formatura: comprida, faixa verde, gravata-borboleta
+      p(s.coat, 8, 44, 16, 16); p(s.coatD, 8, 44, 1, 16); p(s.coatD, 23, 44, 1, 16); p(s.beca, 14, 44, 4, 16); p(s.coatD, 14, 44, 1, 16);
+      p(s.coat, 9, 28, 4, 7);                                     // a beca esconde as canetas do bolso
+      for (let y = 22; y < 34; y++) p(s.beca, 12 - ((y - 22) / 4 | 0), y);
+      p('#f4f4f4', 13, 22, 2, 2); p('#f4f4f4', 17, 22, 2, 2); p('#c8c8d0', 15, 22, 2, 2);
+    }
+    if (s.cat) cat(p, 14, 29);
     head(g, p, s, frame);
     return c;
   }
@@ -160,25 +195,34 @@ const SPRITES = (() => {
   }
 
   // ======================= RETRATO (48x48) =======================
-  function portrait(s, frame) {
-    const N = 48, c = document.createElement('canvas'); c.width = N; c.height = N;
+  // o (opcional, só pra pintura do quadro): { h, dx, dy, noBg, noCat, noSash } — h muda a altura (64 na pintura); os ombros vão até h - dy
+  function portrait(s, frame, o) {
+    o = o || {};
+    const N = 48, B = (o.h || N) - (o.dy || 0), c = document.createElement('canvas'); c.width = N; c.height = o.h || N;
     const g = c.getContext('2d');
+    if (o.dx || o.dy) g.translate(o.dx || 0, o.dy || 0);
     const p = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
     const lensTop = (x, y, col) => { p(col, x, y, 6, 1); p(col, x, y + 3, 6, 1); p(col, x, y, 1, 4); p(col, x + 5, y, 1, 4); g.globalAlpha = 0.3; p('#bcd8ff', x + 1, y + 1, 4, 2); g.globalAlpha = 1; };
     const cx = 24, cy = 21, rx = s.faceRx, ry = s.faceRy;
     const inEll = (x, y, ax, ay, ox = cx, oy = cy) => ((x + 0.5 - ox) / ax) ** 2 + ((y + 0.5 - oy) / ay) ** 2 <= 1;
 
     // fundo
-    for (let y = 0; y < N; y++) { const t = y / N; p(`rgb(${26 + 40 * t | 0},${18 + 22 * t | 0},${6 + 8 * t | 0})`, 0, y, N, 1); }
+    if (!o.noBg) for (let y = 0; y < N; y++) { const t = y / N; p(`rgb(${26 + 40 * t | 0},${18 + 22 * t | 0},${6 + 8 * t | 0})`, 0, y, N, 1); }
     // ombros, roupa
-    for (let y = 36; y < N; y++) { const w = 14 + (y - 36) * 1.6; p(s.coat, Math.round(cx - w), y, Math.round(w * 2), 1); }
-    for (let y = 36; y < N; y++) { const w = Math.max(1, 7 - (y - 36) * 0.6); p(s.shirt, Math.round(cx - w), y, Math.round(w * 2), 1); }
+    for (let y = 36; y < B; y++) { const w = 14 + (y - 36) * 1.6; p(s.coat, Math.round(cx - w), y, Math.round(w * 2), 1); }
+    for (let y = 36; y < B; y++) { const w = Math.max(1, 7 - (y - 36) * 0.6); p(s.shirt, Math.round(cx - w), y, Math.round(w * 2), 1); }
     p(s.shirtD, cx - 7, 36, 4, 2); p(s.shirtD, cx + 3, 36, 4, 2);               // gola
-    for (let y = 38; y < N; y++) { const w = Math.max(0, 7 - (y - 36) * 0.6); p(s.coatD, Math.round(cx - w) - 1, y, 1, 1); p(s.coatD, Math.round(cx + w), y, 1, 1); }
-    if (s.stripes) for (let y = 36; y < N; y++) { const w = 14 + (y - 36) * 1.6; for (let x = Math.round(cx - w); x < cx + w; x++) if (x % 3 === 0 && Math.abs(x - cx) > 2) p(s.stripes, x, y); }
+    for (let y = 38; y < B; y++) { const w = Math.max(0, 7 - (y - 36) * 0.6); p(s.coatD, Math.round(cx - w) - 1, y, 1, 1); p(s.coatD, Math.round(cx + w), y, 1, 1); }
+    if (s.stripes) for (let y = 36; y < B; y++) { const w = 14 + (y - 36) * 1.6; for (let x = Math.round(cx - w); x < cx + w; x++) if (x % 3 === 0 && Math.abs(x - cx) > 2) p(s.stripes, x, y); }
     if (s.pose === 'patient') for (let y = 39; y < N; y += 3) for (let x = 6 + (y % 2); x < 42; x += 3) if (Math.abs(x - cx) > 5) p(s.coatD, x, y);   // bolinhas da camisola
-    if (s.lanyard) for (let y = 37; y < N; y++) { p(s.lanyard, cx - 5 + ((y - 37) * 0.3 | 0), y); p(s.lanyard, cx + 4 - ((y - 37) * 0.3 | 0), y); }
+    if (s.lanyard) for (let y = 37; y < B; y++) { p(s.lanyard, cx - 5 + ((y - 37) * 0.3 | 0), y); p(s.lanyard, cx + 4 - ((y - 37) * 0.3 | 0), y); }
     else if (!s.blazer && !s.noSteth) { p('#2a2a2e', cx - 9, 37, 1, 8); p('#2a2a2e', cx + 9, 37, 1, 8); } // estetoscópio
+    if (s.beca) {                                     // beca: borda verde na diagonal, gravata-borboleta e babado de renda
+      for (let y = 38; y < B; y++) { const x = Math.round(cx - 8 - (y - 38) * 1.0); p(s.beca, x, y, 2, 1); }
+      for (let y = 40; y < B; y += 1) { const w = Math.max(0, 5 - (y - 40) * 0.5); for (let x = Math.round(cx - w); x < cx + w; x++) if ((x + y) % 2) p('#e8dcc8', x, y); }
+      p('#f6f6f6', cx - 5, 37, 4, 3); p('#f6f6f6', cx + 2, 37, 4, 3); p('#c6c6d0', cx - 1, 37, 3, 3);
+      if (!o.noSash) p(s.beca, cx + 3, B - 4, 5, 4);   // ponta da faixa verde
+    }
     // pescoço
     p(s.skinD, cx - 5, 31, 10, 6); p(s.skin, cx - 4, 31, 8, 4);
     // orelhas
@@ -305,6 +349,7 @@ const SPRITES = (() => {
     // boca
     const my = cy + 7;
     if (frame === 1) { p('#4a1414', cx - 3, my - 1, 7, 3); p('#f0ece4', cx - 2, my - 1, 5, 1); }
+    else if (s.mouth === 'grin') { p('#8a3e34', cx - 5, my - 1, 1, 1); p('#8a3e34', cx + 5, my - 1, 1, 1); p('#8a3e34', cx - 4, my - 1, 9, 1); p('#f4f0ea', cx - 4, my, 9, 1); p('#8a3e34', cx - 3, my + 1, 7, 1); }
     else if (s.mouth === 'smile') { p('#8a3e34', cx - 3, my, 7, 1); p('#8a3e34', cx - 4, my - 1, 1, 1); p('#8a3e34', cx + 4, my - 1, 1, 1); }
     else if (s.mouth === 'frown') { p('#8a3e34', cx - 3, my, 7, 1); p('#8a3e34', cx - 4, my + 1, 1, 1); p('#8a3e34', cx + 4, my + 1, 1, 1); }
     else if (s.mouth === 'pain') { p('#8a3e34', cx - 3, my, 2, 1); p('#8a3e34', cx - 1, my - 1, 3, 1); p('#8a3e34', cx + 2, my, 2, 1); }
@@ -324,6 +369,7 @@ const SPRITES = (() => {
       for (let y = 0; y < N; y++) for (let x = cx; x < N; x++) if (inEll(x, y, rx, ry) && !inEll(x + 2, y, rx, ry)) p(s.screenGlow, x, y);
       g.globalAlpha = 1;
     }
+    if (s.cat && !o.noCat) cat(p, 30, 29);      // o gato no colo, entrando pelo canto
     // mão gesticulando
     if (frame === 2) { p(s.skin, 38, 26, 6, 7); p(s.skin, 38, 23, 1, 3); p(s.skin, 40, 22, 1, 4); p(s.skin, 42, 22, 1, 4); p(s.coat, 38, 33, 7, 15); }
     return c;
@@ -335,7 +381,56 @@ const SPRITES = (() => {
     return t;
   }
 
-  const cache = {};
+  // gato grande da pintura (origem no canto de cima à esquerda): plumas de pena, orelhas, máscara marrom, focinho preto
+  // na pintura fica em (25,35) e é cortado pela borda de baixo e pela da direita do quadro
+  function catBig(p, x, y) {
+    const q = (c, i, j, w = 1, h = 1) => p(c, x + i, y + j, w, h);
+    const ell = (cx, cy, rx, ry, fn) => { for (let j = Math.floor(cy - ry); j <= cy + ry; j++) for (let i = Math.floor(cx - rx); i <= cx + rx; i++) { const d = ((i + 0.5 - cx) / rx) ** 2 + ((j + 0.5 - cy) / ry) ** 2; if (d <= 1) fn(i, j, d); } };
+    const K = '#1a1a1e', W = '#f6f2ec', M = '#4a3a34', L = '#efe4d2', l = '#bfb09a';
+    ell(11.5, 29, 11.5, 7, (i, j) => q(K, i, j));                                   // capinha preta nos ombros
+    q(K, 0, 28, 3, 7); q(K, 21, 28, 3, 7);
+    for (let j = 25; j < 35; j++) { const w = 5 + ((j - 25) * 0.15 | 0); for (let i = 12 - w; i < 12 + w; i++) q((i + j) % 3 === 0 ? l : L, i, j); }   // babado de renda
+    for (let i = 7; i < 17; i += 2) q(L, i, 34);
+    q(K, 4, 23, 6, 3); q(K, 14, 23, 6, 3); q('#3a3a44', 10, 23, 4, 3);                // gravatinha preta
+    ell(5.5, 13.5, 2.6, 4.5, (i, j) => q(M, i, j)); ell(18.5, 13.5, 2.6, 4.5, (i, j) => q(M, i, j));   // orelhas escuras
+    q('#c89090', 5, 14, 1, 2); q('#c89090', 18, 14, 1, 2);
+    q(M, 3, 9, 2, 3); q(M, 19, 9, 2, 3);                                              // pontas das orelhas
+    ell(12, 18.5, 8.5, 6.5, (i, j) => q(j < 16 ? M : W, i, j));                       // cabeça: máscara marrom em cima, rosto branco
+    q(W, 11, 13, 2, 3); q(W, 10, 15, 4, 1);
+    q('#5aa0e0', 7, 17, 3, 2); q('#c8e4ff', 7, 17, 1, 1); q('#5aa0e0', 14, 17, 3, 2); q('#c8e4ff', 14, 17, 1, 1); q(K, 8, 17, 1, 2); q(K, 15, 17, 1, 2);   // olhos
+    q(K, 11, 18, 2, 3); q(K, 10, 21, 4, 2); q('#c07070', 11, 21, 2, 1);                // mancha preta do focinho e nariz
+    q('#d8d4dc', 1, 21, 5, 1); q('#d8d4dc', 18, 21, 5, 1); q('#d8d4dc', 2, 23, 4, 1); q('#d8d4dc', 18, 23, 4, 1);   // bigodes
+    q(K, 7, 12, 11, 2);                                                                // faixa do chapéu
+    const lobes = [[11, 6.5, 10.5, 5.5], [19, 9, 5, 5], [5, 8, 5, 4], [14, 3.5, 7, 3.5]];
+    for (const [cx, cy, rx, ry] of lobes) ell(cx, cy, rx, ry, (i, j, d) => { if (d > 0.7 && (i * 7 + j * 13) % 5 < 2) return; q(((j - cy) / ry > 0.15 && (i + j) % 2 === 0) || d > 0.82 ? '#cfc8d6' : '#ffffff', i, j); });   // plumas
+    ell(19, 9, 5, 5, (i, j, d) => { if (d < 0.5) q(((i + j) % 2) ? '#ffffff' : '#e6e0ea', i, j); });
+    q('#b9b2c4', 6, 11, 8, 1);
+  }
+
+  // ======================= PINTURA DO QUADRO (48x64, 3:4) =======================
+  // O personagem do peito pra cima, mesmo desenho do retrato da conversa, sobre um fundo de retrato a óleo.
+  function painting(s) {
+    const W = 48, H = 64, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const p = (col, x, y, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {                      // verde-escuro de parede, mais claro atrás da cabeça
+      const d = Math.hypot((x - 24) / 30, (y - 26) / 36), k = Math.max(0, 1 - d), dith = ((x + y) % 2) * 0.03;
+      p(`rgb(${12 + 22 * k + dith * 40 | 0},${30 + 40 * k + dith * 60 | 0},${24 + 26 * k + dith * 40 | 0})`, x, y);
+    }
+    const hasCat = !!s.cat;                                                        // o layout do gato abre espaço à esquerda
+    g.drawImage(portrait(s, 0, { h: H, dx: hasCat ? -3 : 0, dy: 5, noBg: true, noCat: true, noSash: hasCat }), 0, 0);
+    if (hasCat) {
+      if (s.beca) p(s.beca, 14, 58, 6, 6);                                         // ponta da faixa verde, à esquerda do gato
+      p(s.coat, 17, 56, 9, 8); p('#f4f4f4', 18, 58, 7, 1);                         // manga da beca e punho
+      p(s.skin, 19, 59, 9, 5); p(s.skinD, 19, 63, 9, 1); p(s.skinD, 22, 59, 1, 2); p(s.skinD, 25, 59, 1, 2);   // a mão segurando por baixo
+      catBig(p, 25, 35);
+      p('#ffffff', 26, 61, 4, 3); p('#cfc8d6', 26, 63, 4, 1);   // patinha branca por cima do braço
+    }
+    g.globalAlpha = 0.28; p('#000', 0, 0, W, 1); p('#000', 0, H - 1, W, 1); p('#000', 0, 0, 1, H); p('#000', W - 1, 0, 1, H); g.globalAlpha = 1;   // borda escurecida
+    return c;
+  }
+
+  const cache = {}, paintCache = {};
   function get(id) {
     if (!cache[id]) {
       const s = spec(id);
@@ -479,6 +574,7 @@ const SPRITES = (() => {
     BOAR, WEAPONS, SYRINGE, texFrom,
     get,
     textures(id) { return get(id).body.map(texFrom); },
+    paintingTex(id) { return paintCache[id] || (paintCache[id] = texFrom(painting(spec(id)))); },
     drawPortrait(canvas, id, frame) {
       const g = canvas.getContext('2d'); g.imageSmoothingEnabled = false;
       g.drawImage(get(id).face[frame], 0, 0, canvas.width, canvas.height);
