@@ -699,6 +699,23 @@ const WORLD = (() => {
     mug.userData.msg = 'Caneca do ADC: "EU ♥ PURINAS". Dentro, café frio. Do lado, uma cartela de alopurinol. Pra quê? Ninguém sabe.'; interactables.push(mug);
     sign('VIA DAS PURINAS', 4.9, 2.1, Z2 - 0.02, 1.4, 0.7, 'z-', { w: 128, h: 64, size: 12, fg: '#1a2a5a', bg: '#f2efe4', border: true,
       msg: 'Pôster colado com fita crepe: a via de salvamento das purinas, desenhada à mão. A enzima HGPRT circulada três vezes, com um coração do lado.' });
+    // Retrato do Eça, de frente pra porta: a primeira coisa que quem entra vê.
+    const plaqueLines = ['EÇA', 'INTERNO DO SÉCULO', 'Futuro melhor psiquiatra', 'ao norte de Cruz Alta e a sul de Botucatu', 'e de volta ao norte de Botucatu'];
+    const ecaMsg = `Na placa dourada: "${plaqueLines[0]} — ${plaqueLines[1]}. ${plaqueLines.slice(2).join(' ')}." No colo, um gato de beca que claramente concorda.`;
+    const paintTex = SPRITES.paintingTex('eca');
+    const plaqueTex = TEX.plaque(plaqueLines);
+    panel(7.755, 1.82, -31.9, 0.66, 0.88, 'x-', new THREE.MeshBasicMaterial({ map: paintTex, color: 0xe8e0d0 }), { msg: ecaMsg });
+    const gold = new THREE.MeshPhongMaterial({ color: 0xb8902e, specular: 0x5a4a20, shininess: 30, emissive: 0x3a2c0c });
+    box(7.72, 2.26, -32.31, 7.79, 2.34, -31.49, gold, { msg: ecaMsg });
+    box(7.72, 1.30, -32.31, 7.79, 1.38, -31.49, gold, { msg: ecaMsg });
+    box(7.72, 1.38, -32.31, 7.79, 2.26, -32.23, gold, { msg: ecaMsg });
+    box(7.72, 1.38, -31.57, 7.79, 2.26, -31.49, gold, { msg: ecaMsg });
+    panel(7.78, 1.13, -31.9, 0.6, 0.3, 'x-', new THREE.MeshBasicMaterial({ map: plaqueTex, color: 0xd8d0bc }), { msg: ecaMsg });
+    const brass = new THREE.MeshPhongMaterial({ color: 0xb8933a, specular: 0x6a5a30, shininess: 40, emissive: 0x1a1406 });
+    box(7.60, 2.40, -32.12, 7.70, 2.45, -31.68, brass);             // barra da luz de museu
+    box(7.70, 2.41, -31.92, 7.79, 2.44, -31.88, brass);             // braço até a parede
+    box(7.61, 2.395, -32.1, 7.69, 2.40, -31.7, new THREE.MeshBasicMaterial({ color: 0xffe2b0 }));   // lâmpada acesa
+    // sem PointLight de museu: cada luz a mais pesa em todo material do jogo, principalmente no celular
     const glow = new THREE.PointLight(0x8ac8ff, 0.9, 5, 2); glow.position.set(4.9, 1.2, Z2 - 0.9); scene.add(glow);
     anim.amb = {
       maaaPos: new THREE.Vector3(6.32, 0, -34.6), adcPos: new THREE.Vector3(4.9, 0, -31.05),
